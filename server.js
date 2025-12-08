@@ -118,11 +118,6 @@ app.get("/", (req, res) => {
   `);
 });
 
-// Redirect homepage to staff login
-app.get("/", (req, res) => {
-  res.redirect("/staff?key=AURA2026");
-});
-
 
 // 👇 HOST is now configurable (better for ngrok / Wi-Fi changes)
 const HOST = process.env.HOST || "0.0.0.0"; // listen on all interfaces by default
@@ -867,20 +862,17 @@ app.get("/", (req, res) => {
 // ROUTE 1: STAFF PAGE (PIN + MANUAL CHECK)
 // ------------------------------------------------------
 app.get("/staff", (req, res) => {
-  const { key } = req.query;
-  // Prevent caching (helps mobile browsers and service workers deliver fresh page)
-  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-  res.setHeader("Pragma", "no-cache");
-  res.setHeader("Surrogate-Control", "no-store");
+  const key = req.query.key;
 
-  // Log staff access attempts for debugging mobile issues
-  try {
-    console.log(
-      `/staff requested key=${key || "(none)"} UA=${
-        req.headers["user-agent"] || "(unknown)"
-      }`
-    );
-  } catch (e) {}
+  // If they didn’t come with a PIN from the login page, send them back
+  if (!key) {
+    return res.redirect("/");
+  }
+
+  // 👉 keep your existing staff logic here
+  // (whatever you already had inside app.get("/staff"...)
+});
+
 
   // WRONG OR MISSING PIN → LOGIN SCREEN
   if (key !== STAFF_PIN) {
