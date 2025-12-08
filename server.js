@@ -1443,11 +1443,12 @@ app.get("/staff", (req, res) => {
   </button>
 
 <a
-  href="/staff/generate?key=${encodeURIComponent(MANAGEMENT_PIN)}"
-  class="tile tile-red"
+  href="/generate-tickets?key=${encodeURIComponent(MANAGEMENT_PIN)}"
+  class="action-button btn-generate"
 >
-  🎫 Generate Tickets / QRCodes
+  🎟️ GENERATE TICKETS / QRCODES
 </a>
+
 
 </div>
 
@@ -1617,6 +1618,7 @@ app.get("/staff/generate", (req, res) => {
       <title>AURA Ticket Generator</title>
       <style>
         ${themeCSSRoot()}
+
         body {
           margin: 0;
           padding: 20px;
@@ -1628,6 +1630,7 @@ app.get("/staff/generate", (req, res) => {
             var(--bg-dark);
           color: var(--text-main);
         }
+
         .card {
           max-width: 520px;
           margin: 0 auto;
@@ -1638,19 +1641,66 @@ app.get("/staff/generate", (req, res) => {
             0 0 0 1px rgba(255,64,129,0.35),
             0 20px 50px rgba(0,0,0,0.95);
         }
+
         h1 {
           margin: 0 0 8px;
           font-size: 1.4rem;
         }
+
         .subtitle {
           font-size: 0.9rem;
           color: var(--text-muted);
           margin-bottom: 18px;
         }
-        .btn {
+
+        .field {
+          margin-bottom: 12px;
+        }
+
+        label {
+          display:block;
+          font-size:0.85rem;
+          margin-bottom:4px;
+          text-transform:uppercase;
+          letter-spacing:0.08em;
+          color:var(--text-muted);
+        }
+
+        select,
+        input[type="text"],
+        input[type="number"] {
+          width:100%;
+          padding:9px 11px;
+          border-radius:999px;
+          border:1px solid rgba(255,64,129,0.6);
+          background:rgba(3,0,5,0.9);
+          color:#fff;
+          font-size:0.95rem;
+          outline:none;
+          box-sizing:border-box;
+        }
+
+        select:focus,
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+          box-shadow:0 0 0 1px rgba(255,183,77,0.9),
+                     0 0 16px rgba(255,64,129,0.6);
+        }
+
+        .split-row {
+          display:flex;
+          gap:10px;
+        }
+
+        .split-row .field {
+          flex:1;
+          margin-bottom:0;
+        }
+
+        .btn-main {
           width: 100%;
           padding: 13px 16px;
-          margin: 7px 0;
+          margin-top: 16px;
           border-radius: 999px;
           border: none;
           cursor: pointer;
@@ -1662,6 +1712,9 @@ app.get("/staff/generate", (req, res) => {
           color: #050005;
           box-shadow: 0 10px 24px rgba(0,0,0,0.8);
         }
+
+        .btn-main:hover { filter:brightness(1.06); }
+
         .back-link {
           display:inline-block;
           margin-top:14px;
@@ -1669,6 +1722,7 @@ app.get("/staff/generate", (req, res) => {
           color:var(--accent-gold);
           text-decoration:none;
         }
+
         .back-link:hover { text-decoration: underline; }
       </style>
     </head>
@@ -1676,21 +1730,38 @@ app.get("/staff/generate", (req, res) => {
       <div class="card">
         <h1>AURA Ticket Generator</h1>
         <div class="subtitle">
-          Select which batch you want to create. This uses the existing batch generator,
-          so all tickets and QR codes are logged and appear in the dashboard as normal.
+          Choose a ticket type and enter how many tickets / QR codes you want.
+          All tickets still use the normal generator and appear in the dashboard.
         </div>
 
-        <button class="btn" onclick="goBatch('earlybird','EB-',1,100)">
-          Generate EARLY BIRDS (EB-001 → EB-100)
-        </button>
-        <button class="btn" onclick="goBatch('general','GEN-',1,200)">
-          Generate GENERAL (GEN-001 → GEN-200)
-        </button>
-        <button class="btn" onclick="goBatch('comp','COMP-',1,20)">
-          Generate COMP (COMP-001 → COMP-020)
-        </button>
-        <button class="btn" onclick="goBatch('test','TEST-',1,5)">
-          Generate TEST (TEST-001 → TEST-005)
+        <div class="field">
+          <label for="ticketType">Ticket type</label>
+          <select id="ticketType">
+            <option value="earlybird" data-prefix="EB-">Early Bird</option>
+            <option value="general"   data-prefix="GEN-">General</option>
+            <option value="comp"      data-prefix="COMP-">Comp</option>
+            <option value="test"      data-prefix="TEST-">Test</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="prefixInput">Ticket prefix</label>
+          <input id="prefixInput" type="text" value="EB-" />
+        </div>
+
+        <div class="split-row">
+          <div class="field">
+            <label for="startInput">Start number</label>
+            <input id="startInput" type="number" min="1" value="1" />
+          </div>
+          <div class="field">
+            <label for="countInput">How many tickets?</label>
+            <input id="countInput" type="number" min="1" value="10" />
+          </div>
+        </div>
+
+        <button class="btn-main" onclick="generateCustomBatch()">
+          Generate Tickets / QR Codes
         </button>
 
         <a class="back-link" href="/staff?key=${encodeURIComponent(STAFF_PIN)}">
@@ -1699,21 +1770,49 @@ app.get("/staff/generate", (req, res) => {
       </div>
 
       <script>
-        function goBatch(type, prefix, start, count) {
-          if (!confirm("Generate " + count + " " + type.toUpperCase() + " tickets?")) return;
+        const STAFF_PIN = ${JSON.stringify(STAFF_PIN)};
+
+        // Update prefix when ticket type changes
+        const typeSelect   = document.getElementById('ticketType');
+        const prefixInput  = document.getElementById('prefixInput');
+
+        typeSelect.addEventListener('change', () => {
+          const opt = typeSelect.selectedOptions[0];
+          if (opt && opt.dataset.prefix) {
+            prefixInput.value = opt.dataset.prefix;
+          }
+        });
+
+        function generateCustomBatch() {
+          const type   = typeSelect.value || 'general';
+          const prefix = (prefixInput.value || '').trim() || 'GEN-';
+
+          const startVal = parseInt(document.getElementById('startInput').value, 10);
+          const countVal = parseInt(document.getElementById('countInput').value, 10);
+
+          const start = Number.isFinite(startVal) && startVal > 0 ? startVal : 1;
+          const count = Number.isFinite(countVal) && countVal > 0 ? countVal : 1;
+
+          if (!confirm("Generate " + count + " " + type.toUpperCase()
+                       + " tickets starting at " + prefix + String(start).padStart(3,"0") + "?")) {
+            return;
+          }
+
           const url =
             "/generate-batch"
-            + "?key=" + encodeURIComponent(${JSON.stringify(STAFF_PIN)})
-            + "&type=" + encodeURIComponent(type)
+            + "?key="    + encodeURIComponent(STAFF_PIN)
+            + "&type="   + encodeURIComponent(type)
             + "&prefix=" + encodeURIComponent(prefix)
-            + "&start=" + encodeURIComponent(start)
-            + "&count=" + encodeURIComponent(count);
+            + "&start="  + encodeURIComponent(start)
+            + "&count="  + encodeURIComponent(count);
+
           window.location.href = url;
         }
       </script>
     </body>
     </html>`);
 });
+
 
 // ------------------------------------------------------
 // STAFF QR LIST PAGE – view & download generated QR PNGs
@@ -1909,10 +2008,15 @@ app.get("/generate-ticket", async (req, res) => {
 // ROUTE 3: Generate a batch of tickets (STAFF-ONLY)
 // ------------------------------------------------------
 app.get("/generate-batch", async (req, res) => {
-  const adminKey = req.query.key;
-  if (adminKey !== STAFF_PIN) {
+  const { key, type, prefix, start, count } = req.query;
+
+  if (!(key === STAFF_PIN || key === MANAGEMENT_PIN)) {
     return res.status(403).send("Forbidden: invalid staff key");
   }
+
+  // ... generate tickets ...
+});
+
 
   const ticketType = (req.query.type || "general").toLowerCase();
   const prefix = req.query.prefix || "GEN-";
@@ -3674,7 +3778,12 @@ app.get("/dashboard", (req, res) => {
             Also see:
             <a href="/live-analytics?key=${encodeURIComponent(MANAGEMENT_PIN)}">Live Analytics</a>
             ·
-            <a href="/staff/qr-list?key=${encodeURIComponent(MANAGEMENT_PIN)}">QR File List</a>
+<a
+  href="/staff/qr-list?key=${encodeURIComponent(MANAGEMENT_PIN)}"
+  class="action-button btn-qrfiles"
+>
+  📂 View / Download Generated QR Files →
+</a>
           </div>
         </div>
       </div>
@@ -6254,6 +6363,17 @@ app.get("/management-hub", (req, res) => {
         .btn-prizeentries { background:linear-gradient(135deg,#00bcd4,#0097a7); }
         .btn-stafflog { background:linear-gradient(135deg,#03a9f4,#0288d1); }
         .btn-guestlog { background:linear-gradient(135deg,#ff5722,#e64a19); }
+        .btn-qrfiles {
+  background: linear-gradient(135deg, #ff1744, #ff4081);
+  border: 1px solid rgba(255, 23, 68, 0.6);
+}
+.btn-generate {
+  background: linear-gradient(135deg, #7b1fa2, #9c27b0);
+  border: 1px solid rgba(155, 89, 182, 0.5);
+  color: #fff !important;
+}
+
+
         .theme-toggle {
           padding:6px 10px;
           border-radius:999px;
@@ -6303,13 +6423,14 @@ app.get("/management-hub", (req, res) => {
     <span class="label">📊 Dashboard</span>
     <span class="desc">Quick snapshot of total tickets and arrivals.</span>
   </button>
-  <a href="/staff/generate"
+<a href="/staff/generate?key=${encodeURIComponent(MANAGEMENT_PIN)}"
    style="display:block;background:#ff4b9a;padding:12px 18px;
           margin-top:15px;border-radius:8px;color:black;
           font-weight:700;text-align:center;text-decoration:none;
           background:linear-gradient(135deg,#ff4b9a,#ffb347);">
   GENERATE TICKETS / QRCODES
 </a>
+
   <button class="action-button btn-analytics" onclick="go('/live-analytics')">
     <span class="label">📈 Live Analytics</span>
     <span class="desc">Real-time check-in stats and last scans.</span>
