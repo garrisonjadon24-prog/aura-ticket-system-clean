@@ -1599,19 +1599,15 @@ const ALLOWED_MANAGERS = [
 app.get("/staff/generate", (req, res) => {
   const { key } = req.query;
 
+  // ✅ allow either STAFF or MANAGEMENT PIN
   if (!(key === STAFF_PIN || key === MANAGEMENT_PIN)) {
     return res.status(403).send("Forbidden: invalid staff key");
   }
 
+  // No caching – we want fresh versions
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Surrogate-Control", "no-store");
-
-  res.send(`<!DOCTYPE html>
-    ... your Ticket Generator HTML ...
-  `);
-});
-
 
   res.send(`<!DOCTYPE html>
     <html>
@@ -1673,6 +1669,7 @@ app.get("/staff/generate", (req, res) => {
           color:var(--accent-gold);
           text-decoration:none;
         }
+        .back-link:hover { text-decoration: underline; }
       </style>
     </head>
     <body>
@@ -1696,7 +1693,9 @@ app.get("/staff/generate", (req, res) => {
           Generate TEST (TEST-001 → TEST-005)
         </button>
 
-        <a class="back-link" href="/staff?key=${encodeURIComponent(STAFF_PIN)}">← Back to Staff Home</a>
+        <a class="back-link" href="/staff?key=${encodeURIComponent(STAFF_PIN)}">
+          ← Back to Staff Home
+        </a>
       </div>
 
       <script>
@@ -1715,6 +1714,7 @@ app.get("/staff/generate", (req, res) => {
     </body>
     </html>`);
 });
+
 // ------------------------------------------------------
 // STAFF QR LIST PAGE – view & download generated QR PNGs
 // ------------------------------------------------------
