@@ -10,6 +10,10 @@ const QRCode = require("qrcode");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.get("/", (req, res) => {
+  res.redirect("/staff?key=AURA2026");
+});
+
 // 👇 HOST is now configurable (better for ngrok / Wi-Fi changes)
 const HOST = process.env.HOST || "0.0.0.0"; // listen on all interfaces by default
 // Optional: external/public base URL (e.g. ngrok HTTPS URL)
