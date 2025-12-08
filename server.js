@@ -1772,9 +1772,9 @@ app.get("/staff/generate", (req, res) => {
           Generate Tickets / QR Codes
         </button>
 
-        <a class="back-link" href="/staff?key=${encodeURIComponent(STAFF_PIN)}">
-          ← Back to Staff Home
-        </a>
+    <a class="back-link" href="/management-hub">
+  ← Back to Management Hub
+</a>
       </div>
 
       <script>
@@ -1970,9 +1970,10 @@ app.get("/staff/qr-list", (req, res) => {
              </ul>`
       }
 
-      <a class="back-link" href="/staff?key=${encodeURIComponent(STAFF_PIN)}">
-        ← Back to Staff Home
-      </a>
+<a class="back-link" href="/management-hub">
+  ← Back to Management Hub
+</a>
+
     </div>
   </body>
   </html>`);
@@ -6379,6 +6380,12 @@ app.get("/management-hub", (req, res) => {
   background: linear-gradient(135deg, #ff1744, #ff4081);
   border: 1px solid rgba(255, 23, 68, 0.6);
 }
+.btn-qrfiles {
+  background: linear-gradient(135deg, #ff1744, #ff4081);
+  border: 1px solid rgba(255, 23, 68, 0.6);
+  color: #fff;
+}
+
 .btn-generate {
   background: linear-gradient(135deg, #7b1fa2, #9c27b0);
   border: 1px solid rgba(155, 89, 182, 0.5);
