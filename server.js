@@ -1970,10 +1970,8 @@ app.get("/staff/qr-list", (req, res) => {
   </html>`);
 });
 
-// ------------------------------------------------------
 // ROUTE 2: Generate a single ticket & QR
-// ------------------------------------------------------
-app.get("/generate-ticket", async (req, res) => {
+app.get("/generate-ticket", (req, res) => {
   const ticketId = req.query.id || "AURA-TEST-001";
   const ticketType = (req.query.type || "general").toLowerCase(); // general / earlybird / comp
 
@@ -1985,38 +1983,33 @@ app.get("/generate-ticket", async (req, res) => {
 
   const baseUrl = getBaseUrl(req);
   const ticketUrl = `${baseUrl}/ticket?token=${token}&sig=${signature}`;
+  const qrImagePath = path.join(QR_DIR, `${ticketId}.png`);
 
-  try {
-    const qrImagePath = path.join(QR_DIR, `${ticketId}.png`);
-    await QRCode.toFile(qrImagePath, ticketUrl);
-
-    res.send(`
-      <h1>Ticket generated</h1>
-      <p><strong>Ticket ID:</strong> ${ticketId}</p>
-      <p><strong>Type:</strong> ${ticketType}</p>
-      <p><strong>QR file saved at:</strong> ${qrImagePath}</p>
-      <p><strong>URL encoded in QR:</strong> ${ticketUrl}</p>
-      <p>You can now print this QR image on your physical ticket.</p>
-    `);
-  } catch (err) {
-    console.error("Error generating QR:", err);
-    res.status(500).send("Error generating QR");
-  }
+  QRCode.toFile(qrImagePath, ticketUrl)
+    .then(() => {
+      res.send(`
+        <h1>Ticket generated</h1>
+        <p><strong>Ticket ID:</strong> ${ticketId}</p>
+        <p><strong>Type:</strong> ${ticketType}</p>
+        <p><strong>QR file saved at:</strong> ${qrImagePath}</p>
+        <p><strong>URL encoded in QR:</strong> ${ticketUrl}</p>
+        <p>You can now print this QR image on your physical ticket.</p>
+      `);
+    })
+    .catch((err) => {
+      console.error("Error generating QR:", err);
+      res.status(500).send("Error generating QR");
+    });
 });
-
-// ------------------------------------------------------
 // ROUTE 3: Generate a batch of tickets (STAFF-ONLY)
-// ------------------------------------------------------
-app.get("/generate-batch", async (req, res) => {
-  const { key, type, prefix, start, count } = req.query;
+app.get("/generate-batch", (req, res) => {
+  const adminKey = req.query.key;
 
-  if (!(key === STAFF_PIN || key === MANAGEMENT_PIN)) {
+  // if you want mgmt to work too, change next line to:
+  // if (!(adminKey === STAFF_PIN || adminKey === MANAGEMENT_PIN)) { ... }
+  if (adminKey !== STAFF_PIN) {
     return res.status(403).send("Forbidden: invalid staff key");
   }
-
-  // ... generate tickets ...
-});
-
 
   const ticketType = (req.query.type || "general").toLowerCase();
   const prefix = req.query.prefix || "GEN-";
@@ -2024,6 +2017,7 @@ app.get("/generate-batch", async (req, res) => {
   const count = parseInt(req.query.count || "10", 10);
 
   const created = [];
+  const tasks = [];
 
   for (let i = 0; i < count; i++) {
     const num = start + i;
@@ -2036,24 +2030,34 @@ app.get("/generate-batch", async (req, res) => {
     const baseUrl = getBaseUrl(req);
     const ticketUrl = `${baseUrl}/ticket?token=${token}&sig=${signature}`;
     const qrImagePath = path.join(QR_DIR, `${id}.png`);
-    await QRCode.toFile(qrImagePath, ticketUrl);
+
+    // QRCode.toFile returns a Promise when no callback is passed
+    tasks.push(QRCode.toFile(qrImagePath, ticketUrl));
 
     created.push({ id, type: ticketType, qr: qrImagePath });
   }
 
-  saveTickets();
+  Promise.all(tasks)
+    .then(() => {
+      saveTickets();
 
-  res.send(`
-    <h1>Batch generated</h1>
-    <p><strong>Type:</strong> ${ticketType}</p>
-    <p><strong>Count:</strong> ${created.length}</p>
-    <ul>
-      ${created.map((t) => `<li>${t.id} → QR: ${t.qr}</li>`).join("")}
-    </ul>
-    <p><a href="/staff/generate?key=${encodeURIComponent(STAFF_PIN)}">← Back to Ticket Generator</a></p>
-  `);
+      res.send(`
+        <h1>Batch generated</h1>
+        <p><strong>Type:</strong> ${ticketType}</p>
+        <p><strong>Count:</strong> ${created.length}</p>
+        <ul>
+          ${created.map((t) => `<li>${t.id} → QR: ${t.qr}</li>`).join("")}
+        </ul>
+        <p><a href="/staff/generate?key=${encodeURIComponent(STAFF_PIN)}">
+          ← Back to Ticket Generator
+        </a></p>
+      `);
+    })
+    .catch((err) => {
+      console.error("Error generating batch QRs:", err);
+      res.status(500).send("Error generating batch QRs");
+    });
 });
-
 
 // ------------------------------------------------------
 // ROUTE 4: When someone scans the QR
