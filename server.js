@@ -10,9 +10,6 @@ const QRCode = require("qrcode");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => {
-  res.redirect("/staff?key=AURA2026");
-});
 
 // 👇 HOST is now configurable (better for ngrok / Wi-Fi changes)
 const HOST = process.env.HOST || "0.0.0.0"; // listen on all interfaces by default
@@ -20,7 +17,9 @@ const HOST = process.env.HOST || "0.0.0.0"; // listen on all interfaces by defau
 // If BASE_URL is not set, we fall back to whatever host/protocol the request used.
 const BASE_URL = process.env.BASE_URL || "";
 
-
+app.get("/", (req, res) => {
+  res.redirect("/staff?key=AURA2026");
+});
 
 
 function getBaseUrl(req) {
