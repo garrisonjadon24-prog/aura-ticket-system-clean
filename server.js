@@ -10,120 +10,12 @@ const QRCode = require("qrcode");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// HOME PAGE: Staff login (name + passcode)
-app.get("/", (req, res) => {
-  res.send(`
-    <!doctype html>
-    <html lang="en">
-    <head>
-      <meta charset="utf-8" />
-      <title>AURA Ticket System — Staff Login</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <style>
-        body {
-          background:#050510;
-          color:#fff;
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          min-height:100vh;
-          margin:0;
-        }
-        .card {
-          background:#111325;
-          padding:24px 28px;
-          border-radius:16px;
-          max-width:360px;
-          width:100%;
-          box-shadow:0 18px 35px rgba(0,0,0,0.5);
-        }
-        h1 {
-          font-size:20px;
-          margin:0 0 4px;
-        }
-        p {
-          margin:0 0 18px;
-          font-size:13px;
-          color:#c6c7e2;
-        }
-        label {
-          display:block;
-          font-size:12px;
-          margin-bottom:6px;
-          text-transform:uppercase;
-          letter-spacing:0.08em;
-          color:#9ea0ff;
-        }
-        input {
-          width:100%;
-          padding:9px 10px;
-          border-radius:8px;
-          border:1px solid #2b2d4f;
-          background:#050616;
-          color:#fff;
-          font-size:14px;
-          margin-bottom:14px;
-          box-sizing:border-box;
-        }
-        button {
-          width:100%;
-          padding:10px 12px;
-          border-radius:999px;
-          border:none;
-          font-weight:600;
-          font-size:14px;
-          cursor:pointer;
-          background:linear-gradient(135deg,#ff4b9a,#ffb347);
-          color:#050510;
-        }
-        button:active {
-          transform:translateY(1px);
-        }
-        .note {
-          margin-top:10px;
-          font-size:11px;
-          color:#7679b5;
-          text-align:center;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="card">
-        <h1>AURA Staff Login</h1>
-        <p>Enter your staff name and passcode to access the ticket tools.</p>
-        <form onsubmit="event.preventDefault(); goToStaff();">
-          <label for="name">Staff Name</label>
-          <input id="name" name="name" autocomplete="off" required />
-
-          <label for="passcode">Passcode</label>
-          <input id="passcode" name="passcode" type="password" required />
-
-          <button type="submit">Enter System</button>
-          <div class="note">POP • Hearts &amp; Spades • A.U.R.A</div>
-        </form>
-
-        <script>
-          function goToStaff() {
-            const name = document.getElementById('name').value.trim();
-            const pass = document.getElementById('passcode').value.trim();
-            if (!name || !pass) return;
-            const url = '/staff?key=' + encodeURIComponent(pass) + '&name=' + encodeURIComponent(name);
-            window.location.href = url;
-          }
-        </script>
-      </div>
-    </body>
-    </html>
-  `);
-});
-
-
 // 👇 HOST is now configurable (better for ngrok / Wi-Fi changes)
 const HOST = process.env.HOST || "0.0.0.0"; // listen on all interfaces by default
 // Optional: external/public base URL (e.g. ngrok HTTPS URL)
 // If BASE_URL is not set, we fall back to whatever host/protocol the request used.
 const BASE_URL = process.env.BASE_URL || "";
+
 
 
 
@@ -862,17 +754,20 @@ app.get("/", (req, res) => {
 // ROUTE 1: STAFF PAGE (PIN + MANUAL CHECK)
 // ------------------------------------------------------
 app.get("/staff", (req, res) => {
-  const key = req.query.key;
+  const { key } = req.query;
+  // Prevent caching (helps mobile browsers and service workers deliver fresh page)
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Surrogate-Control", "no-store");
 
-  // If they didn’t come with a PIN from the login page, send them back
-  if (!key) {
-    return res.redirect("/");
-  }
-
-  // 👉 keep your existing staff logic here
-  // (whatever you already had inside app.get("/staff"...)
-});
-
+  // Log staff access attempts for debugging mobile issues
+  try {
+    console.log(
+      `/staff requested key=${key || "(none)"} UA=${
+        req.headers["user-agent"] || "(unknown)"
+      }`
+    );
+  } catch (e) {}
 
   // WRONG OR MISSING PIN → LOGIN SCREEN
   if (key !== STAFF_PIN) {
