@@ -1436,10 +1436,18 @@ app.get("/staff", (req, res) => {
           <!-- MANAGEMENT ONLY SECTION → now routed to MANAGEMENT HUB -->
           <div class="role-section management">
             <div class="role-label">⚙️ MANAGEMENT ACCESS ONLY</div>
-            <div class="button-row">
-              <button type="button" class="action-button mgmt-hub-btn" onclick="openManagementHub()">
-                🧭 Management Hub
-              </button>
+           <div class="button-row">
+  <button type="button" class="action-button mgmt-hub-btn" onclick="openManagementHub()">
+    🧭 Management Hub
+  </button>
+
+  <a href="/staff/generate?key=${encodeURIComponent(STAFF_PIN)}"
+     class="action-button mgmt-hub-btn"
+     style="text-decoration:none;">
+    🎫 Generate Tickets / QRCodes
+  </a>
+</div>
+
             </div>
           </div>
         </div>
@@ -1584,6 +1592,122 @@ const ALLOWED_MANAGERS = [
 });
 
 // ------------------------------------------------------
+// STAFF TICKET GENERATOR SELECTION PAGE
+// ------------------------------------------------------
+app.get("/staff/generate", (req, res) => {
+  const { key } = req.query;
+  if (key !== STAFF_PIN) {
+    return res.status(403).send("Forbidden: invalid staff key");
+  }
+
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Surrogate-Control", "no-store");
+
+  res.send(`<!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>AURA Ticket Generator</title>
+      <style>
+        ${themeCSSRoot()}
+        body {
+          margin: 0;
+          padding: 20px;
+          min-height: 100vh;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+          background:
+            radial-gradient(circle at top left, rgba(255,64,129,0.25), transparent 55%),
+            radial-gradient(circle at bottom right, rgba(255,23,68,0.35), transparent 55%),
+            var(--bg-dark);
+          color: var(--text-main);
+        }
+        .card {
+          max-width: 520px;
+          margin: 0 auto;
+          background: radial-gradient(circle at top, #220018, #070008 60%);
+          border-radius: 20px;
+          padding: 20px 18px;
+          box-shadow:
+            0 0 0 1px rgba(255,64,129,0.35),
+            0 20px 50px rgba(0,0,0,0.95);
+        }
+        h1 {
+          margin: 0 0 8px;
+          font-size: 1.4rem;
+        }
+        .subtitle {
+          font-size: 0.9rem;
+          color: var(--text-muted);
+          margin-bottom: 18px;
+        }
+        .btn {
+          width: 100%;
+          padding: 13px 16px;
+          margin: 7px 0;
+          border-radius: 999px;
+          border: none;
+          cursor: pointer;
+          font-weight: 700;
+          font-size: 0.95rem;
+          text-transform: uppercase;
+          letter-spacing: 0.09em;
+          background: linear-gradient(135deg,#ff4b9a,#ffb347);
+          color: #050005;
+          box-shadow: 0 10px 24px rgba(0,0,0,0.8);
+        }
+        .back-link {
+          display:inline-block;
+          margin-top:14px;
+          font-size:0.85rem;
+          color:var(--accent-gold);
+          text-decoration:none;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <h1>AURA Ticket Generator</h1>
+        <div class="subtitle">
+          Select which batch you want to create. This uses the existing batch generator,
+          so all tickets and QR codes are logged and appear in the dashboard as normal.
+        </div>
+
+        <button class="btn" onclick="goBatch('earlybird','EB-',1,100)">
+          Generate EARLY BIRDS (EB-001 → EB-100)
+        </button>
+        <button class="btn" onclick="goBatch('general','GEN-',1,200)">
+          Generate GENERAL (GEN-001 → GEN-200)
+        </button>
+        <button class="btn" onclick="goBatch('comp','COMP-',1,20)">
+          Generate COMP (COMP-001 → COMP-020)
+        </button>
+        <button class="btn" onclick="goBatch('test','TEST-',1,5)">
+          Generate TEST (TEST-001 → TEST-005)
+        </button>
+
+        <a class="back-link" href="/staff?key=${encodeURIComponent(STAFF_PIN)}">← Back to Staff Home</a>
+      </div>
+
+      <script>
+        function goBatch(type, prefix, start, count) {
+          if (!confirm("Generate " + count + " " + type.toUpperCase() + " tickets?")) return;
+          const url =
+            "/generate-batch"
+            + "?key=" + encodeURIComponent(${JSON.stringify(STAFF_PIN)})
+            + "&type=" + encodeURIComponent(type)
+            + "&prefix=" + encodeURIComponent(prefix)
+            + "&start=" + encodeURIComponent(start)
+            + "&count=" + encodeURIComponent(count);
+          window.location.href = url;
+        }
+      </script>
+    </body>
+    </html>`);
+});
+
+// ------------------------------------------------------
 // ROUTE 2: Generate a single ticket & QR
 // ------------------------------------------------------
 app.get("/generate-ticket", async (req, res) => {
@@ -1618,9 +1742,14 @@ app.get("/generate-ticket", async (req, res) => {
 });
 
 // ------------------------------------------------------
-// ROUTE 3: Generate a batch of tickets
+// ROUTE 3: Generate a batch of tickets (STAFF-ONLY)
 // ------------------------------------------------------
 app.get("/generate-batch", async (req, res) => {
+  const adminKey = req.query.key;
+  if (adminKey !== STAFF_PIN) {
+    return res.status(403).send("Forbidden: invalid staff key");
+  }
+
   const ticketType = (req.query.type || "general").toLowerCase();
   const prefix = req.query.prefix || "GEN-";
   const start = parseInt(req.query.start || "1", 10);
@@ -1653,8 +1782,10 @@ app.get("/generate-batch", async (req, res) => {
     <ul>
       ${created.map((t) => `<li>${t.id} → QR: ${t.qr}</li>`).join("")}
     </ul>
+    <p><a href="/staff/generate?key=${encodeURIComponent(STAFF_PIN)}">← Back to Ticket Generator</a></p>
   `);
 });
+
 
 // ------------------------------------------------------
 // ROUTE 4: When someone scans the QR
@@ -5765,6 +5896,13 @@ app.get("/management-hub", (req, res) => {
     <span class="label">📊 Dashboard</span>
     <span class="desc">Quick snapshot of total tickets and arrivals.</span>
   </button>
+  <a href="/staff/generate"
+   style="display:block;background:#ff4b9a;padding:12px 18px;
+          margin-top:15px;border-radius:8px;color:black;
+          font-weight:700;text-align:center;text-decoration:none;
+          background:linear-gradient(135deg,#ff4b9a,#ffb347);">
+  GENERATE TICKETS / QRCODES
+</a>
   <button class="action-button btn-analytics" onclick="go('/live-analytics')">
     <span class="label">📈 Live Analytics</span>
     <span class="desc">Real-time check-in stats and last scans.</span>
