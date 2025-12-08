@@ -1,0 +1,20 @@
+{
+  "name": "A.U.R.A Staff",
+  "short_name": "AURA Staff",
+  "start_url": "/staff?key=AURA2026",
+  "display": "standalone",
+  "background_color": "#050007",
+  "theme_color": "#ff1744",
+  "icons": [
+    {
+      "src": "/aura-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/aura-logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
