@@ -1442,11 +1442,13 @@ app.get("/staff", (req, res) => {
     🧭 Management Hub
   </button>
 
-  <a href="/staff/generate?key=${encodeURIComponent(STAFF_PIN)}"
-     class="action-button mgmt-hub-btn"
-     style="text-decoration:none;">
-    🎫 Generate Tickets / QRCodes
-  </a>
+<a
+  href="/staff/generate?key=${encodeURIComponent(MANAGEMENT_PIN)}"
+  class="tile tile-red"
+>
+  🎫 Generate Tickets / QRCodes
+</a>
+
 </div>
 
             </div>
@@ -1591,19 +1593,25 @@ const ALLOWED_MANAGERS = [
     </body>
     </html>`);
 });
-
 // ------------------------------------------------------
 // STAFF TICKET GENERATOR SELECTION PAGE
 // ------------------------------------------------------
 app.get("/staff/generate", (req, res) => {
   const { key } = req.query;
-  if (key !== STAFF_PIN) {
+
+  if (!(key === STAFF_PIN || key === MANAGEMENT_PIN)) {
     return res.status(403).send("Forbidden: invalid staff key");
   }
 
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Surrogate-Control", "no-store");
+
+  res.send(`<!DOCTYPE html>
+    ... your Ticket Generator HTML ...
+  `);
+});
+
 
   res.send(`<!DOCTYPE html>
     <html>
@@ -1707,13 +1715,14 @@ app.get("/staff/generate", (req, res) => {
     </body>
     </html>`);
 });
-
 // ------------------------------------------------------
 // STAFF QR LIST PAGE – view & download generated QR PNGs
 // ------------------------------------------------------
 app.get("/staff/qr-list", (req, res) => {
   const { key } = req.query;
-  if (key !== STAFF_PIN) {
+
+  // ✅ allow staff OR management
+  if (!(key === STAFF_PIN || key === MANAGEMENT_PIN)) {
     return res.status(403).send("Forbidden: invalid staff key");
   }
 
@@ -1722,7 +1731,8 @@ app.get("/staff/qr-list", (req, res) => {
 
   try {
     if (fs.existsSync(qrFolder)) {
-      files = fs.readdirSync(qrFolder)
+      files = fs
+        .readdirSync(qrFolder)
         .filter((f) => f.toLowerCase().endsWith(".png"))
         .sort();
     }
@@ -1731,61 +1741,134 @@ app.get("/staff/qr-list", (req, res) => {
   }
 
   res.send(`<!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>AURA QR Files</title>
-      <style>
-        body {
-          margin:0;
-          padding:20px;
-          font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-          background:#050510;
-          color:#fff;
-        }
-        h1 { margin:0 0 10px; font-size:1.4rem; }
-        p { font-size:0.9rem; color:#ccc; margin:0 0 14px; }
-        ul { list-style:none; padding:0; margin:0; }
-        li { margin:4px 0; }
-        a.qr-link {
-          color:#ffb347;
-          text-decoration:none;
-        }
-        a.qr-link:hover { text-decoration:underline; }
-        .back {
-          display:inline-block;
-          margin-top:14px;
-          font-size:0.85rem;
-          color:#ffb347;
-          text-decoration:none;
-        }
-      </style>
-    </head>
-    <body>
+  <html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AURA QR Files</title>
+    <style>
+      ${themeCSSRoot()}
+      * { box-sizing: border-box; }
+
+      body {
+        margin:0;
+        padding:18px;
+        min-height:100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(255,64,129,0.25), transparent 55%),
+          radial-gradient(circle at bottom right, rgba(255,23,68,0.35), transparent 55%),
+          var(--bg-dark);
+        color: var(--text-main);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      }
+
+      .card {
+        width:100%;
+        max-width:520px;
+        background: radial-gradient(circle at top, #220018, #070008 60%);
+        border-radius:20px;
+        padding:22px 20px;
+        box-shadow:
+          0 0 0 1px rgba(255,64,129,0.35),
+          0 20px 50px rgba(0,0,0,0.95);
+      }
+
+      h1 {
+        margin:0 0 4px;
+        font-size:1.4rem;
+        background: linear-gradient(120deg,#ffb300,#ff4081,#ff1744);
+        -webkit-background-clip:text;
+        color:transparent;
+      }
+
+      .subtitle {
+        font-size:0.9rem;
+        color:var(--text-muted);
+        margin-bottom:16px;
+      }
+
+      ul {
+        list-style:none;
+        padding:0;
+        margin:0;
+      }
+
+      li {
+        margin:4px 0;
+      }
+
+      a.qr-link {
+        display:flex;
+        align-items:center;
+        gap:8px;
+        padding:8px 10px;
+        border-radius:10px;
+        text-decoration:none;
+        font-size:0.9rem;
+        background:rgba(0,0,0,0.35);
+        color:#ffb347;
+        border:1px solid rgba(255,179,0,0.25);
+      }
+
+      a.qr-link:hover {
+        background:rgba(255,179,0,0.08);
+      }
+
+      .empty {
+        font-size:0.9rem;
+        color:var(--text-muted);
+      }
+
+      .back-link {
+        display:inline-block;
+        margin-top:16px;
+        font-size:0.85rem;
+        color:var(--accent-gold);
+        text-decoration:none;
+      }
+
+      .back-link:hover {
+        text-decoration:underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
       <h1>AURA QR Files</h1>
-      <p>Click a filename to open the QR image. Then save it on your Mac and place it into your ticket designs.</p>
+      <div class="subtitle">
+        Click a filename to open the QR image in a new tab, then save it on your Mac
+        and drop it into your ticket artwork.
+      </div>
 
       ${
         files.length === 0
-          ? "<p><em>No QR PNG files found in generated_qr/ yet.</em></p>"
+          ? '<p class="empty"><em>No QR PNG files found in generated_qr/ yet.</em></p>'
           : `<ul>
               ${files
                 .map(
-                  (f) =>
-                    `<li><a class="qr-link" href="/generated_qr/${encodeURIComponent(
-                      f
-                    )}" target="_blank">${f}</a></li>`
+                  (f) => `
+                    <li>
+                      <a class="qr-link"
+                         href="/generated_qr/${encodeURIComponent(f)}"
+                         target="_blank">
+                        <span>📁</span>
+                        <span>${f}</span>
+                      </a>
+                    </li>`
                 )
                 .join("")}
              </ul>`
       }
 
-      <a class="back" href="/staff?key=${encodeURIComponent(
-        STAFF_PIN
-      )}">← Back to Staff Home</a>
-    </body>
-    </html>`);
+      <a class="back-link" href="/staff?key=${encodeURIComponent(STAFF_PIN)}">
+        ← Back to Staff Home
+      </a>
+    </div>
+  </body>
+  </html>`);
 });
 
 // ------------------------------------------------------
@@ -3245,114 +3328,357 @@ app.get("/live-analytics", (req, res) => {
 });
 
 // ------------------------------------------------------
-// SIMPLE DASHBOARD (unchanged logic, management-only)
+// MANAGEMENT DASHBOARD (Event Snapshot + QR + types)
 // ------------------------------------------------------
 app.get("/dashboard", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
-    return res.redirect("/staff");
+    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
   }
 
+  // ---- TICKET STATS ----
   let total = 0;
   let used = 0;
-  let unused = 0;
+  const byType = {}; // { general: {total, used}, earlybird: {...}, ... }
 
   for (const [_token, record] of tickets.entries()) {
     total++;
-    if (record.status === "used") used++;
-    else unused++;
+
+    const t = record.type || "general";
+    if (!byType[t]) {
+      byType[t] = { total: 0, used: 0 };
+    }
+    byType[t].total++;
+
+    if (record.status === "used") {
+      used++;
+      byType[t].used++;
+    }
   }
+
+  const unused = total - used;
+  const usagePercent = total > 0 ? Math.round((used / total) * 100) : 0;
+
+  // ---- QR PNG COUNT ----
+  let qrCount = 0;
+  try {
+    if (fs.existsSync(QR_DIR)) {
+      qrCount = fs
+        .readdirSync(QR_DIR)
+        .filter((f) => f.toLowerCase().endsWith(".png")).length;
+    }
+  } catch (e) {
+    console.error("Error reading QR_DIR for dashboard:", e);
+  }
+
+  // ---- INVALID / DUPLICATE SCANS SUMMARY ----
+  const invalidCount = scanEvents.invalid.length;
+  const duplicateCount = scanEvents.duplicates.length;
 
   res.send(`<!DOCTYPE html>
     <html>
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>AURA Dashboard</title>
+      <title>AURA Event Snapshot</title>
       <style>
         ${themeCSSRoot()}
+        * { box-sizing: border-box; }
+
         body {
           margin:0;
           padding:18px;
+          min-height:100vh;
           font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-          background:#050007;
-          color:#f5f5f5;
+          background:
+            radial-gradient(circle at top left, rgba(255,64,129,0.25), transparent 55%),
+            radial-gradient(circle at bottom right, rgba(255,23,68,0.35), transparent 55%),
+            var(--bg-dark);
+          color:var(--text-main);
           display:flex;
           justify-content:center;
-          min-height:100vh;
         }
-        .card {
+
+        .shell {
           width:100%;
-          max-width:600px;
-          background:radial-gradient(circle at top,#220018,#070008 60%);
-          border-radius:24px;
-          padding:24px;
-          border:1px solid rgba(255,64,129,0.3);
-          box-shadow:0 18px 40px rgba(0,0,0,0.8);
+          max-width:1100px;
         }
+
+        .header-row {
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:12px;
+          margin-bottom:18px;
+        }
+
         h1 {
-          margin:0 0 10px;
-          font-size:1.7rem;
+          margin:0;
+          font-size:1.9rem;
           background:linear-gradient(120deg,#ffb300,#ff4081,#ff1744);
           -webkit-background-clip:text;
           color:transparent;
         }
-        .stat-row {
-          display:flex;
-          gap:18px;
-          margin-top:16px;
-        }
-        .stat {
-          flex:1;
-          padding:16px;
-          border-radius:16px;
-          background:rgba(0,0,0,0.35);
-        }
-        .stat-label {
-          font-size:0.8rem;
-          text-transform:uppercase;
-          letter-spacing:0.08em;
+
+        .header-sub {
+          font-size:0.9rem;
           color:#aaa;
         }
-        .stat-value {
-          font-size:1.7rem;
-          font-weight:700;
-          margin-top:4px;
+
+        .badge {
+          padding:6px 12px;
+          border-radius:999px;
+          border:1px solid rgba(255,64,129,0.55);
+          font-size:0.75rem;
+          text-transform:uppercase;
+          letter-spacing:0.12em;
+          color:#ffb300;
+          background:rgba(0,0,0,0.35);
+          align-self:flex-start;
         }
+
+        .grid-main {
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+          gap:14px;
+          margin-bottom:18px;
+        }
+
+        .card {
+          background:radial-gradient(circle at top,#220018,#070008 65%);
+          border-radius:18px;
+          padding:18px 16px;
+          border:1px solid rgba(255,64,129,0.3);
+          box-shadow:0 14px 32px rgba(0,0,0,0.8);
+        }
+
+        .stat-label {
+          font-size:0.78rem;
+          text-transform:uppercase;
+          letter-spacing:0.1em;
+          color:#b0b0ff;
+          margin-bottom:6px;
+        }
+
+        .stat-value {
+          font-size:2.1rem;
+          font-weight:700;
+        }
+
+        .stat-meta {
+          margin-top:4px;
+          font-size:0.85rem;
+          color:#aaa;
+        }
+
+        .stat-value-green {
+          color:#34c759;
+        }
+        .stat-value-gold {
+          color:#ffb300;
+        }
+        .stat-value-red {
+          color:#ff5252;
+        }
+
+        h2 {
+          margin:0 0 10px;
+          font-size:1.1rem;
+        }
+
+        table {
+          width:100%;
+          border-collapse:collapse;
+          font-size:0.85rem;
+        }
+
+        th, td {
+          padding:7px 6px;
+          border-bottom:1px solid rgba(255,255,255,0.07);
+          text-align:left;
+        }
+
+        th {
+          font-size:0.78rem;
+          text-transform:uppercase;
+          letter-spacing:0.08em;
+          color:#bbb;
+        }
+
+        .chip {
+          display:inline-block;
+          padding:3px 8px;
+          border-radius:999px;
+          font-size:0.7rem;
+          text-transform:uppercase;
+          letter-spacing:0.08em;
+        }
+        .chip-ok {
+          background:rgba(76,175,80,0.2);
+          color:#4caf50;
+        }
+        .chip-warn {
+          background:rgba(255,193,7,0.2);
+          color:#ffc107;
+        }
+        .chip-bad {
+          background:rgba(244,67,54,0.2);
+          color:#f44336;
+        }
+
+        .footer-row {
+          margin-top:18px;
+          display:flex;
+          flex-wrap:wrap;
+          gap:10px;
+          align-items:center;
+          justify-content:space-between;
+        }
+
         .back-btn {
           display:inline-block;
-          margin-top:18px;
           padding:8px 16px;
           border-radius:999px;
-          border:1px solid rgba(255,255,255,0.2);
+          border:1px solid rgba(255,255,255,0.25);
           text-decoration:none;
           color:#fff;
           font-size:0.85rem;
           letter-spacing:0.08em;
           text-transform:uppercase;
         }
+
+        .link-row {
+          font-size:0.82rem;
+          color:#aaa;
+        }
+
+        .link-row a {
+          color:#ffb300;
+          text-decoration:none;
+        }
+
+        .link-row a:hover { text-decoration:underline; }
+
+        @media (max-width:720px) {
+          .card { padding:16px 14px; }
+          .stat-value { font-size:1.8rem; }
+          h1 { font-size:1.5rem; }
+        }
       </style>
     </head>
     <body>
-      <div class="card">
-        <h1>Event Snapshot</h1>
-        <div class="stat-row">
-          <div class="stat">
+      <div class="shell">
+        <div class="header-row">
+          <div>
+            <h1>Event Snapshot</h1>
+            <div class="header-sub">
+              Live overview of Hearts &amp; Spades tickets, QR codes and scan health.
+            </div>
+          </div>
+          <div class="badge">MANAGEMENT VIEW</div>
+        </div>
+
+        <div class="grid-main">
+          <div class="card">
             <div class="stat-label">Total Tickets</div>
-            <div class="stat-value">${total}</div>
+            <div class="stat-value stat-value-gold">${total}</div>
+            <div class="stat-meta">All tickets generated across batches.</div>
           </div>
-          <div class="stat">
+          <div class="card">
             <div class="stat-label">Checked In</div>
-            <div class="stat-value">${used}</div>
+            <div class="stat-value stat-value-green">${used}</div>
+            <div class="stat-meta">${usagePercent}% arrival rate so far.</div>
           </div>
-          <div class="stat">
+          <div class="card">
             <div class="stat-label">Pending</div>
             <div class="stat-value">${unused}</div>
+            <div class="stat-meta">Still to arrive / not scanned yet.</div>
+          </div>
+          <div class="card">
+            <div class="stat-label">QR PNG Files</div>
+            <div class="stat-value stat-value-gold">${qrCount}</div>
+            <div class="stat-meta">Saved in <code>generated_qr/</code> for artwork.</div>
           </div>
         </div>
-        <a href="/management-hub?key=${encodeURIComponent(
-          MANAGEMENT_PIN
-        )}" class="back-btn">← Back to Management Hub</a>
+
+        <div class="grid-main">
+          <div class="card">
+            <h2>By Ticket Type</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Total</th>
+                  <th>Checked In</th>
+                  <th>Arrival %</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${
+                  Object.keys(byType).length === 0
+                    ? `<tr><td colspan="4" style="color:#888;font-size:0.85rem;">No tickets generated yet.</td></tr>`
+                    : Object.entries(byType)
+                        .map(([type, stats]) => {
+                          const pct =
+                            stats.total > 0
+                              ? Math.round((stats.used / stats.total) * 100)
+                              : 0;
+                          return `<tr>
+                            <td><strong>${type}</strong></td>
+                            <td>${stats.total}</td>
+                            <td style="color:#34c759;">${stats.used}</td>
+                            <td>${pct}%</td>
+                          </tr>`;
+                        })
+                        .join("")
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <h2>Scan Health</h2>
+            <p style="font-size:0.87rem; color:#ccc; margin-top:0; margin-bottom:10px;">
+              Quick view of how clean your door scanning has been.
+            </p>
+            <table>
+              <tbody>
+                <tr>
+                  <td>Invalid / forged scans</td>
+                  <td style="text-align:right;">
+                    <span class="chip ${invalidCount === 0 ? "chip-ok" : "chip-bad"}">
+                      ${invalidCount}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Duplicate scans</td>
+                  <td style="text-align:right;">
+                    <span class="chip ${duplicateCount === 0 ? "chip-ok" : "chip-warn"}">
+                      ${duplicateCount}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p style="font-size:0.8rem; color:#888; margin-top:10px;">
+              For deep dive, use the Live Analytics dashboard.
+            </p>
+          </div>
+        </div>
+
+        <div class="footer-row">
+          <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-btn">
+            ← Back to Management Hub
+          </a>
+          <div class="link-row">
+            Also see:
+            <a href="/live-analytics?key=${encodeURIComponent(MANAGEMENT_PIN)}">Live Analytics</a>
+            ·
+            <a href="/staff/qr-list?key=${encodeURIComponent(MANAGEMENT_PIN)}">QR File List</a>
+          </div>
+        </div>
       </div>
+
       ${themeScript()}
     </body>
     </html>`);
@@ -5989,10 +6315,13 @@ app.get("/management-hub", (req, res) => {
     <span class="desc">Real-time check-in stats and last scans.</span>
     
   </button>
-  <a class="back-link"
-   href="/staff/qr-list?key=${encodeURIComponent(STAFF_PIN)}">
+<a
+  href="/staff/qr-list?key=${encodeURIComponent(MANAGEMENT_PIN)}"
+  class="tile tile-small"
+>
   View / Download Generated QR Files →
 </a>
+
 
   <button class="action-button btn-alloc" onclick="go('/allocations')">
     <span class="label">📑 Allocations</span>
