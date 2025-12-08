@@ -202,6 +202,7 @@ function isMgmtAuthorizedReq(req) {
 
 // Folder where QR images are saved
 const QR_DIR = path.join(__dirname, "generated_qr");
+app.use("/generated_qr", express.static(QR_DIR));
 
 // In-memory ticket store: token -> { id, type, status }
 const tickets = new Map();
@@ -1703,6 +1704,86 @@ app.get("/staff/generate", (req, res) => {
           window.location.href = url;
         }
       </script>
+    </body>
+    </html>`);
+});
+
+// ------------------------------------------------------
+// STAFF QR LIST PAGE – view & download generated QR PNGs
+// ------------------------------------------------------
+app.get("/staff/qr-list", (req, res) => {
+  const { key } = req.query;
+  if (key !== STAFF_PIN) {
+    return res.status(403).send("Forbidden: invalid staff key");
+  }
+
+  const qrFolder = QR_DIR;
+  let files = [];
+
+  try {
+    if (fs.existsSync(qrFolder)) {
+      files = fs.readdirSync(qrFolder)
+        .filter((f) => f.toLowerCase().endsWith(".png"))
+        .sort();
+    }
+  } catch (err) {
+    console.error("Error reading QR folder:", err);
+  }
+
+  res.send(`<!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>AURA QR Files</title>
+      <style>
+        body {
+          margin:0;
+          padding:20px;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+          background:#050510;
+          color:#fff;
+        }
+        h1 { margin:0 0 10px; font-size:1.4rem; }
+        p { font-size:0.9rem; color:#ccc; margin:0 0 14px; }
+        ul { list-style:none; padding:0; margin:0; }
+        li { margin:4px 0; }
+        a.qr-link {
+          color:#ffb347;
+          text-decoration:none;
+        }
+        a.qr-link:hover { text-decoration:underline; }
+        .back {
+          display:inline-block;
+          margin-top:14px;
+          font-size:0.85rem;
+          color:#ffb347;
+          text-decoration:none;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>AURA QR Files</h1>
+      <p>Click a filename to open the QR image. Then save it on your Mac and place it into your ticket designs.</p>
+
+      ${
+        files.length === 0
+          ? "<p><em>No QR PNG files found in generated_qr/ yet.</em></p>"
+          : `<ul>
+              ${files
+                .map(
+                  (f) =>
+                    `<li><a class="qr-link" href="/generated_qr/${encodeURIComponent(
+                      f
+                    )}" target="_blank">${f}</a></li>`
+                )
+                .join("")}
+             </ul>`
+      }
+
+      <a class="back" href="/staff?key=${encodeURIComponent(
+        STAFF_PIN
+      )}">← Back to Staff Home</a>
     </body>
     </html>`);
 });
@@ -5906,7 +5987,13 @@ app.get("/management-hub", (req, res) => {
   <button class="action-button btn-analytics" onclick="go('/live-analytics')">
     <span class="label">📈 Live Analytics</span>
     <span class="desc">Real-time check-in stats and last scans.</span>
+    
   </button>
+  <a class="back-link"
+   href="/staff/qr-list?key=${encodeURIComponent(STAFF_PIN)}">
+  View / Download Generated QR Files →
+</a>
+
   <button class="action-button btn-alloc" onclick="go('/allocations')">
     <span class="label">📑 Allocations</span>
     <span class="desc">Track prefixes, sold vs unsold, export CSV.</span>
