@@ -162,7 +162,7 @@ const INSTAGRAM_URL = "https://www.instagram.com/a.u.r.a_by_pop/";
 const STAFF_PIN = "AURA2026";
 
 // Management PIN (for dashboard / analytics / allocations / prize draws / logs)
-const MANAGEMENT_PIN = "ITBEGINSNOW!";
+const MANAGEMENT_PIN = "POP!";
 
 // HMAC secret key for QR signature verification (prevents forged QR codes)
 // IMPORTANT: Must be fixed/persistent so QR signatures remain valid across server restarts
@@ -1441,37 +1441,45 @@ app.get("/staff", (req, res) => {
   <button type="button" class="action-button mgmt-hub-btn" onclick="openManagementHub()">
     🧭 Management Hub
   </button>
-
-<a
-  href="/generate-tickets?key=${encodeURIComponent(MANAGEMENT_PIN)}"
-  class="action-button btn-generate"
->
-  🎟️ GENERATE TICKETS / QRCODES
-</a>
-
-
+  
 </div>
 
             </div>
           </div>
         </div>
       </div>
+<!-- Management Login Modal (styled) -->
+<div id="mgmtLoginModal" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:9999;">
+  <div style="width:100%;max-width:420px;border-radius:12px;padding:18px;background:linear-gradient(180deg,#120012,#1a0018);box-shadow:0 12px 40px rgba(0,0,0,0.8);border:1px solid rgba(255,64,129,0.12);">
+    <h3 style="margin:0 0 6px;color:#ffd86b;font-size:1.1rem">Management Login</h3>
+    <div style="color:#ccc;font-size:0.9rem;margin-bottom:10px">Enter manager name and PIN to continue.</div>
 
-      <!-- Management Login Modal (styled) -->
-      <div id="mgmtLoginModal" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:9999;">
-        <div style="width:100%;max-width:420px;border-radius:12px;padding:18px;background:linear-gradient(180deg,#120012,#1a0018);box-shadow:0 12px 40px rgba(0,0,0,0.8);border:1px solid rgba(255,64,129,0.12);">
-          <h3 style="margin:0 0 6px;color:#ffd86b;font-size:1.1rem">Management Login</h3>
-          <div style="color:#ccc;font-size:0.9rem;margin-bottom:10px">Enter manager name and PIN to continue.</div>
-          <form id="mgmtLoginForm" onsubmit="submitMgmtLoginForm(event)">
-            <input id="mgmtNameInput" placeholder="Manager name" autocomplete="off" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,64,129,0.25);background:rgba(3,0,5,0.6);color:#fff;margin-bottom:8px" />
-            <input id="mgmtPinInput" placeholder="Management PIN" type="password" autocomplete="off" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,64,129,0.25);background:rgba(3,0,5,0.6);color:#fff;margin-bottom:8px" />
-            <div id="mgmtLoginError" style="color:#ffb3b3;min-height:18px;margin-bottom:8px"></div>
-            <div style="display:flex;gap:8px">
-              <button type="submit" style="flex:1;padding:10px 12px;border-radius:8px;border:none;background:linear-gradient(90deg,#ffd86b,#ffb300);font-weight:700">Enter</button>
-            </div>
-          </form>
-        </div>
+    <form id="mgmtLoginForm" onsubmit="submitMgmtLoginForm(event)">
+      <input id="mgmtNameInput" placeholder="Manager name" autocomplete="off"
+             style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,64,129,0.25);background:rgba(3,0,5,0.6);color:#fff;margin-bottom:8px" />
+
+      <input id="mgmtPinInput" placeholder="Management PIN" type="password" autocomplete="off"
+             style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,64,129,0.25);background:rgba(3,0,5,0.6);color:#fff;margin-bottom:8px" />
+
+      <div id="mgmtLoginError" style="color:#ffb3b3;min-height:18px;margin-bottom:8px"></div>
+
+      <div style="display:flex;gap:8px">
+        <button type="submit"
+                style="flex:1;padding:10px 12px;border-radius:8px;border:none;background:linear-gradient(90deg,#ffd86b,#ffb300);font-weight:700">
+          Enter
+        </button>
       </div>
+    </form>
+
+    <!-- NEW: Back to staff page link -->
+    <a href="#"
+       onclick="closeMgmtModal(); return false;"
+       style="display:block;margin-top:10px;font-size:0.85rem;color:#ffb347;text-align:center;text-decoration:none;">
+      ← Back to Staff Page
+    </a>
+  </div>
+</div>
+
 
       ${themeScript()}
       <script>
@@ -6413,7 +6421,7 @@ app.get("/management-hub", (req, res) => {
               </div>
             </div>
             <div>
-              <div class="badge">MGMT PIN • ITBEGINSNOW!</div>
+              <div class="badge">MGMT PIN • POP!</div>
               <button class="theme-toggle" onclick="AURA_THEME.toggle()">☀ Light / Dark</button>
             </div>
           </div>
