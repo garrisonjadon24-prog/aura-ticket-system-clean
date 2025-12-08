@@ -10,6 +10,126 @@ const QRCode = require("qrcode");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// AURA STAFF LOGIN HOMEPAGE
+app.get("/", (req, res) => {
+  res.send(`
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <title>AURA Ticket System — Staff Login</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <style>
+        body {
+          margin:0;
+          min-height:100vh;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background: radial-gradient(circle at top left,#4b004b,#050510 55%,#000000);
+          font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+          color:#fff;
+        }
+        .card {
+          background:rgba(8,8,24,0.95);
+          border-radius:18px;
+          padding:26px 28px 22px;
+          max-width:380px;
+          width:100%;
+          box-shadow:0 22px 40px rgba(0,0,0,0.7);
+          border:1px solid rgba(255,255,255,0.07);
+        }
+        h1 {
+          margin:0 0 6px;
+          font-size:22px;
+          background:linear-gradient(135deg,#ff4b9a,#ffb347);
+          -webkit-background-clip:text;
+          color:transparent;
+        }
+        h2 {
+          margin:0 0 14px;
+          font-size:13px;
+          text-transform:uppercase;
+          letter-spacing:0.16em;
+          color:#f3c1ff;
+        }
+        label {
+          display:block;
+          font-size:12px;
+          margin-bottom:6px;
+          text-transform:uppercase;
+          letter-spacing:0.09em;
+          color:#9ea0ff;
+        }
+        input {
+          width:100%;
+          padding:9px 11px;
+          border-radius:999px;
+          border:1px solid #2c2e5a;
+          background:#050515;
+          color:#fff;
+          font-size:14px;
+          margin-bottom:14px;
+          box-sizing:border-box;
+        }
+        button {
+          width:100%;
+          padding:11px 12px;
+          border-radius:999px;
+          border:none;
+          font-weight:600;
+          font-size:14px;
+          cursor:pointer;
+          background:linear-gradient(135deg,#ff3c88,#ffb347);
+          color:#050510;
+          text-transform:uppercase;
+          letter-spacing:0.14em;
+        }
+        button:active {
+          transform:translateY(1px);
+        }
+        .note {
+          margin-top:10px;
+          font-size:11px;
+          color:#8889c7;
+          text-align:center;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <h2>A.U.R.A by POP</h2>
+        <h1>AURA Ticket System</h1>
+        <p style="margin:0 0 18px;font-size:13px;color:#d4d5f7;">
+          Enter your name and staff PIN to unlock ticket tools.
+        </p>
+
+        <form onsubmit="event.preventDefault(); goToStaff();">
+          <label for="name">Your Name</label>
+          <input id="name" name="name" placeholder="e.g. Ray" autocomplete="off" required />
+
+          <label for="pin">Staff PIN</label>
+          <input id="pin" name="pin" type="password" required />
+
+          <button type="submit">Enter Aura</button>
+          <div class="note">Internal use only • Hearts &amp; Spades // Event Ops</div>
+        </form>
+      </div>
+
+      <script>
+        function goToStaff() {
+          var name = document.getElementById('name').value.trim();
+          var pin = document.getElementById('pin').value.trim();
+          if (!name || !pin) return;
+          var url = '/staff?key=' + encodeURIComponent(pin) + '&name=' + encodeURIComponent(name);
+          window.location.href = url;
+        }
+      </script>
+    </body>
+    </html>
+  `);
+});
+
 // 👇 HOST is now configurable (better for ngrok / Wi-Fi changes)
 const HOST = process.env.HOST || "0.0.0.0"; // listen on all interfaces by default
 // Optional: external/public base URL (e.g. ngrok HTTPS URL)
@@ -746,7 +866,7 @@ function pushWithLimit(arr, item, limit = 500) {
   if (arr.length > limit) arr.shift();
 }
 // Always start app at staff login
-app.get("/", (req, res) => {
+, (req, res) => {
   res.redirect("/staff");
 });
 
