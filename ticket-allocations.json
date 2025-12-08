@@ -1,0 +1,16 @@
+[
+  {
+    "ticketId": "FRESH-002",
+    "sellerName": "Jogn",
+    "sellerPhone": "",
+    "sellerEmail": "",
+    "sold": true
+  },
+  {
+    "ticketId": "FRESH-004",
+    "sellerName": "Don",
+    "sellerPhone": "245",
+    "sellerEmail": "",
+    "sold": false
+  }
+]

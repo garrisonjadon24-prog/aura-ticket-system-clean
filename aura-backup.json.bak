@@ -1,0 +1,371 @@
+{
+  "timestamp": "2025-12-06T03:06:11.793Z",
+  "guestNameEntries": [],
+  "staffActivityLog": [],
+  "guestScanLog": [],
+  "scanEvents": {
+    "invalid": [
+      {
+        "token": "c4ed667a947221c2b28bb2449950bbeb",
+        "timestamp": "2025-12-06T02:51:34.254Z",
+        "staff": "no"
+      }
+    ],
+    "duplicates": []
+  },
+  "paymentEvents": {
+    "transactions": []
+  },
+  "boxOfficeSales": {
+    "prefix": "BOX-",
+    "nextNumber": 1,
+    "sales": []
+  },
+  "giveawayEvents": {
+    "draws": []
+  },
+  "ipLogging": {
+    "events": [
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "c4ed667a947221c2b28bb2449950bbeb",
+        "ticketId": "INVALID",
+        "timestamp": 1764989494254,
+        "status": "invalid"
+      }
+    ],
+    "suspicious": {}
+  },
+  "tickets": [
+    {
+      "token": "fdf858d909239eace3143ff81d90ddff",
+      "id": "EB-001",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "7bdd14920011bd49b4e60a34f9eb9a8a",
+      "id": "EB-002",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "35cb108970bb928898b7b24c687d5d0f",
+      "id": "EB-003",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "8749171623351a7399aedf67aa9b37e6",
+      "id": "EB-004",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "6d8a9a2d787a7fb32952360b9ba2f826",
+      "id": "EB-005",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "f5b1f0f96af4e782da39ce60e44ccf4f",
+      "id": "EB-006",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "78d16642de1f5688781602aab30a4bfe",
+      "id": "EB-007",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "706477b221f0228c6bdc3b8588efdf85",
+      "id": "EB-008",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "4544f43706720731e83445fa74fa9706",
+      "id": "EB-009",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "70a3331587cc1a93404e72812493777f",
+      "id": "EB-010",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "882851ec169bf6f4e465c01cc8826135",
+      "id": "EB-011",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "c5f157eb821e6285c17d10a25e362bbd",
+      "id": "EB-012",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "4642895eff50dd3e2cf51badab5f40db",
+      "id": "EB-013",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "e955cefd06fe07d8e08e5e0b7a773fe5",
+      "id": "EB-014",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "2861116d7a9ebf3473f41a0b6d62573b",
+      "id": "EB-015",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "7061c733487d63827fa821ae11c61532",
+      "id": "EB-016",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "e81563920de7d57162daea3a1776a080",
+      "id": "EB-017",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "6bed0a6227181fef49568afe3a11bd7c",
+      "id": "EB-018",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "003cd276691244d19b2d02c0982023b0",
+      "id": "EB-019",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "9c2897d95347684a18c25b0d38401599",
+      "id": "EB-020",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "0dd19fb68f746452fa56dddc770f4da9",
+      "id": "GEN-001",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "03586f6c975b3519fc0fbb3cea2e4384",
+      "id": "GEN-002",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "30bd5ddce80226ff472af26858b24360",
+      "id": "GEN-003",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "d799f46ea467e7d958a0b61d65bc4031",
+      "id": "GEN-004",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "27ae0d89a9b855c76b91efcd48401f96",
+      "id": "GEN-005",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "fa5f7c31d12bbd5b81813302a188917d",
+      "id": "GEN-006",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "51305b802574054e40ba68112562d265",
+      "id": "GEN-007",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "fba666553c6f7ffc5d6a0810b84a4432",
+      "id": "GEN-008",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "b18ba6149dae662a91e4f4ece9d7b843",
+      "id": "GEN-009",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "dfa97036c5da58c14d811f7d9859a4e0",
+      "id": "GEN-010",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "b110ce9b87b142be08e185d8a4864ad9",
+      "id": "GEN-011",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "e1116b7c49d56622af77118937a65b1c",
+      "id": "GEN-012",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "82695618865702ebaa20ce10c5d3477b",
+      "id": "GEN-013",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "6b2bf93f4110b078161e7aeecdf3d32a",
+      "id": "GEN-014",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "d99bdbeecc6e28902b8758985a925eac",
+      "id": "GEN-015",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "1384087d2b4f834735ac45f8080cecda",
+      "id": "GEN-016",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "a02ef47982de0bf3c8c24700284a1a18",
+      "id": "GEN-017",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "06f173241bf694736921e053e1b938cd",
+      "id": "GEN-018",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "56dd0c7d92a5cf5ec9ef442c6e4227d4",
+      "id": "GEN-019",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "7279f833c1f3a84934bf69b4f0d75227",
+      "id": "GEN-020",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "6cef9645814b970f8d8f14b65500bb09",
+      "id": "COMP-001",
+      "type": "comp",
+      "status": "unused"
+    },
+    {
+      "token": "6af8469e758bb9c2de946ac9e2883616",
+      "id": "COMP-002",
+      "type": "comp",
+      "status": "unused"
+    },
+    {
+      "token": "e49e6de14587aec83a1e9c704b6f2f8a",
+      "id": "COMP-003",
+      "type": "comp",
+      "status": "unused"
+    },
+    {
+      "token": "0bbbbdc3ca7757420c8c8be7b28a407f",
+      "id": "COMP-004",
+      "type": "comp",
+      "status": "unused"
+    },
+    {
+      "token": "d097e17b2c6c8e1e5626a31a2887c79a",
+      "id": "COMP-005",
+      "type": "comp",
+      "status": "unused"
+    },
+    {
+      "token": "fd1c117a37ed7584a77fad945f5726d3",
+      "id": "TEST-001",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "ec8109e4b495699d126e802942a5e954",
+      "id": "TEST-002",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "48d6e9fac1045d9c0d44f5cf2b26da5b",
+      "id": "TEST-003",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "471a41123a9637067b88ff373c544cd8",
+      "id": "TEST-004",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "5ec4b257f6ea4d92d4e571d2655e4508",
+      "id": "TEST-005",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "fd627df9d6abee02dd967f1af5b95a5c",
+      "id": "TEST-006",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "8149fb0a1b50525b36b77ebaa36ce068",
+      "id": "TEST-007",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "5c815f63884c2056e0b6aa76f6318d2a",
+      "id": "TEST-008",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "a1a9babcf5fac44f485451606e42bc57",
+      "id": "TEST-009",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "bff85a446968272b351afc5b6c078bcf",
+      "id": "TEST-010",
+      "type": "general",
+      "status": "unused"
+    }
+  ]
+}

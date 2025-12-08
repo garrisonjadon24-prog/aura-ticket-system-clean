@@ -1,0 +1,92 @@
+[
+  {
+    "token": "68a4de2cd36d8af957364cf2e3d2afce",
+    "id": "TEST-001",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "310ced9a1d44eaccc6ff376e7ff53e3c",
+    "id": "TEST-002",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "ab89700390bf92add733a2a208c2ed4f",
+    "id": "TEST-003",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "ffd26270193c8b172d7dec7252f4ee55",
+    "id": "TEST-004",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "3f545e68ba7530a21e0dbc36cf4f8126",
+    "id": "TEST-005",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "10475631b495805b0c618c8bf70425c4",
+    "id": "FRESH-001",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "b75110e6ef055cd00920233c86c157f6",
+    "id": "FRESH-002",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "4d31bc3f8c82d7d23b476b88733a1247",
+    "id": "FRESH-003",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "4a7ad93238f50236071007afeb03d206",
+    "id": "FRESH-004",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "12e280ba582237269d515dc4f3a5e9d6",
+    "id": "FRESH-005",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+    "id": "FRESH-001",
+    "type": "general",
+    "status": "used"
+  },
+  {
+    "token": "ddb571c439d0eb33147f8de2fac946d5",
+    "id": "FRESH-002",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "8f97b858410bf66ea2fe5f8f6c402bd3",
+    "id": "FRESH-003",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "70c1d54ef7703773f58010eec3e94d63",
+    "id": "FRESH-004",
+    "type": "general",
+    "status": "unused"
+  },
+  {
+    "token": "3a0fcca07bde230a6a738d25f1dbe9b7",
+    "id": "FRESH-005",
+    "type": "general",
+    "status": "unused"
+  }
+]

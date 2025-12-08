@@ -1,0 +1,44 @@
+[
+  {
+    "token": "TEST001",
+    "id": "T-001",
+    "type": "VIP",
+    "status": "unused"
+  },
+  {
+    "token": "TEST002",
+    "id": "T-002",
+    "type": "GENERAL",
+    "status": "unused"
+  },
+  {
+    "token": "TEST003",
+    "id": "T-003",
+    "type": "VIP",
+    "status": "unused"
+  },
+  {
+    "token": "TEST004",
+    "id": "T-004",
+    "type": "GENERAL",
+    "status": "unused"
+  },
+  {
+    "token": "TEST005",
+    "id": "T-005",
+    "type": "GENERAL",
+    "status": "unused"
+  },
+  {
+    "token": "TEST001",
+    "id": "T-001-DUP",
+    "type": "VIP",
+    "status": "unused"
+  },
+  {
+    "token": "FAKE_TOKEN_XYZ",
+    "id": "T-FAKE",
+    "type": "GENERAL",
+    "status": "unused"
+  }
+]

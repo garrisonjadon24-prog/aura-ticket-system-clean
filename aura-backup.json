@@ -1,0 +1,506 @@
+{
+  "timestamp": "2025-12-08T15:57:15.212Z",
+  "guestNameEntries": [
+    {
+      "ticketId": "FRESH-002",
+      "token": "ddb571c439d0eb33147f8de2fac946d5",
+      "guestName": "Donny",
+      "guestEmail": "omegaromario@gmail.com",
+      "guestPhone": "2462409154",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-08T01:17:00.020Z"
+    }
+  ],
+  "staffActivityLog": [
+    {
+      "name": "Ray",
+      "role": "management",
+      "action": "login",
+      "ip": "::ffff:192.168.1.30",
+      "timestamp": "2025-12-07T21:37:34.377Z"
+    },
+    {
+      "name": "Ray",
+      "role": "management",
+      "action": "login",
+      "ip": "::ffff:192.168.1.30",
+      "timestamp": "2025-12-07T22:29:20.095Z"
+    },
+    {
+      "name": "Ray",
+      "role": "management",
+      "action": "login",
+      "ip": "::ffff:192.168.1.30",
+      "timestamp": "2025-12-07T22:35:55.145Z"
+    },
+    {
+      "name": "Ray",
+      "role": "management",
+      "action": "login",
+      "ip": "::ffff:192.168.1.30",
+      "timestamp": "2025-12-08T01:35:41.151Z"
+    },
+    {
+      "name": "Ray",
+      "role": "management",
+      "action": "login",
+      "ip": "::ffff:192.168.1.30",
+      "timestamp": "2025-12-08T02:09:18.922Z"
+    }
+  ],
+  "guestScanLog": [
+    {
+      "ticketId": "FRESH-001",
+      "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T21:28:45.798Z"
+    },
+    {
+      "ticketId": "FRESH-001",
+      "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T21:57:11.304Z"
+    },
+    {
+      "ticketId": "FRESH-001",
+      "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T21:57:48.443Z"
+    },
+    {
+      "ticketId": "FRESH-001",
+      "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T22:31:42.206Z"
+    },
+    {
+      "ticketId": "FRESH-004",
+      "token": "70c1d54ef7703773f58010eec3e94d63",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T22:32:04.998Z"
+    },
+    {
+      "ticketId": "FRESH-004",
+      "token": "70c1d54ef7703773f58010eec3e94d63",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T22:32:15.055Z"
+    },
+    {
+      "ticketId": "FRESH-004",
+      "token": "70c1d54ef7703773f58010eec3e94d63",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T22:32:34.340Z"
+    },
+    {
+      "ticketId": "FRESH-004",
+      "token": "70c1d54ef7703773f58010eec3e94d63",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T23:11:09.544Z"
+    },
+    {
+      "ticketId": "FRESH-003",
+      "token": "8f97b858410bf66ea2fe5f8f6c402bd3",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T23:13:53.839Z"
+    },
+    {
+      "ticketId": "FRESH-003",
+      "token": "8f97b858410bf66ea2fe5f8f6c402bd3",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T23:15:10.695Z"
+    },
+    {
+      "ticketId": "FRESH-003",
+      "token": "8f97b858410bf66ea2fe5f8f6c402bd3",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T23:15:20.427Z"
+    },
+    {
+      "ticketId": "FRESH-003",
+      "token": "8f97b858410bf66ea2fe5f8f6c402bd3",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T23:15:53.497Z"
+    },
+    {
+      "ticketId": "FRESH-003",
+      "token": "8f97b858410bf66ea2fe5f8f6c402bd3",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T23:16:33.745Z"
+    },
+    {
+      "ticketId": "FRESH-003",
+      "token": "8f97b858410bf66ea2fe5f8f6c402bd3",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T23:17:22.125Z"
+    },
+    {
+      "ticketId": "FRESH-003",
+      "token": "8f97b858410bf66ea2fe5f8f6c402bd3",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T23:17:32.898Z"
+    },
+    {
+      "ticketId": "FRESH-003",
+      "token": "8f97b858410bf66ea2fe5f8f6c402bd3",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-07T23:17:44.293Z"
+    },
+    {
+      "ticketId": "FRESH-004",
+      "token": "70c1d54ef7703773f58010eec3e94d63",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-08T00:15:41.816Z"
+    },
+    {
+      "ticketId": "FRESH-002",
+      "token": "ddb571c439d0eb33147f8de2fac946d5",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-08T01:16:20.707Z"
+    },
+    {
+      "ticketId": "FRESH-005",
+      "token": "3a0fcca07bde230a6a738d25f1dbe9b7",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-08T02:24:49.777Z"
+    },
+    {
+      "ticketId": "FRESH-005",
+      "token": "3a0fcca07bde230a6a738d25f1dbe9b7",
+      "ip": "72.51.111.21",
+      "timestamp": "2025-12-08T02:26:53.073Z"
+    }
+  ],
+  "scanEvents": {
+    "invalid": [
+      {
+        "token": "4d4cc2144b9d958ffad50018289828f8",
+        "timestamp": "2025-12-07T21:08:02.119Z",
+        "staff": "no"
+      },
+      {
+        "token": "7d12ac1755de6bd6f057e92860a937c2",
+        "timestamp": "2025-12-07T21:08:13.124Z",
+        "staff": "no"
+      }
+    ],
+    "duplicates": [
+      {
+        "token": "08d6f6b06416903b9e3835214964653b",
+        "ticketId": "NG-004",
+        "timestamp": "2025-12-07T20:36:28.815Z"
+      },
+      {
+        "token": "08d6f6b06416903b9e3835214964653b",
+        "ticketId": "NG-004",
+        "timestamp": "2025-12-07T20:36:37.847Z"
+      },
+      {
+        "token": "4d4cc2144b9d958ffad50018289828f8",
+        "ticketId": "TEST-001",
+        "timestamp": "2025-12-07T20:41:11.897Z"
+      },
+      {
+        "token": "92865a2bf216628ad28861c269b1169e",
+        "ticketId": "TEST-003",
+        "timestamp": "2025-12-07T20:55:00.968Z"
+      },
+      {
+        "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+        "ticketId": "FRESH-001",
+        "timestamp": "2025-12-07T21:29:22.244Z"
+      },
+      {
+        "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+        "ticketId": "FRESH-001",
+        "timestamp": "2025-12-07T22:29:03.606Z"
+      }
+    ]
+  },
+  "paymentEvents": {
+    "transactions": []
+  },
+  "boxOfficeSales": {
+    "prefix": "BOX-",
+    "nextNumber": 1,
+    "sales": []
+  },
+  "giveawayEvents": {
+    "draws": [
+      {
+        "prizeId": "PRIZE-1765140173349",
+        "winnerTicketId": "TEST-001",
+        "timestamp": "2025-12-07T20:42:53.349Z",
+        "prizeDescription": "Food"
+      },
+      {
+        "prizeId": "PRIZE-1765140177645",
+        "winnerTicketId": "TEST-001",
+        "timestamp": "2025-12-07T20:42:57.645Z",
+        "prizeDescription": "Food"
+      },
+      {
+        "prizeId": "PRIZE-1765140179378",
+        "winnerTicketId": "NG-004",
+        "timestamp": "2025-12-07T20:42:59.378Z",
+        "prizeDescription": "Food"
+      }
+    ]
+  },
+  "ipLogging": {
+    "events": [
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "08d6f6b06416903b9e3835214964653b",
+        "ticketId": "NG-004",
+        "timestamp": 1765139769468,
+        "status": "valid"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "08d6f6b06416903b9e3835214964653b",
+        "ticketId": "NG-004",
+        "timestamp": 1765139788736,
+        "status": "marked-used"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "08d6f6b06416903b9e3835214964653b",
+        "ticketId": "NG-004",
+        "timestamp": 1765139788815,
+        "status": "duplicate"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "08d6f6b06416903b9e3835214964653b",
+        "ticketId": "NG-004",
+        "timestamp": 1765139797847,
+        "status": "duplicate"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "4d4cc2144b9d958ffad50018289828f8",
+        "ticketId": "TEST-001",
+        "timestamp": 1765140068890,
+        "status": "valid"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "4d4cc2144b9d958ffad50018289828f8",
+        "ticketId": "TEST-001",
+        "timestamp": 1765140071855,
+        "status": "marked-used"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "4d4cc2144b9d958ffad50018289828f8",
+        "ticketId": "TEST-001",
+        "timestamp": 1765140071897,
+        "status": "duplicate"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "92865a2bf216628ad28861c269b1169e",
+        "ticketId": "TEST-003",
+        "timestamp": 1765140896818,
+        "status": "valid"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "92865a2bf216628ad28861c269b1169e",
+        "ticketId": "TEST-003",
+        "timestamp": 1765140900922,
+        "status": "marked-used"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "92865a2bf216628ad28861c269b1169e",
+        "ticketId": "TEST-003",
+        "timestamp": 1765140900968,
+        "status": "duplicate"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "4d4cc2144b9d958ffad50018289828f8",
+        "ticketId": "INVALID",
+        "timestamp": 1765141682119,
+        "status": "invalid"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "7d12ac1755de6bd6f057e92860a937c2",
+        "ticketId": "INVALID",
+        "timestamp": 1765141693124,
+        "status": "invalid"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+        "ticketId": "FRESH-001",
+        "timestamp": 1765142957200,
+        "status": "valid"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+        "ticketId": "FRESH-001",
+        "timestamp": 1765142961241,
+        "status": "marked-used"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+        "ticketId": "FRESH-001",
+        "timestamp": 1765142962244,
+        "status": "duplicate"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+        "ticketId": "FRESH-001",
+        "timestamp": 1765142962726,
+        "status": "marked-used"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+        "ticketId": "FRESH-001",
+        "timestamp": 1765146543606,
+        "status": "duplicate"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "ddb571c439d0eb33147f8de2fac946d5",
+        "ticketId": "FRESH-002",
+        "timestamp": 1765156675004,
+        "status": "valid"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "ddb571c439d0eb33147f8de2fac946d5",
+        "ticketId": "FRESH-002",
+        "timestamp": 1765159389491,
+        "status": "valid"
+      },
+      {
+        "ip": "::ffff:192.168.1.30",
+        "token": "3a0fcca07bde230a6a738d25f1dbe9b7",
+        "ticketId": "FRESH-005",
+        "timestamp": 1765161976215,
+        "status": "valid"
+      }
+    ],
+    "suspicious": {}
+  },
+  "ticketAllocations": [
+    [
+      "FRESH-002",
+      {
+        "sellerName": "Jogn",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": true
+      }
+    ],
+    [
+      "FRESH-004",
+      {
+        "sellerName": "Don",
+        "sellerPhone": "245",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ]
+  ],
+  "tickets": [
+    {
+      "token": "68a4de2cd36d8af957364cf2e3d2afce",
+      "id": "TEST-001",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "310ced9a1d44eaccc6ff376e7ff53e3c",
+      "id": "TEST-002",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "ab89700390bf92add733a2a208c2ed4f",
+      "id": "TEST-003",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "ffd26270193c8b172d7dec7252f4ee55",
+      "id": "TEST-004",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "3f545e68ba7530a21e0dbc36cf4f8126",
+      "id": "TEST-005",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "10475631b495805b0c618c8bf70425c4",
+      "id": "FRESH-001",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "b75110e6ef055cd00920233c86c157f6",
+      "id": "FRESH-002",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "4d31bc3f8c82d7d23b476b88733a1247",
+      "id": "FRESH-003",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "4a7ad93238f50236071007afeb03d206",
+      "id": "FRESH-004",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "12e280ba582237269d515dc4f3a5e9d6",
+      "id": "FRESH-005",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "7f3d0b6241863c693f0bbfe1f67372fd",
+      "id": "FRESH-001",
+      "type": "general",
+      "status": "used"
+    },
+    {
+      "token": "ddb571c439d0eb33147f8de2fac946d5",
+      "id": "FRESH-002",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "8f97b858410bf66ea2fe5f8f6c402bd3",
+      "id": "FRESH-003",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "70c1d54ef7703773f58010eec3e94d63",
+      "id": "FRESH-004",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "3a0fcca07bde230a6a738d25f1dbe9b7",
+      "id": "FRESH-005",
+      "type": "general",
+      "status": "unused"
+    }
+  ]
+}
