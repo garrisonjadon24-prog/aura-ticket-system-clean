@@ -865,10 +865,9 @@ function pushWithLimit(arr, item, limit = 500) {
   arr.push(item);
   if (arr.length > limit) arr.shift();
 }
-// Always start app at staff login
-, (req, res) => {
-  res.redirect("/staff");
-});
+
+// Always start at staff login page via "/" route defined above.
+
 
 // ------------------------------------------------------
 // ROUTE 1: STAFF PAGE (PIN + MANUAL CHECK)
