@@ -1856,8 +1856,8 @@ app.get("/staff/generate", (req, res) => {
 
 <a href="/cancelled-tickets-log?key=${encodeURIComponent(MANAGEMENT_PIN)}"
    class="tool-card tool-red">
-  <div class="tool-title">❌ Cancelled Tickets</div>
-  <div class="tool-sub">View all cancelled tickets by type & link back to allocations.</div>
+  <div class="tool-title"> </div>
+  <div class="tool-sub"> </div>
 </a>
 
       </div>
@@ -7176,29 +7176,6 @@ app.get("/management-hub", (req, res) => {
     
 </button>
 
-<button class="action-button btn-qrfiles" onclick="go('/staff/qr-list')">
-  <span class="label">📂 QR Files</span>
-  <span class="desc">View / download generated QR PNGs.</span>
-</button>
-
-  <button class="action-button btn-alloc" onclick="go('/allocations')">
-
-    <span class="label">📑 Allocations</span>
-    <span class="desc">Track prefixes, sold vs unsold, export CSV.</span>
-  </button>
-
-  <!-- 🔹 NEW BUTTON -->
-  <button class="action-button btn-alloc" onclick="go('/allocation-scanner')">
-    <span class="label">📲 Allocation Scanner</span>
-    <span class="desc">Scan / type tickets and assign to sellers.</span>
-  </button>
-  <!-- 🔹 END NEW BUTTON -->
-
-  <button class="action-button btn-alloc" onclick="go('/allocation-log')">
-  <span class="label">📒 Allocation Log</span>
-  <span class="desc">See every ticket, seller, guest & status.</span>
-</button>
-
   <button class="action-button btn-giveaway" onclick="go('/giveaway')">
     <span class="label">🎉 Prize Draw</span>
     <span class="desc">Run random winners from used tickets.</span>
@@ -7230,11 +7207,15 @@ app.get("/management-hub", (req, res) => {
   <button class="pill-btn" onclick="clearAllocationLog()">🧹 Clear Allocation Log</button>
 </div>
 
- <div style="margin-top:18px;border-top:1px dashed rgba(255,255,255,0.04);padding-top:14px;">
+<div style="margin-top:18px;border-top:1px dashed rgba(255,255,255,0.04);padding-top:14px;">
 
-  <h3 style="margin:0 0 8px 0;font-size:0.95rem;color:#ffd86b">Admin Tools</h3>
+  <h3 style="margin:0 0 8px 0;font-size:0.95rem;color:#ffd86b">
+    Admin Tools
+  </h3>
 
+  <!-- ROW 1: EXPORT / IMPORT / CLEAR -->
   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <!-- Export JSON -->
     <button
       class="action-button"
       style="background:linear-gradient(90deg,#ffd86b,#ffb300);padding:10px 12px;min-width:160px"
@@ -7243,6 +7224,7 @@ app.get("/management-hub", (req, res) => {
       ⬇️ Export JSON
     </button>
 
+    <!-- Import JSON -->
     <label
       style="display:inline-block;background:linear-gradient(90deg,#00bcd4,#0097a7);padding:8px 12px;
              border-radius:12px;color:#081217;cursor:pointer;font-weight:700"
@@ -7257,32 +7239,16 @@ app.get("/management-hub", (req, res) => {
       />
     </label>
 
+    <!-- Clear ALL data -->
     <button
       class="action-button"
       style="background:linear-gradient(90deg,#ff5252,#e91e63);padding:10px 12px;min-width:160px"
       onclick="adminClearData()"
     >
-    <!-- Allocation Hub -->
-<a href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card tool-purple">
-  <div class="tool-title">🎟 Allocation Hub</div>
-  <div class="tool-sub">Allocations, scanner, and allocation log.</div>
-</a>
-
-<!-- Log Hub -->
-<a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card tool-blue">
-  <div class="tool-title">📘 Log Hub</div>
-  <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
-</a>
-
-<!-- Prize Hub -->
-<a href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card tool-pink">
-  <div class="tool-title">🎁 Prize Hub</div>
-  <div class="tool-sub">Prize draws and guest entries.</div>
-</a>
-
       🧨 Clear Data
     </button>
 
+    <!-- Clear only TEST tickets -->
     <button
       class="action-button"
       style="background:linear-gradient(90deg,#ff9800,#ff5722);padding:10px 12px;min-width:210px"
@@ -7291,6 +7257,46 @@ app.get("/management-hub", (req, res) => {
       🧹 Clear Test Tickets / QRCodes
     </button>
   </div>
+
+  <!-- ROW 2: HUB CARDS -->
+  <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;">
+    <!-- Allocation Hub -->
+    <a
+      href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
+      class="tool-card tool-purple"
+    >
+      <div class="tool-title">🎟 Allocation Hub</div>
+      <div class="tool-sub">Allocations, scanner, and allocation log.</div>
+    </a>
+
+    <!-- Log Hub -->
+    <a
+      href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
+      class="tool-card tool-blue"
+    >
+      <div class="tool-title">📘 Log Hub</div>
+      <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
+    </a>
+
+    <!-- Prize Hub -->
+    <a
+      href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
+      class="tool-card tool-pink"
+    >
+      <div class="tool-title">🎁 Prize Hub</div>
+      <div class="tool-sub">Prize draws and guest entries.</div>
+    </a>
+  </div>
+
+  <!-- keep your adminMsg + cancel section exactly as you have it -->
+  <div id="adminMsg"
+       style="margin-left:8px;margin-top:8px;color:#fff;font-size:0.9rem;opacity:0.85;">
+  </div>
+
+  <!-- (your Cancel Ticket / QR Code block stays below this, unchanged) -->
+
+</div>
+
 
   <div id="adminMsg"
        style="margin-left:8px;margin-top:8px;color:#fff;font-size:0.9rem;opacity:0.85;">
@@ -8077,10 +8083,16 @@ app.get("/allocation-scanner", (req, res) => {
         <button class="pill-btn" id="saveBtn">Save Allocation</button>
         <div id="status" class="status"></div>
 
-        <a href="/allocations?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-link">
-          ← <span>Back to Allocations Overview</span>
-        </a>
-      </div>
+<div class="bottom-links">
+  <a href="/allocations?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+    ← Back to Allocations Overview
+  </a>
+
+  <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+    ← Back to Management Hub
+  </a>
+</div>
+
 
       ${themeScript()}
 
@@ -8580,6 +8592,57 @@ app.get("/subscriber-log", (req, res) => {
     ${themeScript()}
   </body>
   </html>`);
+});
+
+// ------------------------------------------------------
+// ADMIN: Export mailing list as CSV
+// ------------------------------------------------------
+app.get("/admin/export-mailing-list", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).send("Unauthorized");
+  }
+
+  // Same logic as the subscriber-log page: pull from guestNameEntries
+  const subs = guestNameEntries
+    .filter(e => e.subscribe) // only people who opted in
+    .map(e => ({
+      ticketId: e.ticketId || "",
+      name: (e.guestName || "").trim(),
+      email: (e.guestEmail || "").trim(),
+      phone: (e.guestPhone || "").trim(),
+      time: e.timestamp || ""
+    }));
+
+  // Build CSV
+  const header = ["Ticket ID", "Guest Name", "Email", "Phone", "Time"];
+  const lines = [header.join(",")];
+
+  subs.forEach(row => {
+    // Basic escaping of commas and quotes
+    const vals = [
+      row.ticketId,
+      row.name,
+      row.email,
+      row.phone,
+      row.time
+    ].map(v => {
+      const s = String(v || "");
+      if (s.includes(",") || s.includes('"')) {
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    });
+    lines.push(vals.join(","));
+  });
+
+  const csv = lines.join("\n");
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=\"aura-mailing-list.csv\""
+  );
+  res.send(csv);
 });
 
 // ------------------------------------------------------
