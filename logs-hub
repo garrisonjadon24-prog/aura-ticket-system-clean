@@ -186,6 +186,11 @@ function parseCookies(req) {
   return out;
 }
 
+function pushWithLimit(arr, item, limit) {
+  arr.push(item);
+  if (arr.length > limit) arr.shift();
+}
+
 // Helper: check management authorization (query key OR cookie)
 function isMgmtAuthorizedReq(req) {
   try {
@@ -328,6 +333,28 @@ if (!fs.existsSync(QR_DIR)) {
 // Serve anything in /public if we add files later (icons, manifest, audio, etc.)
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json()); // Parse JSON request bodies for POST endpoints
+
+// ------------------------------------------------------
+// ADMIN: Clear generated QR PNG files
+// ------------------------------------------------------
+app.post("/admin/clear-qr-files", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).json({ ok: false, error: "Unauthorized" });
+  }
+
+  try {
+    const files = fs.readdirSync(QR_DIR);
+    for (const name of files) {
+      if (name.toLowerCase().endsWith(".png")) {
+        fs.unlinkSync(path.join(QR_DIR, name));
+      }
+    }
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("Error clearing QR files:", err);
+    return res.status(500).json({ ok: false, error: "Server error" });
+  }
+});
 
 // ------------------------------------------------------
 // API: Full allocation log (per ticket, joined with guest info)
@@ -731,6 +758,18 @@ function createBackup() {
         id: record.id,
         type: record.type,
         status: record.status
+
+        function createBackup() {
+  return {
+    tickets: [...tickets.entries()],
+    ticketAllocations: [...ticketAllocations.entries()],
+    guestScanLog,
+    guestNameEntries,
+    // NEW:
+    cancelledTicketsLog,
+  };
+}
+
       }))
     };
   
@@ -747,6 +786,12 @@ function restoreBackup() {
       console.log('[BACKUP] No backup file found, starting fresh.');
       return;
     }
+
+      if (backup.cancelledTicketsLog) {
+    cancelledTicketsLog.length = 0;
+    cancelledTicketsLog.push(...backup.cancelledTicketsLog);
+  }
+
     const backup = JSON.parse(fs.readFileSync(BACKUP_FILE, 'utf8'));
     guestNameEntries.length = 0;
     guestNameEntries.push(...(backup.guestNameEntries || []));
@@ -1795,6 +1840,13 @@ app.get("/staff/generate", (req, res) => {
     <a class="back-link" href="/management-hub">
   ← Back to Management Hub
 </a>
+
+<a href="/cancelled-tickets-log?key=${encodeURIComponent(key)}"
+   class="tool-card tool-red">
+  <div class="tool-title">❌ Cancelled Tickets</div>
+  <div class="tool-sub">View all cancelled tickets by type & link back to allocations.</div>
+</a>
+
       </div>
 
       <script>
@@ -1952,7 +2004,36 @@ app.get("/staff/qr-list", (req, res) => {
     .subtitle {
       font-size:0.85rem;
       color:var(--text-muted);
-      margin-bottom:18px;
+      margin-bottom:12px;
+    }
+
+    /* 🔹 New top actions row + pill button */
+    .top-actions {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:16px;
+      flex-wrap:wrap;
+    }
+
+    .pill-btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      padding:8px 14px;
+      border:none;
+      font-size:0.78rem;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      cursor:pointer;
+      background:linear-gradient(120deg,#ffb300,#ff4081);
+      color:#050007;
+      font-weight:600;
+    }
+    .pill-btn:active {
+      transform:translateY(1px);
     }
 
     .section-title {
@@ -2018,15 +2099,52 @@ app.get("/staff/qr-list", (req, res) => {
       <div class="subtitle">
         Click a filename to open the QR image in a new tab, then save it and drop it into your ticket artwork.
       </div>
+
+      <!-- 🔹 New button row -->
+      <div class="top-actions">
+        <div style="font-size:0.78rem;color:var(--text-muted);">
+          View and manage all generated QR PNGs in <code>generated_qr/</code>.
+        </div>
+        <button class="pill-btn" onclick="clearQrPngs()">🧹 Clear QR PNGs</button>
+      </div>
+
       ${qrSectionsHtml}
       <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-link">
         ← Back to Management Hub
       </a>
     </div>
   </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const MGMT_KEY = params.get("key") || "";
+
+    async function clearQrPngs() {
+      if (!confirm("Delete ALL generated QR PNG files from QR FILES? Tickets remain valid, only the images are removed.")) {
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          "/admin/clear-qr-files?key=" + encodeURIComponent(MGMT_KEY),
+          { method: "POST" }
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!data.ok) {
+          alert(data.error || "Unable to clear QR files");
+          return;
+        }
+        alert("QR PNG files cleared.");
+        location.reload();
+      } catch (err) {
+        alert("Error clearing QR files: " + err.message);
+      }
+    }
+  </script>
 </body>
 </html>`);
 });
+
 
 // ROUTE 2: Generate a single ticket & QR
 app.get("/generate-ticket", (req, res) => {
@@ -3005,24 +3123,69 @@ app.get("/guest-prize-entries", (req, res) => {
 });
 
 // ------------------------------------------------------
-// ADMIN: Export / Import / Seed / Clear (management only)
+// ADMIN: Clear full allocation log
 // ------------------------------------------------------
-app.get('/admin/export', (req, res) => {
-  const { key } = req.query;
-  if (!isMgmtAuthorizedReq(req)) return res.status(403).json({ error: 'Unauthorized' });
-
-  const ticketsArr = [];
-  for (const [token, rec] of tickets.entries()) {
-    ticketsArr.push({ token, id: rec.id, type: rec.type, status: rec.status });
+app.post("/admin/clear-allocation-log", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).json({ ok: false, error: "Unauthorized" });
   }
 
-  return res.json({
-    ok: true,
-    tickets: ticketsArr,
-    guestNameEntries: guestNameEntries.slice(),
-    staffActivityLog: staffActivityLog.slice(),
-    guestScanLog: guestScanLog.slice()
-  });
+  try {
+    ticketAllocations.clear();
+
+    // also wipe the JSON file on disk
+    const allocFile = path.join(__dirname, "ticket-allocations.json");
+    if (fs.existsSync(allocFile)) {
+      fs.writeFileSync(allocFile, JSON.stringify([], null, 2));
+    }
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("Error clearing allocation log:", err);
+    return res.status(500).json({ ok: false, error: "Server error" });
+  }
+});
+
+// ------------------------------------------------------
+// ADMIN: Export ALL logs + tickets (JSON download)
+// ------------------------------------------------------
+app.get("/admin/export", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).json({ ok: false, error: "Unauthorized" });
+  }
+
+  const payload = {
+    exportedAt: new Date().toISOString(),
+
+    // All tickets with token
+    tickets: Array.from(tickets.entries()).map(([token, rec]) => ({
+      token,
+      id: rec.id,
+      type: rec.type,
+      status: rec.status,
+    })),
+
+    // Core logs / events
+    guestNameEntries,
+    staffActivityLog,
+    guestScanLog,
+    scanEvents,
+    paymentEvents,
+    boxOfficeSales,
+    giveawayEvents,
+    ipLogging,
+
+    // Ticket allocations as [ticketId, allocObject]
+    ticketAllocations: Array.from(ticketAllocations.entries()),
+  };
+
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=aura-all-logs.json"
+  );
+
+  res.send(JSON.stringify(payload, null, 2));
 });
 
 app.post('/admin/import', (req, res) => {
@@ -3191,6 +3354,49 @@ app.post('/admin/clear', (req, res) => {
   return res.status(400).json({ error: 'Invalid clear target' });
 });
 
+// ------------------------------------------------------
+// ADMIN: Export mailing list (CSV)
+// ------------------------------------------------------
+app.get("/admin/export-mailing-list", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).send("Unauthorized");
+  }
+
+  const rows = [];
+  // CSV header
+  rows.push(["Name","Email","Phone","TicketId","LastUpdated"].join(","));
+
+  const seen = new Set();
+
+  // Walk backwards so the MOST RECENT entry per (email+ticketId) wins
+  for (let i = guestNameEntries.length - 1; i >= 0; i--) {
+    const e = guestNameEntries[i];
+
+    // Only include people who opted in to subscribe
+    if (!e.subscribe) continue;
+
+    const key = (e.guestEmail || "") + "|" + (e.ticketId || "");
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const name     = (e.guestName  || "").replace(/,/g, " ");
+    const email    = (e.guestEmail || "").trim();
+    const phone    = (e.guestPhone || "").replace(/,/g, " ");
+    const ticketId = e.ticketId || "";
+    const ts       = e.timestamp || "";
+
+    rows.push([name, email, phone, ticketId, ts].join(","));
+  }
+
+  const csv = rows.join("\n");
+
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=aura-mailing-list.csv"
+  );
+  res.send(csv);
+});
 
 // ------------------------------------------------------
 // NEW ENDPOINT: Mark ticket as used with logging (staff-only)
@@ -3337,6 +3543,52 @@ app.post('/api/mgmt-logout', (req, res) => {
     'mgmtName=; Path=/; Max-Age=0'
   ]);
   return res.json({ success: true });
+});
+
+// ------------------------------------------------------
+// API: Cancelled tickets list (grouped)
+// ------------------------------------------------------
+app.get("/api/cancelled-tickets", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).json({ ok: false, error: "Unauthorized" });
+  }
+
+  const cancelled = [];
+
+  // derive from tickets map so nothing is missed
+  for (const [token, rec] of tickets.entries()) {
+    if (rec.status !== "cancelled") continue;
+
+    const guest = getGuestInfoForTicket(rec.id);
+    const alloc = ticketAllocations.get(rec.id) || {};
+    const logEntry = [...cancelledTicketsLog].reverse().find(
+      c => c.ticketId === rec.id
+    ) || {};
+
+    const id = rec.id || "";
+    const prefix = id.includes("-") ? id.split("-")[0] : "OTHER";
+
+    cancelled.push({
+      ticketId: id,
+      ticketType: rec.type || null,
+      prefix,
+      guestName: guest?.name || "",
+      guestEmail: guest?.email || "",
+      guestPhone: guest?.phone || "",
+      sellerName: alloc.sellerName || "",
+      cancelledBy: logEntry.cancelledBy || "",
+      cancelledAt: logEntry.timestamp ? new Date(logEntry.timestamp).toISOString() : "",
+    });
+  }
+
+  // group by prefix
+  const groups = {};
+  for (const c of cancelled) {
+    if (!groups[c.prefix]) groups[c.prefix] = [];
+    groups[c.prefix].push(c);
+  }
+
+  res.json({ ok: true, groups });
 });
 
 // ------------------------------------------------------
@@ -4287,6 +4539,26 @@ app.get("/allocations", (req, res) => {
         color:#c0c0c0;
       }
 
+.top-actions {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 18px;
+  flex-wrap: wrap;
+}
+
+.pill-btn {
+  border-radius: 999px;
+  padding: 6px 12px;
+  border: none;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  cursor: pointer;
+  background: linear-gradient(135deg,#ff5fa2,#ffb347);
+  color:#050007;
+}
+.pill-btn:active { transform: translateY(1px); }
+
       .top-actions {
         display:flex;
         flex-wrap:wrap;
@@ -4557,10 +4829,65 @@ app.get("/allocations", (req, res) => {
 
         refreshBtn.addEventListener("click", loadAllocations);
         loadAllocations();
+
+        const params = new URLSearchParams(location.search);
+const MGMT_KEY = params.get("key") || "";
+
+async function reloadAllocations() {
+  await loadAllocations(); // you already have this
+}
+
+async function clearAllocationLog() {
+  if (!confirm("Clear ALL allocation log entries? This does NOT cancel tickets, only the log.")) return;
+
+  const res = await fetch(
+    "/admin/clear-allocation-log?key=" + encodeURIComponent(MGMT_KEY),
+    { method: "POST" }
+  );
+
+  const data = await res.json().catch(() => ({}));
+  if (!data.ok) {
+    alert(data.error || "Unable to clear allocation log");
+    return;
+  }
+
+  await loadAllocations();
+  alert("Allocation log cleared.");
+}
       </script>
     </div>
   </body>
   </html>`);
+});
+
+// ------------------------------------------------------
+// ADMIN: Clear ALL QR PNG files (images only, tickets stay)
+// ------------------------------------------------------
+app.post("/admin/clear-qr-files", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).json({ ok: false, error: "Unauthorized" });
+  }
+
+  try {
+    let deleted = 0;
+    if (fs.existsSync(QR_DIR)) {
+      for (const f of fs.readdirSync(QR_DIR)) {
+        if (f.toLowerCase().endsWith(".png")) {
+          try {
+            fs.unlinkSync(path.join(QR_DIR, f));
+            deleted++;
+          } catch (e) {
+            console.error("Failed deleting QR file:", f, e);
+          }
+        }
+      }
+    }
+
+    return res.json({ ok: true, deleted });
+  } catch (err) {
+    console.error("Error clearing QR files:", err);
+    return res.status(500).json({ ok: false, error: "Server error" });
+  }
 });
 
 // ------------------------------------------------------
@@ -4932,7 +5259,17 @@ app.get("/allocation-log", (req, res) => {
         }
 
         document.addEventListener('DOMContentLoaded', loadAllocations);
-      </script>
+        
+<script>
+  const params   = new URLSearchParams(location.search);
+  const MGMT_KEY = params.get("key") || "";
+
+  function exportMailingList() {
+    const url = "/admin/export-mailing-list?key=" + encodeURIComponent(MGMT_KEY);
+    window.location.href = url;
+  }
+</script>
+
     </div>
   </body>
 </html>
@@ -6875,6 +7212,11 @@ app.get("/management-hub", (req, res) => {
 
  </div>
 
+<div class="top-actions">
+  <button class="pill-btn" onclick="reloadAllocations()">↻ Refresh</button>
+  <button class="pill-btn" onclick="clearAllocationLog()">🧹 Clear Allocation Log</button>
+</div>
+
  <div style="margin-top:18px;border-top:1px dashed rgba(255,255,255,0.04);padding-top:14px;">
 
   <h3 style="margin:0 0 8px 0;font-size:0.95rem;color:#ffd86b">Admin Tools</h3>
@@ -6907,6 +7249,24 @@ app.get("/management-hub", (req, res) => {
       style="background:linear-gradient(90deg,#ff5252,#e91e63);padding:10px 12px;min-width:160px"
       onclick="adminClearData()"
     >
+    <!-- Allocation Hub -->
+<a href="/allocation-hub?key=${encodeURIComponent(key)}" class="tool-card tool-purple">
+  <div class="tool-title">🎟 Allocation Hub</div>
+  <div class="tool-sub">Allocations, scanner, and allocation log.</div>
+</a>
+
+<!-- Log Hub -->
+<a href="/logs-hub?key=${encodeURIComponent(key)}" class="tool-card tool-blue">
+  <div class="tool-title">📘 Log Hub</div>
+  <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
+</a>
+
+<!-- Prize Hub -->
+<a href="/prize-hub?key=${encodeURIComponent(key)}" class="tool-card tool-pink">
+  <div class="tool-title">🎁 Prize Hub</div>
+  <div class="tool-sub">Prize draws and guest entries.</div>
+</a>
+
       🧨 Clear Data
     </button>
 
@@ -7171,37 +7531,301 @@ app.get("/management-hub", (req, res) => {
     </html>`);
 });
 
+app.get("/allocation-hub", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).send("Unauthorized");
+  }
+  const { key } = req.query;
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Allocation Hub — AURA</title>
+  <style>
+    ${themeCSSRoot()}
+    body { margin:0;padding:16px;font-family:system-ui,sans-serif;background:#050007;color:#f5f5f5; }
+    .page { max-width:900px;margin:0 auto; }
+    h1 { margin:0 0 6px;font-size:20px; }
+    .subtitle { margin:0 0 16px;font-size:12px;color:#aaa; }
+    .grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px; }
+    .tile {
+      border-radius:18px;
+      padding:14px 14px 12px;
+      background:radial-gradient(circle at top,#42205c,#140018 70%);
+      border:1px solid rgba(255,255,255,0.09);
+      text-decoration:none;
+      color:#fff;
+      display:block;
+    }
+    .tile-title { font-size:14px;font-weight:600;margin-bottom:4px; }
+    .tile-sub { font-size:11px;color:#ccc; }
+    .pill-link { border-radius:999px;padding:6px 12px;font-size:11px;text-decoration:none;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#ff5fa2,#ffb347);color:#050007;margin-bottom:14px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Allocation Hub</h1>
+    <p class="subtitle">Quick access to seller allocations, scanner, and full allocation log.</p>
+
+    <a class="pill-link" href="/management-hub?key=${encodeURIComponent(key || "")}">⬅ Back to Management Hub</a>
+
+    <div class="grid">
+      <a class="tile" href="/allocations?key=${encodeURIComponent(key || "")}">
+        <div class="tile-title">📊 Allocation Summary</div>
+        <div class="tile-sub">Seller totals: allocated vs sold vs unsold.</div>
+      </a>
+      <a class="tile" href="/allocation-scanner?key=${encodeURIComponent(key || "")}">
+        <div class="tile-title">📱 Allocation Scanner</div>
+        <div class="tile-sub">Scan or type tickets and assign to sellers.</div>
+      </a>
+      <a class="tile" href="/allocation-log?key=${encodeURIComponent(key || "")}">
+        <div class="tile-title">📚 Allocation Log</div>
+        <div class="tile-sub">Per-ticket breakdown with seller + guest info.</div>
+      </a>
+    </div>
+  </div>
+  ${themeScript()}
+</body>
+</html>`);
+});
+
+
+app.get("/cancelled-tickets-log", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).send("Unauthorized");
+  }
+
+  const { key } = req.query;
+
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cancelled Tickets Log — AURA</title>
+  <style>
+    ${themeCSSRoot()}
+    body {
+      margin:0;
+      padding:16px;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      background:#050007;
+      color:#f5f5f5;
+    }
+    .page {
+      max-width:1100px;
+      margin:0 auto;
+    }
+    h1 {
+      margin:0 0 4px;
+      font-size:20px;
+    }
+    .subtitle {
+      margin:0 0 16px;
+      font-size:12px;
+      color:#aaa;
+    }
+    .top-links {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:14px;
+    }
+    .pill-link, .pill-btn {
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:11px;
+      border:none;
+      cursor:pointer;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:0.09em;
+      background:linear-gradient(135deg,#ff5fa2,#ffb347);
+      color:#050007;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .section {
+      margin-top:18px;
+      border-radius:14px;
+      background:rgba(10,0,20,0.9);
+      border:1px solid rgba(255,255,255,0.05);
+      padding:12px;
+    }
+    .section h2 {
+      margin:0 0 8px;
+      font-size:14px;
+    }
+    table {
+      width:100%;
+      border-collapse:collapse;
+      font-size:11px;
+    }
+    th, td {
+      padding:6px 5px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      text-align:left;
+    }
+    th {
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:0.09em;
+      color:#ffcdd2;
+    }
+    @media (max-width:720px) {
+      table { font-size:10px; }
+      th,td { padding:4px 3px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Cancelled Tickets Log</h1>
+    <p class="subtitle">
+      All tickets whose status is <strong>cancelled</strong>, grouped by prefix (FRESH, HEART, BOX, etc).
+    </p>
+
+    <div class="top-links">
+      <a class="pill-link" href="/management-hub?key=${encodeURIComponent(key || "")}">⬅ Back to Management Hub</a>
+      <a class="pill-link" href="/dashboard?key=${encodeURIComponent(key || "")}">📊 Dashboard</a>
+      <a class="pill-link" href="/allocation-log?key=${encodeURIComponent(key || "")}">📚 Allocation Log</a>
+      <a class="pill-link" href="/allocations?key=${encodeURIComponent(key || "")}">🎟 Allocation Summary</a>
+    </div>
+
+    <div id="sections"></div>
+  </div>
+
+  ${themeScript()}
+
+  <script>
+    const MGMT_KEY = ${JSON.stringify(req.query.key || "")};
+
+    async function loadCancelled() {
+      const res = await fetch("/api/cancelled-tickets?key=" + encodeURIComponent(MGMT_KEY));
+      const data = await res.json();
+      if (!data.ok) {
+        document.getElementById("sections").innerHTML = "<p>Unable to load cancelled tickets.</p>";
+        return;
+      }
+
+      const root = document.getElementById("sections");
+      root.innerHTML = "";
+
+      const groups = data.groups || {};
+      const prefixes = Object.keys(groups).sort();
+
+      if (!prefixes.length) {
+        root.innerHTML = "<p>No cancelled tickets.</p>";
+        return;
+      }
+
+      prefixes.forEach(prefix => {
+        const items = groups[prefix];
+        const div = document.createElement("div");
+        div.className = "section";
+
+        const h = document.createElement("h2");
+        h.textContent = prefix + " — " + items.length + " cancelled";
+        div.appendChild(h);
+
+        const table = document.createElement("table");
+        table.innerHTML = \`
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Type</th>
+              <th>Guest</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Seller</th>
+              <th>Cancelled By</th>
+              <th>Cancelled At</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        \`;
+
+        const tbody = table.querySelector("tbody");
+
+        items.forEach(it => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = \`
+            <td>\${it.ticketId}</td>
+            <td>\${it.ticketType || ""}</td>
+            <td>\${it.guestName || ""}</td>
+            <td>\${it.guestEmail || ""}</td>
+            <td>\${it.guestPhone || ""}</td>
+            <td>\${it.sellerName || ""}</td>
+            <td>\${it.cancelledBy || ""}</td>
+            <td>\${it.cancelledAt ? new Date(it.cancelledAt).toLocaleString() : ""}</td>
+          \`;
+          tbody.appendChild(tr);
+        });
+
+        div.appendChild(table);
+        root.appendChild(div);
+      });
+    }
+
+    loadCancelled();
+  </script>
+</body>
+</html>`);
+});
+
 // MANAGEMENT: cancel a ticket (backend route)
 app.post("/admin/cancel-ticket", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
-    return res.status(403).json({ error: "Unauthorized" });
+    return res.status(403).json({ ok: false, error: "Unauthorized" });
   }
 
-  const { ticketId } = req.body || {};
-  if (!ticketId) {
-    return res.status(400).json({ error: "ticketId is required" });
-  }
+  const { code } = req.body || {};
+  const clean = String(code || "").trim();
+  if (!clean) return res.status(400).json({ ok: false, error: "Missing code" });
 
-  // Find the token that matches this ID
+  // Allow both "HEART-001" and "HEART-001.png"
+  const ticketId = clean.replace(/\.png$/i, "");
+
   let foundToken = null;
+  let record = null;
+
   for (const [token, rec] of tickets.entries()) {
-    if (rec && rec.id === ticketId) {
+    if (rec.id === ticketId) {
       foundToken = token;
+      record = rec;
       break;
     }
   }
 
   if (!foundToken) {
-    return res.status(404).json({ error: "Ticket not found" });
+    return res.status(404).json({ ok: false, error: "Ticket not found" });
   }
 
-  const rec = tickets.get(foundToken);
-  rec.status = "cancelled";
-  tickets.set(foundToken, rec);
-  try { saveTickets(); } catch (e) {}
+  record.status = "cancelled";
+  tickets.set(foundToken, record);
+  saveTickets();
 
-  return res.json({ ok: true, ticketId: rec.id, status: rec.status });
+  return res.json({ ok: true, ticketId });
+
+  record.status = "cancelled";
+
+const cookies = parseCookies(req);
+const cancelledBy = cookies.mgmtName || "management";
+
+pushWithLimit(cancelledTicketsLog, {
+  ticketId,
+  token: foundToken,
+  cancelledBy,
+  source: "admin-cancel",
+  timestamp: Date.now(),
+}, 1000);
+
+// ... existing response code
+
 });
+
 
 // ------------------------------------------------------
 // MANAGEMENT: ALLOCATION SCANNER (QR → Seller/Box Office)
@@ -7901,6 +8525,9 @@ app.get("/subscriber-log", (req, res) => {
     </style>
   </head>
   <body>
+  <div class="top-actions">
+  <button class="pill-btn" onclick="exportMailingList()">⬇ Export Mailing List</button>
+</div>
     <div class="wrap">
       <div class="card">
         <h1>Mailing List Signups</h1>
@@ -8123,6 +8750,9 @@ app.get("/guest-scan-log", (req, res) => {
   </html>`);
 });
 
+// NEW: Cancelled tickets log
+// shape: { ticketId, token, cancelledBy, source, timestamp }
+const cancelledTicketsLog = [];
 
 // ------------------------------------------------------
 // START SERVER
