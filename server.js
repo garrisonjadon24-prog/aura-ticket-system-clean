@@ -737,13 +737,15 @@ loadTicketAllocations();   // ✅ ADD THIS EXACT LINE HERE
 
 
 // === AUTO-BACKUP SYSTEM (periodic JSON saves) ===
-const BACKUP_FILE = path.join(__dirname, 'aura-backup.json');
+const BACKUP_FILE = path.join(__dirname, "aura-backup.json");
 const BACKUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 function createBackup() {
   try {
     const backup = {
       timestamp: new Date().toISOString(),
+
+      // logs + events
       guestNameEntries,
       staffActivityLog,
       guestScanLog,
@@ -752,72 +754,75 @@ function createBackup() {
       boxOfficeSales,
       giveawayEvents,
       ipLogging,
-      ticketAllocations: Array.from(ticketAllocations.entries()),   // 👈 NEW
+
+      // allocations + tickets
+      ticketAllocations: Array.from(ticketAllocations.entries()),
       tickets: Array.from(tickets.entries()).map(([token, record]) => ({
         token,
         id: record.id,
         type: record.type,
-        status: record.status
+        status: record.status,
+      })),
 
-        function createBackup() {
-  return {
-    tickets: [...tickets.entries()],
-    ticketAllocations: [...ticketAllocations.entries()],
-    guestScanLog,
-    guestNameEntries,
-    // NEW:
-    cancelledTicketsLog,
-  };
-}
-
-      }))
+      // NEW: cancelled tickets log (if you’re tracking it)
+      cancelledTicketsLog,
     };
-  
+
     fs.writeFileSync(BACKUP_FILE, JSON.stringify(backup, null, 2));
     console.log(`[BACKUP] Created at ${backup.timestamp}`);
   } catch (e) {
-    console.error('[BACKUP] Error:', e);
+    console.error("[BACKUP] Error:", e);
   }
 }
 
 function restoreBackup() {
   try {
     if (!fs.existsSync(BACKUP_FILE)) {
-      console.log('[BACKUP] No backup file found, starting fresh.');
+      console.log("[BACKUP] No backup file found, starting fresh.");
       return;
     }
 
-      if (backup.cancelledTicketsLog) {
-    cancelledTicketsLog.length = 0;
-    cancelledTicketsLog.push(...backup.cancelledTicketsLog);
-  }
+    const backup = JSON.parse(fs.readFileSync(BACKUP_FILE, "utf8"));
 
-    const backup = JSON.parse(fs.readFileSync(BACKUP_FILE, 'utf8'));
+    // restore logs/events
     guestNameEntries.length = 0;
     guestNameEntries.push(...(backup.guestNameEntries || []));
+
     staffActivityLog.length = 0;
     staffActivityLog.push(...(backup.staffActivityLog || []));
+
     guestScanLog.length = 0;
     guestScanLog.push(...(backup.guestScanLog || []));
+
     Object.assign(scanEvents, backup.scanEvents || {});
     Object.assign(paymentEvents, backup.paymentEvents || {});
     Object.assign(boxOfficeSales, backup.boxOfficeSales || {});
     Object.assign(giveawayEvents, backup.giveawayEvents || {});
-Object.assign(ipLogging, backup.ipLogging || {});
+    Object.assign(ipLogging, backup.ipLogging || {});
 
-// restore ticket allocations
-ticketAllocations.clear();
-(backup.ticketAllocations || []).forEach(([ticketId, alloc]) => {
-  ticketAllocations.set(ticketId, alloc);
-});
+    // restore cancelled tickets (if present)
+    if (backup.cancelledTicketsLog) {
+      cancelledTicketsLog.length = 0;
+      cancelledTicketsLog.push(...backup.cancelledTicketsLog);
+    }
 
-tickets.clear();
-(backup.tickets || []).forEach(t => {
-  tickets.set(t.token, { id: t.id, type: t.type, status: t.status });
-});
-    console.log(`[BACKUP] Restored ${backup.tickets?.length || 0} tickets and logs from ${backup.timestamp}`);
+    // restore allocations
+    ticketAllocations.clear();
+    (backup.ticketAllocations || []).forEach(([ticketId, alloc]) => {
+      ticketAllocations.set(ticketId, alloc);
+    });
+
+    // restore tickets
+    tickets.clear();
+    (backup.tickets || []).forEach((t) => {
+      tickets.set(t.token, { id: t.id, type: t.type, status: t.status });
+    });
+
+    console.log(
+      `[BACKUP] Restored ${backup.tickets?.length || 0} tickets and logs from ${backup.timestamp}`
+    );
   } catch (e) {
-    console.error('[BACKUP] Restore error:', e);
+    console.error("[BACKUP] Restore error:", e);
   }
 }
 
@@ -828,9 +833,16 @@ restoreBackup();
 setInterval(createBackup, BACKUP_INTERVAL);
 
 // Backup on exit
-process.on('exit', createBackup);
-process.on('SIGINT', () => { createBackup(); process.exit(); });
-process.on('SIGTERM', () => { createBackup(); process.exit(); });
+process.on("exit", createBackup);
+process.on("SIGINT", () => {
+  createBackup();
+  process.exit();
+});
+process.on("SIGTERM", () => {
+  createBackup();
+  process.exit();
+});
+
 
 // ------------------------------------------------------
 // THEME HELPER SNIPPET (shared across pages)
@@ -8751,8 +8763,8 @@ app.get("/guest-scan-log", (req, res) => {
 });
 
 // NEW: Cancelled tickets log
-// shape: { ticketId, token, cancelledBy, source, timestamp }
-const cancelledTicketsLog = [];
+const cancelledTicketsLog = []; // { ticketId, token, cancelledBy, source, timestamp }
+
 
 // ------------------------------------------------------
 // START SERVER
