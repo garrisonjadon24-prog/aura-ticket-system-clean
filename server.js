@@ -2652,35 +2652,37 @@ if (staff !== "1") {
       });
 
       submitBtn.addEventListener('click', async () => {
-        const guestName  = nameInput.value.trim();
-        const guestEmail = emailInput.value.trim();
-        const guestPhone = phoneInput.value.trim();
-        const subscribeOptIn = !!document.getElementById('subscribeOptIn')?.checked;
+  const guestName  = nameInput.value.trim();
+  const guestEmail = emailInput.value.trim();
+  const guestPhone = phoneInput.value.trim();
+  const subscribeOptIn = !!document.getElementById('subscribeOptIn')?.checked;  // 👈 NEW
 
-        if (!guestName) {
-          alert('Please enter your name');
-          return;
-        }
-        if (!guestEmail || !guestPhone) {
-          alert('Please enter your email and cell number');
-          return;
-        }
+  if (!guestName) {
+    alert('Please enter your name');
+    return;
+  }
+  if (!guestEmail || !guestPhone) {
+    alert('Please enter your email and cell number');
+    return;
+  }
 
-        try {
-          const response = await fetch('/api/guest-name-entry', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ticketId: ticketId,
-              token: ticketToken,
-              guestName,
-              guestEmail,
-              guestPhone,
-              subscribe: subscribeOptIn
-            })
-          });
+  try {
+    const response = await fetch('/api/guest-name-entry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ticketId: ticketId,
+        token: ticketToken,
+        guestName,
+        guestEmail,
+        guestPhone,
+        subscribe: subscribeOptIn                               // 👈 NEW
+      })
+    });
 
-          const data = await response.json();
+    const data = await response.json();
+    ...
+
 
           if (data.success) {
             // Lock the fields + show success
@@ -2715,7 +2717,7 @@ app.post("/api/guest-name-entry", (req, res) => {
     guestName,
     guestEmail,
     guestPhone,
-    subscribe        // 👈 NEW
+    subscribe          // 👈 NEW
   } = req.body || {};
 
   const clientIP = getClientIP(req);
@@ -2736,24 +2738,19 @@ app.post("/api/guest-name-entry", (req, res) => {
   }
 
   // Add entry to guest name entries log
-  pushWithLimit(
-    guestNameEntries,
-    {
-      ticketId,
-      token,
-      guestName,
-      guestEmail,
-      guestPhone,
-      subscribe: !!subscribe,                // 👈 store as boolean
-      ip: clientIP,
-      timestamp: new Date().toISOString()
-    },
-    2000
-  );
+  pushWithLimit(guestNameEntries, {
+    ticketId,
+    token,
+    guestName,
+    guestEmail,
+    guestPhone,
+    subscribe: !!subscribe,          // 👈 NEW: true/false flag
+    ip: clientIP,
+    timestamp: new Date().toISOString()
+  }, 2000);
 
   return res.json({ success: true, message: "Entry received! Good luck!" });
 });
-
 
 
 // NEW ENDPOINT: Get guest name entries (Management only)
@@ -4447,12 +4444,6 @@ app.get("/allocations", (req, res) => {
           <button type="button" id="refreshBtn" class="pill-btn">Refresh</button>
         </div>
       </div>
-
-<a href="/subscriber-log" class="tile" style="background:linear-gradient(135deg,#4dd0e1,#26c6da);">
-  <div class="tile-icon">📬</div>
-  <div class="tile-title">Mailing List</div>
-  <div class="tile-subtitle">Guests who subscribed to POP updates.</div>
-</a>
 
       <div class="card">
         <div class="stats-row">
@@ -6871,7 +6862,9 @@ app.get("/management-hub", (req, res) => {
     <span class="desc">Guest ticket scans recorded in backend.</span>
   </button>
 </div>
-
+<a href="/subscriber-log" class="tool-button">
+  📬 Mailing List Signups
+</a>
 
 
  <div style="margin-top:18px;border-top:1px dashed rgba(255,255,255,0.04);padding-top:14px;">
@@ -7749,23 +7742,6 @@ app.get("/staff-log", (req, res) => {
     </html>`);
 });
 
-function getGuestInfoForTicket(ticketIdOrToken) {
-  if (!ticketIdOrToken) return null;
-
-  const entry = guestNameEntries.find(e =>
-    e &&
-    (e.ticketId === ticketIdOrToken || e.token === ticketIdOrToken)
-  );
-
-  if (!entry) return null;
-
-  return {
-    name:  entry.guestName  || "",
-    email: entry.guestEmail || "",
-    phone: entry.guestPhone || ""
-  };
-}
-
 // Helper: get the latest guest info for a ticket (from prize entries)
 function getGuestInfoForTicket(ticketId) {
   if (!ticketId) return null;
@@ -8138,130 +8114,6 @@ app.get("/guest-scan-log", (req, res) => {
   </html>`);
 });
 
-// ------------------------------------------------------
-// MANAGEMENT: Mailing List Subscribers (opt-in only)
-// ------------------------------------------------------
-app.get("/subscriber-log", (req, res) => {
-  if (!isMgmtAuthorizedReq(req)) {
-    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
-  }
-
-  const subscribers = guestNameEntries
-    .filter(e => e && e.subscribe)   // only opted-in guests
-    .slice(-500)
-    .reverse();
-
-  res.send(`<!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mailing List Subscribers</title>
-    <style>
-      ${themeCSSRoot()}
-      body {
-        margin:0;
-        padding:16px;
-        font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-        background:#050007;
-        color:#f5f5f5;
-        display:flex;
-        justify-content:center;
-      }
-      .wrap {
-        width:100%;
-        max-width:900px;
-      }
-      .card {
-        border-radius:22px;
-        padding:18px 16px;
-        background:radial-gradient(circle at top,#220018,#050007 60%);
-        box-shadow:0 18px 45px rgba(0,0,0,0.9);
-        border:1px solid rgba(255,64,129,0.28);
-      }
-      h1 {
-        margin:0 0 6px;
-        font-size:1.5rem;
-        background:linear-gradient(120deg,#ffb300,#ff4081,#ff1744);
-        -webkit-background-clip:text;
-        color:transparent;
-      }
-      .subtitle {
-        font-size:0.88rem;
-        color:#bbb;
-        margin-bottom:14px;
-      }
-      table {
-        width:100%;
-        border-collapse:collapse;
-        font-size:0.84rem;
-      }
-      th, td {
-        padding:8px 6px;
-        border-bottom:1px solid rgba(255,255,255,0.08);
-        text-align:left;
-      }
-      th {
-        font-size:0.78rem;
-        text-transform:uppercase;
-        letter-spacing:0.08em;
-        color:#bbb;
-      }
-      .back-link {
-        display:inline-block;
-        margin-top:14px;
-        font-size:0.85rem;
-        color:#ffd86b;
-        text-decoration:none;
-      }
-      .back-link:hover {
-        text-decoration:underline;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="wrap">
-      <div class="card">
-        <h1>📬 Mailing List</h1>
-        <div class="subtitle">
-          Guests who opted in to A.U.R.A / POP updates from their ticket scan.
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Cell</th>
-              <th>Ticket ID</th>
-              <th>Joined</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${
-              subscribers.length === 0
-                ? '<tr><td colspan="5" style="text-align:center;color:#888;">No subscribers yet.</td></tr>'
-                : subscribers.map(s => `
-                    <tr>
-                      <td>${s.guestName || ""}</td>
-                      <td>${s.guestEmail || ""}</td>
-                      <td>${s.guestPhone || ""}</td>
-                      <td>${s.ticketId || ""}</td>
-                      <td>${s.timestamp || ""}</td>
-                    </tr>
-                  `).join("")
-            }
-          </tbody>
-        </table>
-
-        <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-link">
-          ← Back to Management Hub
-        </a>
-      </div>
-    </div>
-  </body>
-  </html>`);
-});
 
 // ------------------------------------------------------
 // START SERVER
