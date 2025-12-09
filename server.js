@@ -6744,6 +6744,10 @@ app.get("/management-hub", (req, res) => {
         .btn-prizeentries { background:linear-gradient(135deg,#00bcd4,#0097a7); }
         .btn-stafflog { background:linear-gradient(135deg,#03a9f4,#0288d1); }
         .btn-guestlog { background:linear-gradient(135deg,#ff5722,#e64a19); }
+        .btn-mailing {
+          background: linear-gradient(135deg,#8e24aa,#ff6ec4);
+          border: 1px solid rgba(255,255,255,0.18);
+        }
 
         .btn-qrfiles {
           background: linear-gradient(135deg, #ff1744, #ff4081);
@@ -6853,21 +6857,26 @@ app.get("/management-hub", (req, res) => {
     <span class="label">🎁 Guest Entries</span>
     <span class="desc">Prize draw entries from guest scans & draw winner.</span>
   </button>
-  <button class="action-button btn-stafflog" onclick="go('/staff-log')">
-    <span class="label">👥 Staff Log</span>
-    <span class="desc">View staff login activity and usage.</span>
-  </button>
-  <button class="action-button btn-guestlog" onclick="go('/guest-scans')">
-    <span class="label">🎫 Scan Log</span>
-    <span class="desc">Guest ticket scans recorded in backend.</span>
-  </button>
-</div>
-<a href="/subscriber-log" class="tool-button">
-  📬 Mailing List Signups
-</a>
+   <button class="action-button btn-stafflog" onclick="go('/staff-log')">
+     <span class="label">👥 Staff Log</span>
+     <span class="desc">View staff login activity and usage.</span>
+   </button>
 
+   <button class="action-button btn-guestlog" onclick="go('/guest-scans')">
+     <span class="label">🎫 Scan Log</span>
+     <span class="desc">Guest ticket scans recorded in backend.</span>
+   </button>
+
+   <!-- NEW: Mailing list tile inside the grid -->
+   <button class="action-button btn-mailing" onclick="go('/subscriber-log')">
+     <span class="label">📬 Mailing List</span>
+     <span class="desc">View guests who opted into POP / AURA updates.</span>
+   </button>
+
+ </div>
 
  <div style="margin-top:18px;border-top:1px dashed rgba(255,255,255,0.04);padding-top:14px;">
+
   <h3 style="margin:0 0 8px 0;font-size:0.95rem;color:#ffd86b">Admin Tools</h3>
 
   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
