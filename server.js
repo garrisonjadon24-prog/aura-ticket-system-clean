@@ -1586,6 +1586,38 @@ const ALLOWED_MANAGERS = [
           return ALLOWED_MANAGERS.includes(normalized);
         }
 
+/* --- Styled Button Cards --- */
+.tool-card {
+  display: block;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  text-decoration: none;
+  background: linear-gradient(135deg, #1d0020, #0c000e);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #eae2ff;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+  transition: 0.25s ease;
+}
+
+.tool-card:hover {
+  border-color: #ff3c88;
+  box-shadow: 0 8px 22px rgba(255,60,136,0.3);
+  transform: translateY(-2px);
+}
+
+.tool-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #ffd86b;
+}
+
+.tool-sub {
+  font-size: 0.85rem;
+  color: #bfa0ff;
+}
+
         // Show a styled modal for management login (name + PIN)
         function openManagementHub() {
           const modal = document.getElementById('mgmtLoginModal');
@@ -7398,10 +7430,11 @@ app.get("/management-hub", (req, res) => {
      <span class="desc">View staff login activity and usage.</span>
    </button>
 
-<div class="tile" onclick="go('/guest-scan-log')">
-  <div class="tile-label">📋 Scan Log</div>
-  <div class="tile-sub">Timeline of guest scans (non-staff).</div>
-</div>
+<a href="/scan-log?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
+  <div class="tool-title">📋 Scan Log</div>
+  <div class="tool-sub">Timeline of guest scans (non-staff).</div>
+</a>
+
 
 
    <!-- NEW: Mailing list tile inside the grid -->
@@ -7413,33 +7446,19 @@ app.get("/management-hub", (req, res) => {
  </div>
 
   <!-- ROW 2: HUB CARDS -->
-  <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;">
-    <!-- Allocation Hub -->
-    <a
-      href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
-      class="tool-card tool-purple"
-    >
-      <div class="tool-title">🎟 Allocation Hub</div>
-      <div class="tool-sub">Allocations, scanner, and allocation log.</div>
-    </a>
+<a href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
+  <div class="tool-title">🎫 Allocation Hub</div>
+  <div class="tool-sub">Allocations, scanner, and allocation log.</div>
+</a>
+<a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
+  <div class="tool-title">📘 Log Hub</div>
+  <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
+</a>
+<a href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
+  <div class="tool-title">🎁 Prize Hub</div>
+  <div class="tool-sub">Prize draws and guest entries.</div>
+</a>
 
-    <!-- Log Hub -->
-    <a
-      href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
-      class="tool-card tool-blue"
-    >
-      <div class="tool-title">📘 Log Hub</div>
-      <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
-    </a>
-
-    <!-- Prize Hub -->
-    <a
-      href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
-      class="tool-card tool-pink"
-    >
-      <div class="tool-title">🎁 Prize Hub</div>
-      <div class="tool-sub">Prize draws and guest entries.</div>
-    </a>
 <div class="admin-tools-grid">
   <div class="admin-tile" onclick="adminExport()">
     <div class="admin-label">⬇ Export Data</div>
