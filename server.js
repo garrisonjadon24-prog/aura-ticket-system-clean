@@ -1586,37 +1586,39 @@ const ALLOWED_MANAGERS = [
           return ALLOWED_MANAGERS.includes(normalized);
         }
 
-/* --- Styled Button Cards --- */
-.tool-card {
-  display: block;
-  padding: 14px 18px;
-  margin-bottom: 12px;
-  border-radius: 14px;
-  text-decoration: none;
-  background: linear-gradient(135deg, #1d0020, #0c000e);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: #eae2ff;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-  transition: 0.25s ease;
-}
+  /* --- Styled Button Cards --- */
+  .tool-card {
+    display: block;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+    text-decoration: none;
+    background: linear-gradient(135deg, #1d0020, #0c000e);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #eae2ff;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    transition: 0.25s ease;
+  }
 
-.tool-card:hover {
-  border-color: #ff3c88;
-  box-shadow: 0 8px 22px rgba(255,60,136,0.3);
-  transform: translateY(-2px);
-}
+  .tool-card:hover {
+    border-color: #ff3c88;
+    box-shadow: 0 8px 22px rgba(255,60,136,0.3);
+    transform: translateY(-2px);
+  }
 
-.tool-title {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 4px;
-  color: #ffd86b;
-}
+  .tool-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #ffd86b;
+  }
 
-.tool-sub {
-  font-size: 0.85rem;
-  color: #bfa0ff;
-}
+  .tool-sub {
+    font-size: 0.85rem;
+    color: #bfa0ff;
+  }
+</style>
+
 
         // Show a styled modal for management login (name + PIN)
         function openManagementHub() {
@@ -2909,9 +2911,16 @@ if (staff !== "1") {
             submitBtn.disabled   = true;
             successMsg.style.display = 'block';
 
-            // Redirect straight to Instagram
-            window.location.href = IG_URL;
-            return;
+           // Show success message + welcome screen FIRST
+document.getElementById("mysteryPrizeSuccess").style.display = "block";
+document.getElementById("welcomeContainer").style.display = "block"; 
+document.getElementById("scanFormContainer").style.display = "none";
+
+// Delay redirect so the guest has time to read the welcome message
+setTimeout(() => {
+  window.location.href = IG_URL;
+}, 5000); // 5000 = 5 seconds; change if needed
+
           } else {
             alert(data.error || 'Error submitting entry');
           }
