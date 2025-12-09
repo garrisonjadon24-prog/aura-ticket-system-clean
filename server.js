@@ -6818,38 +6818,81 @@ app.get("/management-hub", (req, res) => {
   </button>
 </div>
 
-          <div style="margin-top:18px;border-top:1px dashed rgba(255,255,255,0.04);padding-top:14px;">
-            <h3 style="margin:0 0 8px 0;font-size:0.95rem;color:#ffd86b">Admin Tools</h3>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-              <button class="action-button" style="background:linear-gradient(90deg,#ffd86b,#ffb300);padding:10px 12px;min-width:160px" onclick="adminExport()">⬇️ Export JSON</button>
-              <label style="display:inline-block;background:linear-gradient(90deg,#00bcd4,#0097a7);padding:8px 12px;border-radius:12px;color:#081217;cursor:pointer;font-weight:700">
-                ⬆️ Import JSON
-                <input id="adminImportFile" type="file" accept="application/json" style="display:none" onchange="adminImportFile(event)" />
-              </label>
-              <button class="action-button" style="background:linear-gradient(90deg,#9c27b0,#6a1b9a);padding:10px 12px;min-width:160px" onclick="adminSeedPrompt()">🎲 Seed Data</button>
-              <button class="action-button" style="background:linear-gradient(90deg,#ff5722,#e64a19);padding:10px 12px;min-width:160px" onclick="adminClearPrompt()">🧹 Clear Data</button>
-              <div id="adminMsg" style="margin-left:8px;color:#fff;font-size:0.9rem;opacity:0.9"></div>
-              <button class="action-button"
-        style="background:linear-gradient(135deg,#ff9800,#ffc107);min-width:180px"
-        onclick="adminClearTestsPrompt()">
-  🧹 Clear Test Tickets / QRCodes
-</button>
-<div style="margin-top:10px;font-size:0.85rem;">
-  <label for="cancelTicketId">Cancel Ticket / QR Code:</label>
-  <input id="cancelTicketId"
-         type="text"
-         placeholder="e.g. EB-015"
-         style="margin-left:6px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.25);background:rgba(0,0,0,0.5);color:#fff;max-width:140px" />
-  <button type="button"
-          style="margin-left:6px;padding:6px 10px;border-radius:999px;border:none;background:linear-gradient(135deg,#ff7043,#ff9800);font-size:0.8rem;font-weight:700;cursor:pointer"
-          onclick="adminCancelTicket()">
-    Cancel
-  </button>
+ <div style="margin-top:18px;border-top:1px dashed rgba(255,255,255,0.04);padding-top:14px;">
+  <h3 style="margin:0 0 8px 0;font-size:0.95rem;color:#ffd86b">Admin Tools</h3>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <button
+      class="action-button"
+      style="background:linear-gradient(90deg,#ffd86b,#ffb300);padding:10px 12px;min-width:160px"
+      onclick="adminExport()"
+    >
+      ⬇️ Export JSON
+    </button>
+
+    <label
+      style="display:inline-block;background:linear-gradient(90deg,#00bcd4,#0097a7);padding:8px 12px;
+             border-radius:12px;color:#081217;cursor:pointer;font-weight:700"
+    >
+      ⬆️ Import JSON
+      <input
+        id="adminImportFile"
+        type="file"
+        accept="application/json"
+        style="display:none"
+        onchange="adminImportFile(event)"
+      />
+    </label>
+
+    <button
+      class="action-button"
+      style="background:linear-gradient(90deg,#ff5252,#e91e63);padding:10px 12px;min-width:160px"
+      onclick="adminClearData()"
+    >
+      🧨 Clear Data
+    </button>
+
+    <button
+      class="action-button"
+      style="background:linear-gradient(90deg,#ff9800,#ff5722);padding:10px 12px;min-width:210px"
+      onclick="adminClearTestTickets()"
+    >
+      🧹 Clear Test Tickets / QRCodes
+    </button>
+  </div>
+
+  <div id="adminMsg"
+       style="margin-left:8px;margin-top:8px;color:#fff;font-size:0.9rem;opacity:0.85;">
+  </div>
+
+  <div style="margin-top:16px;">
+    <label
+      for="cancelCode"
+      style="font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;
+             color:#bbb;display:block;margin-bottom:4px;"
+    >
+      Cancel Ticket / QR Code:
+    </label>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+      <input
+        id="cancelCode"
+        placeholder="e.g. FRESH-001 or FRESH-001.png"
+        style="flex:1 1 180px;min-width:0;border-radius:999px;border:1px solid rgba(255,255,255,0.2);
+               padding:8px 12px;background:#140019;color:#fff;"
+      />
+      <button
+        type="button"
+        onclick="adminCancelTicket()"
+        style="border-radius:999px;border:none;padding:8px 16px;background:#ff5252;
+               color:#fff;font-weight:600;cursor:pointer;"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
 </div>
 
-
-            </div>
-          </div>
 
           <a href="/staff?key=${encodeURIComponent(
             STAFF_PIN
@@ -6857,18 +6900,13 @@ app.get("/management-hub", (req, res) => {
         </div>
       </div>
 
-      ${themeScript()}
+           ${themeScript()}
       <script>
         const MGMT_KEY = "${MANAGEMENT_PIN}";
-const ALLOWED_MANAGERS = [
-  "RAY",
-  "SHAWN",
-  "NIQUE",
-  "CHE"
-];
+        const ALLOWED_MANAGERS = ["RAY","SHAWN","NIQUE","CHE"];
 
         function go(path) {
-          window.location.href = path + '?key=' + encodeURIComponent(MGMT_KEY);
+          window.location.href = path + "?key=" + encodeURIComponent(MGMT_KEY);
         }
 
         function isManagerName(name) {
@@ -6876,98 +6914,210 @@ const ALLOWED_MANAGERS = [
           return ALLOWED_MANAGERS.includes(name.trim().toUpperCase());
         }
 
-                function setAdminMsg(text) {
-          const el = document.getElementById('adminMsg');
-          if (el) el.textContent = text;
+        function setAdminMsg(text, isError) {
+          const el = document.getElementById("adminMsg");
+          if (!el) return;
+          el.textContent = text;
+          if (isError) {
+            el.style.color = "#ff8a80";
+          } else {
+            el.style.color = "#ffffff";
+          }
         }
 
         async function adminExport() {
           try {
-            const res = await fetch('/admin/export?key=' + encodeURIComponent(MGMT_KEY));
-            if (!res.ok) throw new Error('Export failed');
+            const res = await fetch(
+              "/admin/export?key=" + encodeURIComponent(MGMT_KEY)
+            );
+            if (!res.ok) throw new Error("Export failed (" + res.status + ")");
             const data = await res.json();
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify(data, null, 2)], {
+              type: "application/json",
+            });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
+            const a = document.createElement("a");
             a.href = url;
-            a.download = 'aura-admin-export.json';
+            a.download =
+              "aura-backup-" +
+              new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") +
+              ".json";
             document.body.appendChild(a);
             a.click();
             a.remove();
             URL.revokeObjectURL(url);
-            setAdminMsg('Exported current data.');
+            setAdminMsg("Exported current data.");
           } catch (err) {
             console.error(err);
-            setAdminMsg('Export error: ' + err.message);
+            setAdminMsg("Export error: " + err.message, true);
           }
         }
 
         async function adminImportFile(event) {
           const file = event.target.files && event.target.files[0];
           if (!file) return;
+
+          if (
+            !confirm(
+              'Import data from "' +
+                file.name +
+                '"? This will overwrite current in-memory data.'
+            )
+          ) {
+            event.target.value = "";
+            return;
+          }
+
           try {
             const text = await file.text();
             const payload = JSON.parse(text);
-            const res = await fetch('/admin/import?key=' + encodeURIComponent(MGMT_KEY), {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
+
+            const res = await fetch(
+              "/admin/import?key=" + encodeURIComponent(MGMT_KEY),
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+              }
+            );
             const data = await res.json();
             if (!res.ok || !data.ok) {
-              throw new Error(data.error || 'Import failed');
+              throw new Error(data.error || "Import failed");
             }
-            setAdminMsg('Import complete.');
+            setAdminMsg("Import complete. Refresh the page to see updates.");
           } catch (err) {
             console.error(err);
-            setAdminMsg('Import error: ' + err.message);
+            setAdminMsg("Import error: " + err.message, true);
           } finally {
-            event.target.value = '';
+            event.target.value = "";
           }
         }
 
-        async function adminSeedPrompt() {
-          const what = (prompt('Seed what? (guestEntries, staffActivity, guestScans, tickets)', 'tickets') || '').trim();
-          if (!what) return;
-          const countStr = prompt('How many records to seed?', '10');
-          if (!countStr) return;
-          const count = Number(countStr) || 10;
+        // 🔴 CLEAR **ALL** DATA
+        async function adminClearData() {
+          if (
+            !confirm(
+              "This will CLEAR ALL tickets, logs and allocations from memory. Continue?"
+            )
+          )
+            return;
+
           try {
-            const res = await fetch('/admin/seed?key=' + encodeURIComponent(MGMT_KEY), {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ what, count })
-            });
+            const res = await fetch(
+              "/admin/clear?key=" + encodeURIComponent(MGMT_KEY),
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ what: "all" }),
+              }
+            );
             const data = await res.json();
             if (!res.ok || !data.ok) {
-              throw new Error(data.error || 'Seed failed');
+              throw new Error(data.error || "Clear failed");
             }
-            setAdminMsg('Seeded ' + (data.added || count) + ' ' + what + '.');
+            setAdminMsg("All tickets + logs cleared. Clean system ready.");
           } catch (err) {
             console.error(err);
-            setAdminMsg('Seed error: ' + err.message);
+            setAdminMsg("Clear error: " + err.message, true);
           }
         }
 
-async function adminClearTestsPrompt() {
-  if (!confirm('Clear ONLY TEST tickets, their QR PNGs, and related logs?')) return;
-  try {
-    const res = await fetch('/admin/clear?key=' + encodeURIComponent(MGMT_KEY), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ what: 'testTickets' })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok) {
-      throw new Error(data.error || 'Clear failed');
-    }
-    setAdminMsg('Test tickets / QR codes cleared.');
-  } catch (err) {
-    console.error(err);
-    setAdminMsg('Clear test error: ' + err.message);
-  }
-}
+        // 🧹 CLEAR ONLY TEST TICKETS / TEST-*.PNG
+        async function adminClearTestTickets() {
+          if (
+            !confirm(
+              "Clear ONLY TEST tickets, their TEST-*.png QRs and related logs?"
+            )
+          )
+            return;
 
+          try {
+            const res = await fetch(
+              "/admin/clear?key=" + encodeURIComponent(MGMT_KEY),
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ what: "testTickets" }),
+              }
+            );
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+              throw new Error(data.error || "Clear failed");
+            }
+            setAdminMsg("Test tickets / QR codes cleared.");
+          } catch (err) {
+            console.error(err);
+            setAdminMsg("Clear test error: " + err.message, true);
+          }
+        }
+
+        // ❌ CANCEL A SINGLE TICKET
+        async function adminCancelTicket() {
+          const input = document.getElementById("cancelCode");
+          if (!input) return;
+
+          const raw = input.value.trim();
+          if (!raw) {
+            setAdminMsg(
+              "Enter a ticket ID or QR filename to cancel.",
+              true
+            );
+            return;
+          }
+
+          // Accept "FRESH-001" or "FRESH-001.png"
+          const ticketId = raw.toUpperCase().endsWith(".PNG")
+            ? raw.slice(0, -4)
+            : raw;
+
+          try {
+            const res = await fetch(
+              "/admin/cancel-ticket?key=" + encodeURIComponent(MGMT_KEY),
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ticketId }),
+              }
+            );
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+              throw new Error(data.error || "Cancel failed");
+            }
+            setAdminMsg("Ticket " + ticketId + " cancelled.");
+            input.value = "";
+          } catch (err) {
+            console.error(err);
+            setAdminMsg("Cancel error: " + err.message, true);
+          }
+        }
+
+        (function initManager() {
+          const serverName = ${JSON.stringify(managerName || "")};
+          const qs = new URLSearchParams(window.location.search);
+          const providedName =
+            qs.get("name") ||
+            serverName ||
+            sessionStorage.getItem("staffName") ||
+            "";
+          const managerSpan = document.getElementById("managerName");
+          if (providedName) {
+            managerSpan.textContent = providedName;
+            sessionStorage.setItem("staffName", providedName);
+          } else {
+            managerSpan.textContent = "Restricted";
+          }
+        })();
+      </script>
+
+    </body>
+    </html>`);
+});
+
+    </body>
+    </html>`);
+});
+
+// MANAGEMENT: cancel a ticket (backend route)
 app.post("/admin/cancel-ticket", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
     return res.status(403).json({ error: "Unauthorized" });
@@ -6999,48 +7149,6 @@ app.post("/admin/cancel-ticket", (req, res) => {
   return res.json({ ok: true, ticketId: rec.id, status: rec.status });
 });
 
-
-        (function initManager() {
-          // Prefer server-provided manager name (validated server-side) then sessionStorage
-          const serverName = ${JSON.stringify(managerName || '')};
-          const qs = new URLSearchParams(window.location.search);
-          const providedName = qs.get('name') || serverName || sessionStorage.getItem('staffName') || '';
-          const managerSpan = document.getElementById('managerName');
-          if (providedName) {
-            managerSpan.textContent = providedName;
-            sessionStorage.setItem('staffName', providedName);
-          } else {
-            managerSpan.textContent = 'Restricted';
-          }
-
-          async function adminClearTestsPrompt() {
-  if (!confirm('Clear ONLY TEST tickets, their QR PNGs, and related logs?')) return;
-  try {
-    const res = await fetch('/admin/clear?key=' + encodeURIComponent(MGMT_KEY), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ what: 'testTickets' })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok) {
-      throw new Error(data.error || 'Clear failed');
-    }
-    setAdminMsg('Test tickets / QR codes cleared.');
-  } catch (err) {
-    console.error(err);
-    setAdminMsg('Clear test error: ' + err.message);
-  }
-}
-
-        })();
-
-        // mgmtLogout removed: management logout is handled by server endpoint but no visible logout button is shown per UX decision
-      </script>
-    </body>
-    </html>`);
-});
-
-// ------------------------------------------------------
 // ------------------------------------------------------
 // MANAGEMENT: ALLOCATION SCANNER (QR → Seller/Box Office)
 // ------------------------------------------------------
