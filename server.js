@@ -3595,107 +3595,103 @@ app.get("/live-analytics", (req, res) => {
 
       ${themeScript()}
       <script>
-        // Use the STAFF PIN here – the /api/live-analytics route
-        // explicitly checks for STAFF_PIN or a mgmt session.
         const STAFF_KEY = "${STAFF_PIN}";
 
         function updateAnalytics() {
           fetch("/api/live-analytics?key=" + encodeURIComponent(STAFF_KEY))
-            .then((r) => r.json())
-            .then((data) => {
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
               if (!data || data.error) return;
 
-              const live = data.liveStats || {};
-              const test = data.testStats || {};
+              var live = data.liveStats || {};
+              var test = data.testStats || {};
 
               // --- HEADLINE (LIVE ONLY) ---
-              const checkedEl = document.getElementById("totalCheckedIn");
+              var checkedEl = document.getElementById("totalCheckedIn");
               if (checkedEl) {
                 checkedEl.textContent =
-                  live.used ?? data.used ?? 0;
+                  (live.used != null ? live.used : (data.used || 0));
               }
 
-              const pendingEl = document.getElementById("stillPending");
+              var pendingEl = document.getElementById("stillPending");
               if (pendingEl) {
                 pendingEl.textContent =
-                  live.pending ?? data.unused ?? 0;
+                  (live.pending != null ? live.pending : (data.unused || 0));
               }
 
-              const arrivalEl = document.getElementById("arrivalRate");
+              var arrivalEl = document.getElementById("arrivalRate");
               if (arrivalEl) {
-                const pct = live.arrivalPercent ?? data.usagePercent ?? 0;
+                var pct = (live.arrivalPercent != null
+                  ? live.arrivalPercent
+                  : (data.usagePercent || 0));
                 arrivalEl.textContent = pct + "% arrival (live only)";
               }
 
               // --- GIVEAWAY + BOX OFFICE (safe defaults) ---
-              const giveawayEl = document.getElementById("giveawayWinners");
+              var giveawayEl = document.getElementById("giveawayWinners");
               if (giveawayEl) {
-                giveawayEl.textContent = data.giveaways ?? 0;
+                giveawayEl.textContent = (data.giveaways || 0);
               }
 
-              const boxEl = document.getElementById("boxOfficeCount");
+              var boxEl = document.getElementById("boxOfficeCount");
               if (boxEl) {
-                boxEl.textContent = data.boxOfficeSales ?? 0;
+                boxEl.textContent = (data.boxOfficeSales || 0);
               }
 
               // --- TEST CARD ---
-              const testTotalEl = document.getElementById("testTotal");
-              if (testTotalEl) testTotalEl.textContent = test.total ?? 0;
+              var testTotalEl = document.getElementById("testTotal");
+              if (testTotalEl) testTotalEl.textContent = (test.total || 0);
 
-              const testInEl = document.getElementById("testCheckedIn");
-              if (testInEl) testInEl.textContent = test.used ?? 0;
+              var testInEl = document.getElementById("testCheckedIn");
+              if (testInEl) testInEl.textContent = (test.used || 0);
 
-              const testPendingEl = document.getElementById("testPending");
-              if (testPendingEl) testPendingEl.textContent = test.pending ?? 0;
+              var testPendingEl = document.getElementById("testPending");
+              if (testPendingEl) testPendingEl.textContent = (test.pending || 0);
 
               // --- BREAKDOWN BY TYPE ---
-              const typeBody = document.getElementById("typeBody");
+              var typeBody = document.getElementById("typeBody");
               if (typeBody) {
                 typeBody.innerHTML = Object.entries(data.byType || {})
-                  .map(([type, stats]) => {
-                    const arrivalPct =
-                      stats.total > 0
-                        ? Math.round((stats.used / stats.total) * 100)
-                        : 0;
-                    return `
-                      <tr>
-                        <td><strong>${type}</strong></td>
-                        <td>${stats.total}</td>
-                        <td style="color:#34c759;">${stats.used}</td>
-                        <td>${arrivalPct}%</td>
-                      </tr>`;
+                  .map(function (entry) {
+                    var type = entry[0];
+                    var stats = entry[1];
+                    var arrivalPct = stats.total > 0
+                      ? Math.round((stats.used / stats.total) * 100)
+                      : 0;
+
+                    return '<tr>' +
+                      '<td><strong>' + type + '</strong></td>' +
+                      '<td>' + stats.total + '</td>' +
+                      '<td style="color:#34c759;">' + stats.used + '</td>' +
+                      '<td>' + arrivalPct + '%</td>' +
+                      '</tr>';
                   })
-                  .join("");
+                  .join('');
               }
 
               // --- LAST 10 SCANS ---
-              const scanBody = document.getElementById("scanBody");
+              var scanBody = document.getElementById("scanBody");
               if (scanBody) {
                 scanBody.innerHTML = (data.recentScans || [])
-                  .map((scan) => {
-                    let statusBadge = "";
-                    if (scan.status === "valid") {
-                      statusBadge =
-                        '<span class="status status-valid">VALID</span>';
-                    } else if (scan.status === "invalid") {
-                      statusBadge =
-                        '<span class="status status-invalid">INVALID</span>';
-                    } else if (scan.status === "duplicate") {
-                      statusBadge =
-                        '<span class="status status-duplicate">DUPLICATE</span>';
+                  .map(function (scan) {
+                    var statusBadge = '';
+                    if (scan.status === 'valid') {
+                      statusBadge = '<span class="status status-valid">VALID</span>';
+                    } else if (scan.status === 'invalid') {
+                      statusBadge = '<span class="status status-invalid">INVALID</span>';
+                    } else if (scan.status === 'duplicate') {
+                      statusBadge = '<span class="status status-duplicate">DUPLICATE</span>';
                     } else {
-                      statusBadge =
-                        '<span class="status">' + scan.status + "</span>";
+                      statusBadge = '<span class="status">' + scan.status + '</span>';
                     }
 
-                    return `
-                      <tr>
-                        <td><strong>${scan.ticketId}</strong></td>
-                        <td>${statusBadge}</td>
-                        <td style="font-size:0.85rem;">${scan.time}</td>
-                      </tr>`;
+                    return '<tr>' +
+                      '<td><strong>' + scan.ticketId + '</strong></td>' +
+                      '<td>' + statusBadge + '</td>' +
+                      '<td style="font-size:0.85rem;">' + scan.time + '</td>' +
+                      '</tr>';
                   })
-                  .join("");
+                  .join('');
               }
             });
         }
@@ -3706,6 +3702,7 @@ app.get("/live-analytics", (req, res) => {
     </body>
     </html>`);
 });
+
 
 
 // ------------------------------------------------------
