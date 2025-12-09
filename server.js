@@ -7510,20 +7510,6 @@ app.get("/management-hub", (req, res) => {
     <div class="admin-sub">Restore from a saved JSON file.</div>
   </label>
 
-  <button class="admin-tile warning" type="button" onclick="adminClearAllocationLog()">
-    <div class="admin-label">🧹 Clear Allocation Log</div>
-    <div class="admin-sub">Clears seller ↔ ticket allocation history.</div>
-  </button>
-
-  <button class="admin-tile danger" type="button" onclick="adminClearData()">
-    <div class="admin-label">⚠ Clear ALL Data</div>
-    <div class="admin-sub">Wipes tickets, logs and allocations.</div>
-  </button>
-
-  <button class="admin-tile danger" type="button" onclick="adminClearTestTickets()">
-    <div class="admin-label">🧪 Clear Test Tickets / QR</div>
-    <div class="admin-sub">Remove TEST tickets + QR PNGs.</div>
-  </button>
 </div>
 
 
