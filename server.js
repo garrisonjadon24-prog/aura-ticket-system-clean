@@ -7113,10 +7113,6 @@ app.get("/management-hub", (req, res) => {
     </html>`);
 });
 
-    </body>
-    </html>`);
-});
-
 // MANAGEMENT: cancel a ticket (backend route)
 app.post("/admin/cancel-ticket", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
