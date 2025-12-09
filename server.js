@@ -253,6 +253,26 @@ const ticketAllocations = new Map();
 function getNameForTicketId(ticketId) {
   if (!ticketId) return null;
 
+  // NEW: helper to get latest guest info (for logs, mailing list, etc.)
+function getGuestInfoForTicket(ticketId) {
+  if (!ticketId) return null;
+
+  // Walk backwards so we get the most recent entry
+  for (let i = guestNameEntries.length - 1; i >= 0; i--) {
+    const e = guestNameEntries[i];
+    if (e.ticketId === ticketId) {
+      return {
+        name: (e.guestName || "").trim(),
+        email: (e.guestEmail || "").trim(),
+        phone: (e.guestPhone || "").trim(),
+        subscribed: !!e.subscribe,
+        timestamp: e.timestamp || null,
+      };
+    }
+  }
+  return null;
+}
+
   // 1) Prefer guest prize-draw entries (they typed their name there)
   for (let i = guestNameEntries.length - 1; i >= 0; i--) {
     const entry = guestNameEntries[i];
@@ -2540,6 +2560,18 @@ if (staff !== "1") {
   <input type="email" id="guestEmailInput" placeholder="Enter your email" maxlength="80" />
   <input type="tel" id="guestPhoneInput" placeholder="Enter your cell number" maxlength="20" />
   <button id="submitNameBtn">Submit for Prize Draw</button>
+  <div class="field checkbox-field">
+  <label style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;line-height:1.3;">
+    <input type="checkbox"
+           id="subscribeOptIn"
+           style="margin-top:3px;">
+    <span>
+      I’d like to join the A.U.R.A / POP mailing list and receive updates
+      about future events and special offers.
+    </span>
+  </label>
+</div>
+
   <div class="entry-success" id="successMsg" style="display:none;">
     ✅ You're entered! Good luck!
   </div>
@@ -2620,33 +2652,37 @@ if (staff !== "1") {
       });
 
       submitBtn.addEventListener('click', async () => {
-        const guestName  = nameInput.value.trim();
-        const guestEmail = emailInput.value.trim();
-        const guestPhone = phoneInput.value.trim();
+  const guestName  = nameInput.value.trim();
+  const guestEmail = emailInput.value.trim();
+  const guestPhone = phoneInput.value.trim();
+  const subscribeOptIn = !!document.getElementById('subscribeOptIn')?.checked;  // 👈 NEW
 
-        if (!guestName) {
-          alert('Please enter your name');
-          return;
-        }
-        if (!guestEmail || !guestPhone) {
-          alert('Please enter your email and cell number');
-          return;
-        }
+  if (!guestName) {
+    alert('Please enter your name');
+    return;
+  }
+  if (!guestEmail || !guestPhone) {
+    alert('Please enter your email and cell number');
+    return;
+  }
 
-        try {
-          const response = await fetch('/api/guest-name-entry', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ticketId: ticketId,
-              token: ticketToken,
-              guestName,
-              guestEmail,
-              guestPhone
-            })
-          });
+  try {
+    const response = await fetch('/api/guest-name-entry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ticketId: ticketId,
+        token: ticketToken,
+        guestName,
+        guestEmail,
+        guestPhone,
+        subscribe: subscribeOptIn                               // 👈 NEW
+      })
+    });
 
-          const data = await response.json();
+    const data = await response.json();
+    ...
+
 
           if (data.success) {
             // Lock the fields + show success
@@ -2675,7 +2711,15 @@ if (staff !== "1") {
 
 // NEW ENDPOINT: Guest Name Entry for Prize Draw
 app.post("/api/guest-name-entry", (req, res) => {
-  const { ticketId, token, guestName, guestEmail, guestPhone } = req.body || {};
+  const {
+    ticketId,
+    token,
+    guestName,
+    guestEmail,
+    guestPhone,
+    subscribe          // 👈 NEW
+  } = req.body || {};
+
   const clientIP = getClientIP(req);
 
   if (!token || !ticketId || !guestName || !guestEmail || !guestPhone) {
@@ -2700,6 +2744,7 @@ app.post("/api/guest-name-entry", (req, res) => {
     guestName,
     guestEmail,
     guestPhone,
+    subscribe: !!subscribe,          // 👈 NEW: true/false flag
     ip: clientIP,
     timestamp: new Date().toISOString()
   }, 2000);
@@ -6817,6 +6862,10 @@ app.get("/management-hub", (req, res) => {
     <span class="desc">Guest ticket scans recorded in backend.</span>
   </button>
 </div>
+<a href="/subscriber-log" class="tool-button">
+  📬 Mailing List Signups
+</a>
+
 
  <div style="margin-top:18px;border-top:1px dashed rgba(255,255,255,0.04);padding-top:14px;">
   <h3 style="margin:0 0 8px 0;font-size:0.95rem;color:#ffd86b">Admin Tools</h3>
@@ -7693,132 +7742,378 @@ app.get("/staff-log", (req, res) => {
     </html>`);
 });
 
-// ------
-// GUEST SCAN LOG PAGE (Management Hub → Scan Log button)
-// ------
-app.get("/guest-scans", (req, res) => {
+// Helper: get the latest guest info for a ticket (from prize entries)
+function getGuestInfoForTicket(ticketId) {
+  if (!ticketId) return null;
+
+  // Walk from the end so newest entries win
+  for (let i = guestNameEntries.length - 1; i >= 0; i--) {
+    const e = guestNameEntries[i];
+    if (e && e.ticketId === ticketId) {
+      return {
+        name: (e.guestName || "").trim(),
+        email: (e.guestEmail || "").trim(),
+        phone: (e.guestPhone || "").trim()
+      };
+    }
+  }
+  return null;
+}
+
+// ------------------------------------------------------
+// MANAGEMENT: Mailing List / Subscription Log
+// ------------------------------------------------------
+app.get("/subscriber-log", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
     return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
   }
 
+  // Only entries where subscribe === true
+  const subs = guestNameEntries
+    .filter(e => e && e.subscribe)
+    .slice()
+    .sort((a, b) => {
+      const ta = Date.parse(a.timestamp || "") || 0;
+      const tb = Date.parse(b.timestamp || "") || 0;
+      return tb - ta; // newest first
+    });
+
   res.send(`<!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>Guest Scan Log</title>
-      <style>
-        ${themeCSSRoot()}
-        body {
-          margin:0;
-          padding:18px;
-          font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-          background:#050007;
-          color:#f5f5f5;
-          display:flex;
-          justify-content:center;
-          min-height:100vh;
-        }
-        .card {
-          width:100%;
-          max-width:900px;
-          background:radial-gradient(circle at top,#220018,#070008 60%);
-          border-radius:16px;
-          padding:18px;
-          border:1px solid rgba(255,64,129,0.25);
-          box-shadow:0 10px 28px rgba(0,0,0,0.7);
-        }
-        h1 {
-          margin:0 0 8px;
-          font-size:1.6rem;
-          background:linear-gradient(120deg,#ffb300,#ff4081,#ff1744);
-          -webkit-background-clip:text;
-          color:transparent;
-        }
-        .subtitle {
-          font-size:0.9rem;
-          color:#aaa;
-          margin-bottom:14px;
-        }
-        table {
-          width:100%;
-          border-collapse:collapse;
-          font-size:0.85rem;
-        }
-        th, td {
-          padding:8px;
-          border-bottom:1px solid rgba(255,255,255,0.08);
-        }
-        th {
-          text-align:left;
-          font-size:0.78rem;
-          text-transform:uppercase;
-          letter-spacing:0.08em;
-          color:#bbb;
-        }
-        .back-btn {
-          display:inline-block;
-          margin-top:12px;
-          padding:8px 16px;
-          border-radius:999px;
-          border:1px solid rgba(255,255,255,0.2);
-          text-decoration:none;
-          color:#fff;
-          font-size:0.85rem;
-          letter-spacing:0.08em;
-          text-transform:uppercase;
-        }
-        .empty {
-          text-align:center;
-          color:#888;
-        }
-      </style>
-    </head>
-    <body>
+  <html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mailing List Signups</title>
+    <style>
+      ${themeCSSRoot()}
+
+      * { box-sizing:border-box; }
+
+      body {
+        margin:0;
+        padding:16px;
+        min-height:100vh;
+        font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+        background:#050007;
+        color:#f5f5f5;
+        display:flex;
+        justify-content:center;
+      }
+
+      .wrap {
+        width:100%;
+        max-width:1024px;
+      }
+
+      .card {
+        width:100%;
+        border-radius:24px;
+        padding:20px 20px 18px;
+        background:radial-gradient(circle at top,#260020,#050007 65%);
+        box-shadow:
+          0 0 0 1px rgba(255,183,77,0.3),
+          0 24px 60px rgba(0,0,0,0.9);
+      }
+
+      h1 {
+        margin:0 0 4px;
+        font-size:1.4rem;
+        letter-spacing:0.06em;
+        text-transform:uppercase;
+        background:linear-gradient(135deg,#ffb300,#ff4081);
+        -webkit-background-clip:text;
+        color:transparent;
+      }
+
+      .subtitle {
+        margin:0 0 16px;
+        font-size:0.9rem;
+        color:#f5e1b0;
+      }
+
+      table {
+        width:100%;
+        border-collapse:collapse;
+        font-size:0.85rem;
+      }
+
+      th, td {
+        padding:8px 10px;
+        border-bottom:1px solid rgba(255,255,255,0.06);
+        text-align:left;
+        white-space:nowrap;
+      }
+
+      th {
+        font-size:0.75rem;
+        text-transform:uppercase;
+        letter-spacing:0.12em;
+        color:#ffb347;
+        background:rgba(0,0,0,0.35);
+        position:sticky;
+        top:0;
+        z-index:1;
+      }
+
+      tbody tr:nth-child(odd) td {
+        background:rgba(255,255,255,0.01);
+      }
+
+      .scroll {
+        max-height:70vh;
+        overflow:auto;
+        margin-top:8px;
+      }
+
+      .btn-back {
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        margin-top:14px;
+        padding:8px 14px;
+        border-radius:999px;
+        border:1px solid rgba(255,183,77,0.7);
+        background:transparent;
+        color:#ffeb99;
+        font-size:0.8rem;
+        text-decoration:none;
+        text-transform:uppercase;
+        letter-spacing:0.12em;
+      }
+
+      .btn-back:hover {
+        background:rgba(255,183,77,0.15);
+      }
+
+      @media (max-width: 720px) {
+        table { font-size:0.78rem; }
+        th, td { padding:6px 6px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>Mailing List Signups</h1>
+        <div class="subtitle">
+          All guest tickets that opted into the A.U.R.A / POP mailing list
+          via the welcome / Mystery Prize form.
+        </div>
+
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Guest Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${subs.map(e => `
+                <tr>
+                  <td><strong>${e.ticketId || ""}</strong></td>
+                  <td>${(e.guestName || "").trim()}</td>
+                  <td>${(e.guestEmail || "").trim()}</td>
+                  <td>${(e.guestPhone || "").trim()}</td>
+                  <td>${e.timestamp || ""}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <a href="/management-hub" class="btn-back">← Back to Management Hub</a>
+      </div>
+    </div>
+    ${themeScript()}
+  </body>
+  </html>`);
+});
+
+// ------------------------------------------------------
+// MANAGEMENT: Guest Scan Log (with optional guest info)
+// ------------------------------------------------------
+app.get("/guest-scan-log", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
+  }
+
+  // Make a copy, newest first, and enrich with guest info
+  const rows = [...guestScanLog].slice().reverse().map(evt => {
+    const info = getGuestInfoForTicket(evt.ticketId);
+    return {
+      ticketId: evt.ticketId || "",
+      tokenShort: (evt.token || "").slice(0, 8) + "...",
+      ip: evt.ip || "unknown",
+      time: evt.timestamp || "",
+      guestName: info ? info.name : "",
+      guestEmail: info ? info.email : "",
+      guestPhone: info ? info.phone : ""
+    };
+  });
+
+  res.send(`<!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Guest Scan Log</title>
+    <style>
+      ${themeCSSRoot()}
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin:0;
+        padding:16px;
+        min-height:100vh;
+        font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+        background:#050007;
+        color:#f5f5f5;
+        display:flex;
+        justify-content:center;
+      }
+
+      .wrap {
+        width:100%;
+        max-width:1024px;
+      }
+
+      .card {
+        width:100%;
+        border-radius:24px;
+        padding:20px 20px 18px;
+        background:radial-gradient(circle at top,#260020,#050007 65%);
+        box-shadow:
+          0 0 0 1px rgba(255,64,129,0.25),
+          0 24px 60px rgba(0,0,0,0.9);
+      }
+
+      h1 {
+        margin:0 0 4px;
+        font-size:1.4rem;
+        letter-spacing:0.06em;
+        text-transform:uppercase;
+        background:linear-gradient(135deg,#ffb300,#ff4081);
+        -webkit-background-clip:text;
+        color:transparent;
+      }
+
+      .subtitle {
+        margin:0 0 16px;
+        font-size:0.9rem;
+        color:#c2b6ff;
+      }
+
+      table {
+        width:100%;
+        border-collapse:collapse;
+        font-size:0.85rem;
+      }
+
+      th, td {
+        padding:8px 10px;
+        border-bottom:1px solid rgba(255,255,255,0.06);
+        text-align:left;
+        white-space:nowrap;
+      }
+
+      th {
+        font-size:0.75rem;
+        text-transform:uppercase;
+        letter-spacing:0.12em;
+        color:#ffb347;
+        background:rgba(0,0,0,0.35);
+        position:sticky;
+        top:0;
+        z-index:1;
+      }
+
+      tbody tr:nth-child(odd) td {
+        background:rgba(255,255,255,0.01);
+      }
+
+      .btn-back {
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        margin-top:14px;
+        padding:8px 14px;
+        border-radius:999px;
+        border:1px solid rgba(255,64,129,0.6);
+        background:transparent;
+        color:#ffb347;
+        font-size:0.8rem;
+        text-decoration:none;
+        text-transform:uppercase;
+        letter-spacing:0.12em;
+      }
+
+      .btn-back:hover {
+        background:rgba(255,64,129,0.15);
+      }
+
+      .scroll {
+        max-height:70vh;
+        overflow:auto;
+        margin-top:8px;
+      }
+
+      @media (max-width: 720px) {
+        table { font-size:0.78rem; }
+        th, td { padding:6px 6px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
       <div class="card">
         <h1>Guest Scan Log</h1>
-        <div class="subtitle">Backend record of guest ticket scans (non-staff).</div>
+        <div class="subtitle">
+          Backend record of guest ticket scans (non-staff).<br/>
+          If a ticket has guest details from the Mystery Prize form, they appear in the columns below.
+        </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Ticket ID</th>
-              <th>Token (short)</th>
-              <th>IP</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody id="scanBody">
-          </tbody>
-        </table>
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Token (Short)</th>
+                <th>IP</th>
+                <th>Time</th>
+                <th>Guest Name</th>
+                <th>Guest Email</th>
+                <th>Guest Phone</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr>
+                  <td><strong>${r.ticketId}</strong></td>
+                  <td>${r.tokenShort}</td>
+                  <td>${r.ip}</td>
+                  <td>${r.time}</td>
+                  <td>${r.guestName || ""}</td>
+                  <td>${r.guestEmail || ""}</td>
+                  <td>${r.guestPhone || ""}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
 
-        <a href="/management-hub?key=${encodeURIComponent(
-          MANAGEMENT_PIN
-        )}" class="back-btn">← Back to Management Hub</a>
+        <a href="/management-hub" class="btn-back">← Back to Management Hub</a>
       </div>
-
-      ${themeScript()}
-      <script>
-        const data = ${JSON.stringify(guestScanLog.slice(-300))};
-        const tbody = document.getElementById('scanBody');
-        if (!data.length) {
-          tbody.innerHTML = '<tr><td colspan="4" class="empty">No guest scans logged yet.</td></tr>';
-        } else {
-          tbody.innerHTML = data.map(entry => {
-            const time = new Date(entry.timestamp).toLocaleString();
-            const shortToken = entry.token ? (entry.token.substring(0,8) + '...') : '';
-            return \`<tr>
-              <td><strong>\${entry.ticketId}</strong></td>
-              <td>\${shortToken}</td>
-              <td>\${entry.ip}</td>
-              <td style="font-size:0.85rem;">\${time}</td>
-            </tr>\`;
-          }).join('');
-        }
-      </script>
-    </body>
-    </html>`);
+    </div>
+    ${themeScript()}
+  </body>
+  </html>`);
 });
+
 
 // ------------------------------------------------------
 // START SERVER
