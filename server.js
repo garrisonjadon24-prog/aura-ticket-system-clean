@@ -1847,7 +1847,7 @@ app.get("/staff/qr-list", (req, res) => {
     console.error("Error reading QR folder:", err);
   }
 
-    const liveFiles = files.filter((f) => !f.toUpperCase().startsWith("TEST-"));
+  const liveFiles = files.filter((f) => !f.toUpperCase().startsWith("TEST-"));
   const testFiles = files.filter((f) => f.toUpperCase().startsWith("TEST-"));
 
   const renderList = (arr) =>
@@ -1869,160 +1869,143 @@ app.get("/staff/qr-list", (req, res) => {
     files.length === 0
       ? '<p class="empty"><em>No QR PNG files found in generated_qr/ yet.</em></p>'
       : `
-        ${
-          liveFiles.length
-            ? `<h2 class="section-title">Live Tickets</h2><ul>${renderList(
-                liveFiles
-              )}</ul>`
-            : ""
+        ${liveFiles.length
+          ? `<h2 class="section-title">Live Tickets</h2><ul>${renderList(
+              liveFiles
+            )}</ul>`
+          : ""
         }
-        ${
-          testFiles.length
-            ? `<h2 class="section-title">Test Tickets</h2><ul>${renderList(
-                testFiles
-              )}</ul>`
-            : ""
+
+        ${testFiles.length
+          ? `<h2 class="section-title">Test Tickets</h2><ul>${renderList(
+              testFiles
+            )}</ul>`
+          : ""
         }
       `;
 
   res.send(`<!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AURA QR Files</title>
-    <style>
-      ${qrSectionsHtml}
-      * { box-sizing: border-box; }
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AURA QR Files</title>
+  <style>
+    ${themeCSSRoot()}
 
-      body {
-        margin:0;
-        padding:18px;
-        min-height:100vh;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-        background:
-          radial-gradient(circle at top left, rgba(255,64,129,0.25), transparent 55%),
-          radial-gradient(circle at bottom right, rgba(255,23,68,0.35), transparent 55%),
-          var(--bg-dark);
-        color: var(--text-main);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-      }
+    body {
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,64,129,0.18), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(255,193,7,0.10), transparent 55%),
+        var(--bg-dark);
+      color:var(--text-main);
+    }
 
-.section-title {
-  margin: 12px 0 6px;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent-gold);
-}
+    .container {
+      width:100%;
+      max-width:720px;
+      padding:24px;
+    }
 
-      .card {
-        width:100%;
-        max-width:520px;
-        background: radial-gradient(circle at top, #220018, #070008 60%);
-        border-radius:20px;
-        padding:22px 20px;
-        box-shadow:
-          0 0 0 1px rgba(255,64,129,0.35),
-          0 20px 50px rgba(0,0,0,0.95);
-      }
+    .card {
+      background:radial-gradient(circle at top,#220018,#050008 60%);
+      border-radius:24px;
+      padding:24px 26px;
+      border:1px solid rgba(255,64,129,0.35);
+      box-shadow:0 18px 45px rgba(0,0,0,0.85);
+    }
 
-      h1 {
-        margin:0 0 4px;
-        font-size:1.4rem;
-        background: linear-gradient(120deg,#ffb300,#ff4081,#ff1744);
-        -webkit-background-clip:text;
-        color:transparent;
-      }
+    h1 {
+      margin:0 0 6px;
+      font-size:1.4rem;
+      letter-spacing:0.18em;
+      text-transform:uppercase;
+      color:var(--accent-gold);
+    }
 
-      .subtitle {
-        font-size:0.9rem;
-        color:var(--text-muted);
-        margin-bottom:16px;
-      }
+    .subtitle {
+      font-size:0.85rem;
+      color:var(--text-muted);
+      margin-bottom:18px;
+    }
 
-      ul {
-        list-style:none;
-        padding:0;
-        margin:0;
-      }
+    .section-title {
+      margin:18px 0 8px;
+      font-size:0.9rem;
+      text-transform:uppercase;
+      letter-spacing:0.16em;
+      color:#f3c1ff;
+    }
 
-      li {
-        margin:4px 0;
-      }
+    ul {
+      list-style:none;
+      margin:0;
+      padding:0;
+    }
 
-      a.qr-link {
-        display:flex;
-        align-items:center;
-        gap:8px;
-        padding:8px 10px;
-        border-radius:10px;
-        text-decoration:none;
-        font-size:0.9rem;
-        background:rgba(0,0,0,0.35);
-        color:#ffb347;
-        border:1px solid rgba(255,179,0,0.25);
-      }
+    li + li {
+      margin-top:6px;
+    }
 
-      a.qr-link:hover {
-        background:rgba(255,179,0,0.08);
-      }
+    .qr-link {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:12px;
+      text-decoration:none;
+      color:var(--text-main);
+      background:rgba(0,0,0,0.35);
+      border:1px solid rgba(255,255,255,0.08);
+    }
 
-      .empty {
-        font-size:0.9rem;
-        color:var(--text-muted);
-      }
+    .qr-link span:first-child {
+      font-size:1rem;
+    }
 
-      .back-link {
-        display:inline-block;
-        margin-top:16px;
-        font-size:0.85rem;
-        color:var(--accent-gold);
-        text-decoration:none;
-      }
+    .qr-link:hover {
+      border-color:rgba(255,183,77,0.8);
+      box-shadow:0 0 0 1px rgba(255,183,77,0.6);
+    }
 
-      .back-link:hover {
-        text-decoration:underline;
-      }
-    </style>
-  </head>
-  <body>
+    .empty {
+      text-align:center;
+      color:var(--text-muted);
+      font-size:0.9rem;
+    }
+
+    .back-link {
+      display:inline-block;
+      margin-top:18px;
+      font-size:0.85rem;
+      text-decoration:none;
+      color:var(--accent-gold);
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
     <div class="card">
       <h1>AURA QR Files</h1>
       <div class="subtitle">
-        Click a filename to open the QR image in a new tab, then save it on your Mac
-        and drop it into your ticket artwork.
+        Click a filename to open the QR image in a new tab, then save it and drop it into your ticket artwork.
       </div>
-
-      ${
-        files.length === 0
-          ? '<p class="empty"><em>No QR PNG files found in generated_qr/ yet.</em></p>'
-          : `<ul>
-              ${files
-                .map(
-                  (f) => `
-                    <li>
-                      <a class="qr-link"
-                         href="/generated_qr/${encodeURIComponent(f)}"
-                         target="_blank">
-                        <span>📁</span>
-                        <span>${f}</span>
-                      </a>
-                    </li>`
-                )
-                .join("")}
-             </ul>`
-      }
-
-<a class="back-link" href="/management-hub">
-  ← Back to Management Hub
-</a>
-
+      ${qrSectionsHtml}
+      <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-link">
+        ← Back to Management Hub
+      </a>
     </div>
-  </body>
-  </html>`);
+  </div>
+</body>
+</html>`);
 });
 
 // ROUTE 2: Generate a single ticket & QR
@@ -3309,36 +3292,47 @@ app.post('/api/mgmt-logout', (req, res) => {
 
 // ------------------------------------------------------
 // API: Live analytics summary (no payment conversions)
-// ------------------------------------------------------
 app.get("/api/live-analytics", (req, res) => {
   const { key } = req.query;
+
+  // allow staff and management
   if (!(key === STAFF_PIN || isMgmtAuthorizedReq(req))) {
     return res.json({ error: "Unauthorized" });
   }
 
   let total = 0;
   let used = 0;
-  const byType = {};
+  const byType = {}; // e.g. { general: {total,used}, test: {...} }
 
   for (const [_token, record] of tickets.entries()) {
     total++;
-    if (!byType[record.type]) {
-      byType[record.type] = { total: 0, used: 0 };
+
+    const t = record.type || "general";
+    if (!byType[t]) {
+      byType[t] = { total: 0, used: 0 };
     }
-    byType[record.type].total++;
+    byType[t].total++;
+
     if (record.status === "used") {
       used++;
-      byType[record.type].used++;
+      byType[t].used++;
     }
   }
 
-  const unusedCount = total - used;
+  const unusedCount  = total - used;
   const usagePercent = total > 0 ? Math.round((used / total) * 100) : 0;
+
+  // pull out test stats safely
+  const testStats = {
+    total:   byType.test ? byType.test.total : 0,
+    used:    byType.test ? byType.test.used  : 0,
+    pending: byType.test ? (byType.test.total - byType.test.used) : 0,
+  };
 
   const recentScans = ipLogging.events.slice(-10).reverse().map((evt) => ({
     ticketId: evt.ticketId,
-    status: evt.status,
-    time: new Date(evt.timestamp).toLocaleTimeString(),
+    status:   evt.status,
+    time:     new Date(evt.timestamp).toLocaleTimeString(),
   }));
 
   res.json({
@@ -3347,13 +3341,13 @@ app.get("/api/live-analytics", (req, res) => {
     unused: unusedCount,
     usagePercent,
     byType,
-    invalidScans: scanEvents.invalid.length,
-    duplicateScans: scanEvents.duplicates.length,
-    giveaways: giveawayEvents.draws.length,
-    boxOfficeSales: boxOfficeSales.sales.length,
+    testStats,
     recentScans,
+    invalidCount:   (scanEvents.invalid || []).length,
+    duplicateCount: (scanEvents.duplicates || []).length,
   });
 });
+
 
 // ------------------------------------------------------
 // ROUTE: Live Event Analytics (UI) – Payment Conversions removed
@@ -3503,6 +3497,8 @@ app.get("/live-analytics", (req, res) => {
           <div class="card stat">
             <div class="stat-label">Giveaway Winners</div>
             <div class="stat-value" id="giveawayCount">0</div>
+          </div>
+          <div id="testSummary" style="margin-top:8px;font-size:0.85rem;color:#bbb;">
           </div>
           <div class="card stat">
             <div class="stat-label">Box Office Sales</div>
@@ -3953,6 +3949,14 @@ app.get("/dashboard", (req, res) => {
                 </tr>
               </tbody>
             </table>
+
+            <!-- NEW: show test ticket stats -->
+            <div style="margin-top:10px;font-size:0.82rem;color:#bbb;">
+              Test tickets – generated: <strong>${testTotal}</strong>,
+              scanned: <strong>${testUsed}</strong>,
+              pending: <strong>${testPending}</strong>
+            </div>
+
             <p style="font-size:0.8rem; color:#888; margin-top:10px;">
               For deep dive, use the Live Analytics dashboard.
             </p>
@@ -4703,6 +4707,15 @@ app.get("/allocation-log", (req, res) => {
               document.getElementById('statTotal').textContent = data.total;
               document.getElementById('statSold').textContent = data.sold;
               document.getElementById('statUnsold').textContent = data.unsold;
+  
+    // Show test ticket stats if available
+    const testSummary = document.getElementById("testSummary");
+    if (testSummary && data.testStats) {
+      testSummary.textContent =
+        `Test tickets – generated: ${data.testStats.total}, ` +
+        `scanned: ${data.testStats.used}, ` +
+        `pending: ${data.testStats.pending}`;
+    }
 
               data.allocations.forEach(function(a) {
                 var sellerContact = [a.sellerPhone, a.sellerEmail].filter(Boolean).join(' · ');
