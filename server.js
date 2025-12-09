@@ -2769,6 +2769,25 @@ if (staff !== "1") {
         <p>Thank you for choosing to spend your night with us. Your presence adds to the magic — and we can't wait to make this moment unforgettable.</p>
         <p style="font-weight:700; margin-top:6px;">Feb 13 — See You There!</p>
       </div>
+      <button id="visitIGBtn" 
+        onclick="goToIG()" 
+        style="
+          margin-top:20px;
+          padding:14px 22px;
+          background:#ff1f6d;
+          border:none;
+          border-radius:12px;
+          color:white;
+          font-size:1rem;
+          font-weight:700;
+          cursor:pointer;
+          width:100%;
+          max-width:260px;
+          box-shadow:0 4px 12px rgba(0,0,0,0.3);
+        ">
+  Visit IG Page ❤️🖤
+</button>
+
 
 <div class="prize-section">
   <div class="prize-title">🎁 Mystery Prize Entry</div>
@@ -2911,25 +2930,30 @@ if (staff !== "1") {
             submitBtn.disabled   = true;
             successMsg.style.display = 'block';
 
-           // Show success message + welcome screen FIRST
-document.getElementById("mysteryPrizeSuccess").style.display = "block";
-document.getElementById("welcomeContainer").style.display = "block"; 
+// SUCCESS: Show welcome screen + hide form
 document.getElementById("scanFormContainer").style.display = "none";
+document.getElementById("welcomeContainer").style.display = "block";
+document.getElementById("mysteryPrizeSuccess").style.display = "block";
 
-// Delay redirect so the guest has time to read the welcome message
-setTimeout(() => {
-  window.location.href = IG_URL;
-}, 5000); // 5000 = 5 seconds; change if needed
+// NOW redirect immediately because the guest pressed SUBMIT
+window.location.href = IG_URL;
+
 
           } else {
             alert(data.error || 'Error submitting entry');
           }
-        } catch (err) {
-          console.error('Error:', err);
-          alert('Failed to submit entry');
-        }
-      });
-    </script>
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Failed to submit entry');
+      }
+    });
+
+    // ⭐⭐ ROOT-LEVEL FUNCTION — Correct Spot ⭐⭐
+    function goToIG() {
+      window.location.href = IG_URL;
+    }
+  </script>
+
   </body>
   </html>
   `);
