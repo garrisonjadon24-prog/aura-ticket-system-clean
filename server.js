@@ -1906,6 +1906,60 @@ app.get("/staff/generate", (req, res) => {
     </html>`);
 });
 
+// ------------------------------------------------------
+// QR FILES VIEWER (Management only)
+// ------------------------------------------------------
+app.get("/qr-files", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) return res.redirect("/");
+
+  const fs = require("fs");
+  const path = require("path");
+  const qrDir = path.join(__dirname, "generated_qr");
+
+  let files = [];
+  try {
+    files = fs.readdirSync(qrDir).filter(f => f.endsWith(".png"));
+  } catch (e) {}
+
+  const list = files.map(f => `
+      <li><a href="/generated_qr/${f}" download>${f}</a></li>
+  `).join("");
+
+  res.send(`
+    <html>
+    <head>
+      <title>QR PNG Files</title>
+      <style>
+        body { background:#0b0012; color:#fff; font-family:system-ui; padding:20px; }
+        h1 { color:#ff4a8d; }
+        a { color:#ffd86b; }
+        ul { line-height:1.8; }
+        .btn { display:inline-block; padding:10px 16px; background:#ff4a8d; color:#fff; border-radius:8px; margin-top:20px; text-decoration:none; }
+      </style>
+    </head>
+    <body>
+      <h1>Generated QR PNG Files</h1>
+      <p>Total files: ${files.length}</p>
+
+      <ul>${list || "<em>No PNG files found.</em>"}</ul>
+
+      <a class="btn" href="#" onclick="clearPngs()">Clear QR PNGs</a>
+      <script>
+        function clearPngs() {
+          fetch("/admin/clear-qr-files", { method:"POST" })
+            .then(r=>r.json())
+            .then(() => location.reload())
+            .catch(()=>alert("Error clearing PNGs"));
+        }
+      </script>
+
+      <br><br>
+      <a href="/management-hub">← Back</a>
+    </body>
+    </html>
+  `);
+});
+
 
 // ------------------------------------------------------
 // STAFF QR LIST PAGE – view & download generated QR PNGs
@@ -4466,11 +4520,6 @@ app.get("/dashboard", (req, res) => {
           <div class="link-row">
             Also see:
             <a href="/live-analytics?key=${encodeURIComponent(MANAGEMENT_PIN)}">Live Analytics</a>
-            ·
-<div class="admin-tile" onclick="go('/qr-files')">
-  <div class="admin-label">📁 QR Files</div>
-  <div class="admin-sub">View / download generated QR PNGs.</div>
-</div>
 
         </div>
       </div>
@@ -7327,7 +7376,13 @@ app.get("/management-hub", (req, res) => {
   <button class="action-button btn-analytics" onclick="go('/live-analytics')">
     <span class="label">📈 Live Analytics</span>
     <span class="desc">Real-time check-in stats and last scans.</span>
+    <div class="side-link">
     
+  <a href="/qr-files">📁 QR Files<br>
+    <span>View / download generated QR PNGs.</span>
+  </a>
+</div>
+
 </button>
 
   <button class="action-button btn-giveaway" onclick="go('/giveaway')">
@@ -8334,6 +8389,53 @@ pushWithLimit(cancelledTicketsLog, {
 
 // ... existing response code
 
+});
+
+// ------------------------------------------------------
+// QR FILES VIEWER PAGE
+// ------------------------------------------------------
+app.get("/qr-files", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) return res.redirect("/");
+
+  const fs = require("fs");
+  const path = require("path");
+  const qrDir = path.join(__dirname, "generated_qr");
+
+  let files = [];
+  try {
+    files = fs.readdirSync(qrDir).filter(f => f.endsWith(".png"));
+  } catch (e) {}
+
+  const listItems = files
+    .map(f => `<li><a href="/generated_qr/${f}" download>${f}</a></li>`)
+    .join("");
+
+  res.send(`
+  <html>
+    <head>
+      <title>QR PNG Files</title>
+      <style>
+        body { font-family: Inter, sans-serif; padding: 20px; background: #0c0c0f; color: #fff; }
+        h1 { color: #ff4a8d; }
+        a { color: #00c6ff; }
+        .btn { padding: 10px 16px; display: inline-block; background:#ff4a8d; color:#fff; border-radius:8px; text-decoration:none; }
+        ul { line-height: 2; }
+      </style>
+    </head>
+    <body>
+      <h1>Generated QR PNGs</h1>
+      <p>Total files: ${files.length}</p>
+      <ul>${listItems || "<em>No PNGs found.</em>"}</ul>
+
+      <br>
+      <a href="/api/clear-qr-pngs?key=${encodeURIComponent(MGMT_PIN)}" class="btn">
+        Clear All QR PNG Files
+      </a>
+      <br><br>
+      <a href="/snapshot" style="color:#ccc;">← Back</a>
+    </body>
+  </html>
+  `);
 });
 
 
