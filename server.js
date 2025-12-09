@@ -1854,7 +1854,7 @@ app.get("/staff/generate", (req, res) => {
   ← Back to Management Hub
 </a>
 
-<a href="/cancelled-tickets-log?key=${encodeURIComponent(key)}"
+<a href="/cancelled-tickets-log?key=${encodeURIComponent(MANAGEMENT_PIN)}"
    class="tool-card tool-red">
   <div class="tool-title">❌ Cancelled Tickets</div>
   <div class="tool-sub">View all cancelled tickets by type & link back to allocations.</div>
@@ -7263,19 +7263,19 @@ app.get("/management-hub", (req, res) => {
       onclick="adminClearData()"
     >
     <!-- Allocation Hub -->
-<a href="/allocation-hub?key=${encodeURIComponent(key)}" class="tool-card tool-purple">
+<a href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card tool-purple">
   <div class="tool-title">🎟 Allocation Hub</div>
   <div class="tool-sub">Allocations, scanner, and allocation log.</div>
 </a>
 
 <!-- Log Hub -->
-<a href="/logs-hub?key=${encodeURIComponent(key)}" class="tool-card tool-blue">
+<a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card tool-blue">
   <div class="tool-title">📘 Log Hub</div>
   <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
 </a>
 
 <!-- Prize Hub -->
-<a href="/prize-hub?key=${encodeURIComponent(key)}" class="tool-card tool-pink">
+<a href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card tool-pink">
   <div class="tool-title">🎁 Prize Hub</div>
   <div class="tool-sub">Prize draws and guest entries.</div>
 </a>
