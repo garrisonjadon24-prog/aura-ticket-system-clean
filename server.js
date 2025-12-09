@@ -3332,7 +3332,7 @@ app.get("/api/live-analytics", (req, res) => {
     }
   }
 
-  const unused = total - used;
+  const unusedCount = total - used;
   const usagePercent = total > 0 ? Math.round((used / total) * 100) : 0;
 
   const recentScans = ipLogging.events.slice(-10).reverse().map((evt) => ({
@@ -3344,7 +3344,7 @@ app.get("/api/live-analytics", (req, res) => {
   res.json({
     total,
     used,
-    unused,
+    unused: unusedCount,
     usagePercent,
     byType,
     invalidScans: scanEvents.invalid.length,
@@ -3632,7 +3632,8 @@ app.get("/dashboard", (req, res) => {
     }
   }
 
-  const unused = total - used;
+  const totalUnused = total - used;
+
   const usagePercent = total > 0 ? Math.round((used / total) * 100) : 0;
 
   // Separate TEST tickets from live event tickets
@@ -3882,7 +3883,7 @@ app.get("/dashboard", (req, res) => {
           </div>
           <div class="card">
             <div class="stat-label">Pending</div>
-            <div class="stat-value">${unused}</div>
+            <div class="stat-value">${totalUnused}</div>
             <div class="stat-meta">Still to arrive / not scanned yet.</div>
           </div>
           <div class="card">
