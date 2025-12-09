@@ -3649,7 +3649,7 @@ app.get("/dashboard", (req, res) => {
 
 
   const unused = total - used;
-  const usagePercent = total > 0 ? Math.round((used / total) * 100) : 0;
+  // usagePercent already defined above – no need to redefine it here
 
   // ---- QR PNG COUNT ----
   let qrCount = 0;
