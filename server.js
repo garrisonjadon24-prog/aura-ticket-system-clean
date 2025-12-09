@@ -3296,6 +3296,7 @@ app.post('/api/mgmt-logout', (req, res) => {
 
 // ------------------------------------------------------
 // API: Live analytics summary (no payment conversions)
+// ------------------------------------------------------
 app.get("/api/live-analytics", (req, res) => {
   const { key } = req.query;
 
@@ -3323,34 +3324,64 @@ app.get("/api/live-analytics", (req, res) => {
     }
   }
 
-  const unusedCount  = total - used;
-  const usagePercent = total > 0 ? Math.round((used / total) * 100) : 0;
+  const unusedCount = total - used;
+  const usagePercent =
+    total > 0 ? Math.round((used / total) * 100) : 0;
 
-  // pull out test stats safely
+  // ---- TEST tickets ----
+  const rawTest = byType.test || { total: 0, used: 0 };
   const testStats = {
-    total:   byType.test ? byType.test.total : 0,
-    used:    byType.test ? byType.test.used  : 0,
-    pending: byType.test ? (byType.test.total - byType.test.used) : 0,
+    total: rawTest.total,
+    used: rawTest.used,
+    pending: rawTest.total - rawTest.used,
+    arrivalPercent:
+      rawTest.total > 0
+        ? Math.round((rawTest.used / rawTest.total) * 100)
+        : 0,
+  };
+
+  // ---- Live (non-TEST) tickets ----
+  const liveTotal = total - testStats.total;
+  const liveUsed = used - testStats.used;
+  const livePending = liveTotal - liveUsed;
+  const liveStats = {
+    total: liveTotal,
+    used: liveUsed,
+    pending: livePending,
+    arrivalPercent:
+      liveTotal > 0
+        ? Math.round((liveUsed / liveTotal) * 100)
+        : 0,
   };
 
   const recentScans = ipLogging.events.slice(-10).reverse().map((evt) => ({
     ticketId: evt.ticketId,
-    status:   evt.status,
-    time:     new Date(evt.timestamp).toLocaleTimeString(),
+    status: evt.status,
+    time: new Date(evt.timestamp).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+    }),
   }));
 
-  res.json({
-    total,
+  const invalidCount = scanEvents.invalid.length;
+  const duplicateCount = scanEvents.duplicates.length;
+
+  return res.json({
+    ok: true,
+    total,           // all tickets (incl. TEST)
     used,
     unused: unusedCount,
     usagePercent,
     byType,
-    testStats,
+    liveStats,       // NEW: live only
+    testStats,       // NEW: test only
     recentScans,
-    invalidCount:   (scanEvents.invalid || []).length,
-    duplicateCount: (scanEvents.duplicates || []).length,
+    invalidCount,
+    duplicateCount,
   });
 });
+
 
 
 // ------------------------------------------------------
@@ -3488,27 +3519,42 @@ app.get("/live-analytics", (req, res) => {
         <div class="subtitle">Real-time event performance dashboard</div>
 
         <div class="grid">
-          <div class="card stat">
-            <div class="stat-label">Total Checked In</div>
-            <div class="stat-value" id="totalUsed">0</div>
-            <div class="stat-percent" id="arrivalRate">0% arrival</div>
-          </div>
-          <div class="card stat">
-            <div class="stat-label">Still Pending</div>
-            <div class="stat-value" id="totalUnused">0</div>
-            <div class="stat-percent">remaining</div>
-          </div>
-          <div class="card stat">
-            <div class="stat-label">Giveaway Winners</div>
-            <div class="stat-value" id="giveawayCount">0</div>
-          </div>
-          <div id="testSummary" style="margin-top:8px;font-size:0.85rem;color:#bbb;">
-          </div>
-          <div class="card stat">
-            <div class="stat-label">Box Office Sales</div>
-            <div class="stat-value" id="boxOfficeCount">0</div>
-          </div>
-        </div>
+  <!-- Live tickets -->
+  <div class="card stat">
+    <div class="stat-label">Total Checked In</div>
+    <div class="stat-value" id="totalCheckedIn">0</div>
+    <div class="stat-percent" id="arrivalRate">0% arrival (live only)</div>
+  </div>
+
+  <div class="card stat">
+    <div class="stat-label">Still Pending</div>
+    <div class="stat-value" id="stillPending">0</div>
+    <div class="stat-percent">live tickets not yet scanned</div>
+  </div>
+
+  <div class="card stat">
+    <div class="stat-label">Giveaway Winners</div>
+    <div class="stat-value" id="giveawayWinners">0</div>
+    <div class="stat-percent">pulled from prize draws</div>
+  </div>
+
+  <!-- TEST ticket stats -->
+  <div class="card stat">
+    <div class="stat-label">TEST Tickets</div>
+    <div class="stat-value" id="testTotal">0</div>
+    <div class="stat-percent">
+      <span id="testCheckedIn">0</span> checked in &bull;
+      <span id="testPending">0</span> pending
+    </div>
+  </div>
+
+  <!-- (Optional) Box office – stays for future use, will just show 0 for now -->
+  <div class="card stat">
+    <div class="stat-label">Box Office Sales</div>
+    <div class="stat-value" id="boxOfficeCount">0</div>
+  </div>
+</div>
+
 
         <div class="card">
           <h2 style="margin-top:0;font-size:1.1rem;">Breakdown by Ticket Type</h2>
@@ -3549,51 +3595,108 @@ app.get("/live-analytics", (req, res) => {
 
       ${themeScript()}
       <script>
-        const MGMT_KEY = "${MANAGEMENT_PIN}";
+        // Use the STAFF PIN here – the /api/live-analytics route
+        // explicitly checks for STAFF_PIN or a mgmt session.
+        const STAFF_KEY = "${STAFF_PIN}";
+
         function updateAnalytics() {
-          fetch(\`/api/live-analytics?key=\${encodeURIComponent(MGMT_KEY)}\`)
-            .then(r => r.json())
-            .then(data => {
-              if (data.error) return;
+          fetch("/api/live-analytics?key=" + encodeURIComponent(STAFF_KEY))
+            .then((r) => r.json())
+            .then((data) => {
+              if (!data || data.error) return;
 
-              document.getElementById("totalUsed").textContent = data.used;
-              document.getElementById("totalUnused").textContent = data.unused;
-              document.getElementById("arrivalRate").textContent = data.usagePercent + "% arrival";
-              document.getElementById("giveawayCount").textContent = data.giveaways;
-              document.getElementById("boxOfficeCount").textContent = data.boxOfficeSales;
+              const live = data.liveStats || {};
+              const test = data.testStats || {};
 
-const testTotalEl = document.getElementById("testTotal");
-const testSummaryEl = document.getElementById("testSummary");
-if (testTotalEl && testSummaryEl && data.testStats) {
-  testTotalEl.textContent = data.testStats.total;
-  testSummaryEl.textContent =
-    data.testStats.used + " used / " + data.testStats.unused + " pending";
-}
+              // --- HEADLINE (LIVE ONLY) ---
+              const checkedEl = document.getElementById("totalCheckedIn");
+              if (checkedEl) {
+                checkedEl.textContent =
+                  live.used ?? data.used ?? 0;
+              }
 
+              const pendingEl = document.getElementById("stillPending");
+              if (pendingEl) {
+                pendingEl.textContent =
+                  live.pending ?? data.unused ?? 0;
+              }
+
+              const arrivalEl = document.getElementById("arrivalRate");
+              if (arrivalEl) {
+                const pct = live.arrivalPercent ?? data.usagePercent ?? 0;
+                arrivalEl.textContent = pct + "% arrival (live only)";
+              }
+
+              // --- GIVEAWAY + BOX OFFICE (safe defaults) ---
+              const giveawayEl = document.getElementById("giveawayWinners");
+              if (giveawayEl) {
+                giveawayEl.textContent = data.giveaways ?? 0;
+              }
+
+              const boxEl = document.getElementById("boxOfficeCount");
+              if (boxEl) {
+                boxEl.textContent = data.boxOfficeSales ?? 0;
+              }
+
+              // --- TEST CARD ---
+              const testTotalEl = document.getElementById("testTotal");
+              if (testTotalEl) testTotalEl.textContent = test.total ?? 0;
+
+              const testInEl = document.getElementById("testCheckedIn");
+              if (testInEl) testInEl.textContent = test.used ?? 0;
+
+              const testPendingEl = document.getElementById("testPending");
+              if (testPendingEl) testPendingEl.textContent = test.pending ?? 0;
+
+              // --- BREAKDOWN BY TYPE ---
               const typeBody = document.getElementById("typeBody");
-              typeBody.innerHTML = Object.entries(data.byType).map(([type, stats]) => {
-                const arrivalPct = stats.total > 0 ? Math.round((stats.used / stats.total) * 100) : 0;
-                return \`<tr>
-                  <td><strong>\${type}</strong></td>
-                  <td>\${stats.total}</td>
-                  <td style="color:#34c759;">\${stats.used}</td>
-                  <td>\${arrivalPct}%</td>
-                </tr>\`;
-              }).join('');
+              if (typeBody) {
+                typeBody.innerHTML = Object.entries(data.byType || {})
+                  .map(([type, stats]) => {
+                    const arrivalPct =
+                      stats.total > 0
+                        ? Math.round((stats.used / stats.total) * 100)
+                        : 0;
+                    return `
+                      <tr>
+                        <td><strong>${type}</strong></td>
+                        <td>${stats.total}</td>
+                        <td style="color:#34c759;">${stats.used}</td>
+                        <td>${arrivalPct}%</td>
+                      </tr>`;
+                  })
+                  .join("");
+              }
 
+              // --- LAST 10 SCANS ---
               const scanBody = document.getElementById("scanBody");
-              scanBody.innerHTML = data.recentScans.map(scan => {
-                let statusBadge = '';
-                if (scan.status === 'valid') statusBadge = '<span class="status status-valid">VALID</span>';
-                else if (scan.status === 'invalid') statusBadge = '<span class="status status-invalid">INVALID</span>';
-                else if (scan.status === 'duplicate') statusBadge = '<span class="status status-duplicate">DUPLICATE</span>';
-                else statusBadge = '<span class="status">\${scan.status}</span>';
-                return \`<tr>
-                  <td><strong>\${scan.ticketId}</strong></td>
-                  <td>\${statusBadge}</td>
-                  <td style="font-size:0.85rem;">\${scan.time}</td>
-                </tr>\`;
-              }).join('');
+              if (scanBody) {
+                scanBody.innerHTML = (data.recentScans || [])
+                  .map((scan) => {
+                    let statusBadge = "";
+                    if (scan.status === "valid") {
+                      statusBadge =
+                        '<span class="status status-valid">VALID</span>';
+                    } else if (scan.status === "invalid") {
+                      statusBadge =
+                        '<span class="status status-invalid">INVALID</span>';
+                    } else if (scan.status === "duplicate") {
+                      statusBadge =
+                        '<span class="status status-duplicate">DUPLICATE</span>';
+                    } else {
+                      statusBadge =
+                        '<span class="status">' + scan.status + "</span>";
+                    }
+
+                    return `
+                      <tr>
+                        <td><strong>${scan.ticketId}</strong></td>
+                        <td>${statusBadge}</td>
+                        <td style="font-size:0.85rem;">${scan.time}</td>
+                      </tr>`;
+                  })
+                  .join("");
+              }
             });
         }
 
@@ -3603,6 +3706,7 @@ if (testTotalEl && testSummaryEl && data.testStats) {
     </body>
     </html>`);
 });
+
 
 // ------------------------------------------------------
 // MANAGEMENT DASHBOARD (Event Snapshot + QR + types)
@@ -3651,17 +3755,31 @@ app.get("/dashboard", (req, res) => {
   const unused = total - used;
   // usagePercent already defined above – no need to redefine it here
 
-  // ---- QR PNG COUNT ----
+  // ---- QR PNG COUNT (split live vs TEST) ----
   let qrCount = 0;
+  let testQrCount = 0;
+  let liveQrCount = 0;
+
   try {
     if (fs.existsSync(QR_DIR)) {
-      qrCount = fs
+      const files = fs
         .readdirSync(QR_DIR)
-        .filter((f) => f.toLowerCase().endsWith(".png")).length;
+        .filter((f) => f.toLowerCase().endsWith(".png"));
+
+      qrCount = files.length;
+
+      for (const f of files) {
+        if (f.toUpperCase().startsWith("TEST-")) {
+          testQrCount++;
+        } else {
+          liveQrCount++;
+        }
+      }
     }
   } catch (e) {
-    console.error("Error reading QR_DIR for dashboard:", e);
+    console.error("Error reading QR dir:", e);
   }
+
 
   // ---- INVALID / DUPLICATE SCANS SUMMARY ----
   const invalidCount = scanEvents.invalid.length;
@@ -3870,28 +3988,46 @@ app.get("/dashboard", (req, res) => {
           <div class="badge">MANAGEMENT VIEW</div>
         </div>
 
-        <div class="grid-main">
-          <div class="card">
-            <div class="stat-label">Total Tickets</div>
-            <div class="stat-value stat-value-gold">${total}</div>
-            <div class="stat-meta">All tickets generated across batches.</div>
-          </div>
-          <div class="card">
-            <div class="stat-label">Checked In</div>
-            <div class="stat-value stat-value-green">${used}</div>
-            <div class="stat-meta">${usagePercent}% arrival rate so far.</div>
-          </div>
-          <div class="card">
-            <div class="stat-label">Pending</div>
-            <div class="stat-value">${totalUnused}</div>
-            <div class="stat-meta">Still to arrive / not scanned yet.</div>
-          </div>
-          <div class="card">
-            <div class="stat-label">QR PNG Files</div>
-            <div class="stat-value stat-value-gold">${qrCount}</div>
-            <div class="stat-meta">Saved in <code>generated_qr/</code> for artwork.</div>
-          </div>
-        </div>
+   <div class="grid-main">
+  <!-- Live (real) tickets -->
+  <div class="card">
+    <div class="stat-label">Event Tickets</div>
+    <div class="stat-value stat-value-gold">${liveTotal}</div>
+    <div class="stat-meta">Live tickets for Hearts &amp; Spades (excludes TEST).</div>
+  </div>
+
+  <div class="card">
+    <div class="stat-label">Checked In</div>
+    <div class="stat-value stat-value-green">${liveUsed}</div>
+    <div class="stat-meta">${liveUsagePercent}% arrival rate so far (live only).</div>
+  </div>
+
+  <div class="card">
+    <div class="stat-label">Pending</div>
+    <div class="stat-value">${livePending}</div>
+    <div class="stat-meta">Live tickets still to arrive / not scanned yet.</div>
+  </div>
+
+  <div class="card">
+    <div class="stat-label">QR PNG Files</div>
+    <div class="stat-value stat-value-gold">${qrCount}</div>
+    <div class="stat-meta">
+      All QR codes in <code>generated_qr/</code>
+      &mdash; <strong>${testQrCount}</strong> are TEST.
+    </div>
+  </div>
+
+  <!-- NEW: TEST summary -->
+  <div class="card">
+    <div class="stat-label">TEST Tickets</div>
+    <div class="stat-value stat-value-red">${testTotal}</div>
+    <div class="stat-meta">
+      <strong>${testUsed}</strong> checked in &bull;
+      <strong>${testPending}</strong> pending.
+    </div>
+  </div>
+</div>
+
 
         <div class="grid-main">
           <div class="card">
