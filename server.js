@@ -1624,8 +1624,6 @@ const ALLOWED_MANAGERS = [
           return ALLOWED_MANAGERS.includes(normalized);
         }
 
-</style>
-
 
         // Show a styled modal for management login (name + PIN)
         function openManagementHub() {
