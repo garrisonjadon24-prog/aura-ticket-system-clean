@@ -7384,6 +7384,97 @@ app.get("/management-hub", (req, res) => {
           color: #fff !important;
         }
 
+        .hub-row {
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+          gap:12px;
+          margin-top:18px;
+        }
+        .tool-card {
+          display:block;
+          padding:12px 14px;
+          border-radius:16px;
+          text-decoration:none;
+          background:radial-gradient(circle at top,#1c0022,#050008 70%);
+          border:1px solid rgba(255,255,255,0.14);
+          color:#f7ecff;
+          box-shadow:0 10px 26px rgba(0,0,0,0.8);
+          transition:transform 0.18s ease,box-shadow 0.18s ease,border-color 0.18s ease;
+        }
+        .tool-card .tool-title {
+          font-weight:700;
+          font-size:0.86rem;
+          margin-bottom:4px;
+        }
+        .tool-card .tool-sub {
+          font-size:0.78rem;
+          opacity:0.9;
+        }
+        .tool-card:hover {
+          transform:translateY(-2px);
+          border-color:rgba(255,64,129,0.7);
+          box-shadow:0 16px 30px rgba(0,0,0,0.9);
+        }
+
+        .mini-link {
+          margin-top:6px;
+          font-size:0.75rem;
+        }
+        .mini-link a {
+          color:#e0f7fa;
+          text-decoration:none;
+        }
+        .mini-link a span {
+          display:block;
+          font-size:0.72rem;
+          opacity:0.9;
+        }
+        .mini-link a:hover {
+          text-decoration:underline;
+        }
+
+        .admin-section-title {
+          margin-top:22px;
+          font-size:0.78rem;
+          letter-spacing:0.18em;
+          text-transform:uppercase;
+          color:#ffbce5;
+        }
+        .admin-msg {
+          margin-top:6px;
+          font-size:0.78rem;
+          color:#ffffff;
+        }
+        .admin-tools-grid {
+          margin-top:10px;
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+          gap:12px;
+        }
+        .admin-tile {
+          padding:10px 12px;
+          border-radius:16px;
+          background:radial-gradient(circle at top,#1c0022,#050008 70%);
+          border:1px solid rgba(255,255,255,0.14);
+          box-shadow:0 12px 24px rgba(0,0,0,0.85);
+          cursor:pointer;
+        }
+        .admin-tile.warning {
+          background:linear-gradient(135deg,#ffb300,#ff9800);
+          color:#1b0500;
+        }
+        .admin-tile.danger {
+          background:linear-gradient(135deg,#ff1744,#d50000);
+        }
+        .admin-label {
+          font-weight:700;
+          font-size:0.82rem;
+          margin-bottom:2px;
+        }
+        .admin-sub {
+          font-size:0.76rem;
+          opacity:0.9;
+        }
 
 
         .theme-toggle {
@@ -7426,137 +7517,93 @@ app.get("/management-hub", (req, res) => {
             </div>
           </div>
 
-          <div class="subtitle">
-            Central control for ticket performance, allocations, prize draws, staff activity, and guest scan logs.
+                  <div class="button-grid">
+            <button class="action-button btn-dashboard" onclick="go('/dashboard')">
+              <span class="label">📊 Dashboard</span>
+              <span class="desc">Quick snapshot of total tickets and arrivals.</span>
+            </button>
+
+            <button class="action-button btn-generate"
+                    onclick="go('/staff/generate?key=${encodeURIComponent(MANAGEMENT_PIN)}')">
+              <span class="label">🧾 Generate Tickets / QRCodes</span>
+              <span class="desc">Create ticket batches and QR PNGs.</span>
+            </button>
+
+            <button class="action-button btn-analytics" onclick="go('/live-analytics')">
+              <span class="label">📈 Live Analytics</span>
+              <span class="desc">Real-time check-in stats and last scans.</span>
+              <div class="mini-link">
+                <a href="/qr-files?key=${encodeURIComponent(MANAGEMENT_PIN)}">
+                  📁 OR Files
+                  <span>View / download generated QR PNGs.</span>
+                </a>
+              </div>
+            </button>
+
+            <button class="action-button btn-mailing" onclick="go('/subscriber-log')">
+              <span class="label">📬 Mailing List</span>
+              <span class="desc">View guests who opted into POP / AURA updates.</span>
+            </button>
           </div>
 
-<div class="button-grid">
-  <button class="action-button btn-dashboard" onclick="go('/dashboard')">
-    <span class="label">📊 Dashboard</span>
-    <span class="desc">Quick snapshot of total tickets and arrivals.</span>
-  </button>
-<a href="/staff/generate?key=${encodeURIComponent(MANAGEMENT_PIN)}"
-   style="display:block;background:#ff4b9a;padding:12px 18px;
-          margin-top:15px;border-radius:8px;color:black;
-          font-weight:700;text-align:center;text-decoration:none;
-          background:linear-gradient(135deg,#ff4b9a,#ffb347);">
-  GENERATE TICKETS / QRCODES
-</a>
 
-  <button class="action-button btn-analytics" onclick="go('/live-analytics')">
-    <span class="label">📈 Live Analytics</span>
-    <span class="desc">Real-time check-in stats and last scans.</span>
-    <div class="side-link">
-    
-  <a href="/qr-files">📁 QR Files<br>
-    <span>View / download generated QR PNGs.</span>
-  </a>
-</div>
+           <!-- ROW 2: HUB CARDS -->
+          <div class="hub-row">
+            <a href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
+              <div class="tool-title">🎫 Allocation Hub</div>
+              <div class="tool-sub">Allocations, scanner, and allocation log.</div>
+            </a>
 
-</button>
+            <a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
+              <div class="tool-title">📘 Log Hub</div>
+              <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
+            </a>
 
-  <button class="action-button btn-giveaway" onclick="go('/giveaway')">
-    <span class="label">🎉 Prize Draw</span>
-    <span class="desc">Run random winners from used tickets.</span>
-  </button>
-  <button class="action-button btn-prizeentries" onclick="go('/guest-prize-entries')">
-    <span class="label">🎁 Guest Entries</span>
-    <span class="desc">Prize draw entries from guest scans & draw winner.</span>
-  </button>
-   <button class="action-button btn-stafflog" onclick="go('/staff-log')">
-     <span class="label">👥 Staff Log</span>
-     <span class="desc">View staff login activity and usage.</span>
-   </button>
+            <a href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
+              <div class="tool-title">🎁 Prize Hub</div>
+              <div class="tool-sub">Prize draws and guest entries.</div>
+            </a>
+          </div>
 
-<a href="/scan-log?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
-  <div class="tool-title">📋 Scan Log</div>
-  <div class="tool-sub">Timeline of guest scans (non-staff).</div>
-</a>
-
-
-
-   <!-- NEW: Mailing list tile inside the grid -->
-   <button class="action-button btn-mailing" onclick="go('/subscriber-log')">
-     <span class="label">📬 Mailing List</span>
-     <span class="desc">View guests who opted into POP / AURA updates.</span>
-   </button>
-
- </div>
-
-  <!-- ROW 2: HUB CARDS -->
-<a href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
-  <div class="tool-title">🎫 Allocation Hub</div>
-  <div class="tool-sub">Allocations, scanner, and allocation log.</div>
-</a>
-<a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
-  <div class="tool-title">📘 Log Hub</div>
-  <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
-</a>
-<a href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
-  <div class="tool-title">🎁 Prize Hub</div>
-  <div class="tool-sub">Prize draws and guest entries.</div>
-</a>
-
-<div class="admin-tools-grid">
-  <div class="admin-tile" onclick="adminExport()">
-    <div class="admin-label">⬇ Export Data</div>
-    <div class="admin-sub">Download backup JSON.</div>
-  </div>
-
-  <label class="admin-tile upload-label">
-    <input id="importFile" type="file" accept="application/json" style="display:none"
-           onchange="adminImport(this.files[0])" />
-    <div class="admin-label">⬆ Import Backup</div>
-    <div class="admin-sub">Restore from a saved JSON file.</div>
-  </label>
-
-</div>
-
-
-  <!-- ROW 1: EXPORT / IMPORT / CLEAR -->
-  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-    <!-- Export JSON -->
-    <button
-      class="action-button"
-      style="background:linear-gradient(90deg,#ffd86b,#ffb300);padding:10px 12px;min-width:160px"
-      onclick="adminExport()"
-    >
-      ⬇️ Export JSON
-    </button>
-
-    <!-- Import JSON -->
+  <div style="margin-top:16px;">
     <label
-      style="display:inline-block;background:linear-gradient(90deg,#00bcd4,#0097a7);padding:8px 12px;
-             border-radius:12px;color:#081217;cursor:pointer;font-weight:700"
-    >
-      ⬆️ Import JSON
-      <input
-        id="adminImportFile"
-        type="file"
-        accept="application/json"
-        style="display:none"
-        onchange="adminImportFile(event)"
-      />
-    </label>
+      for="cancelCode"
 
-    <!-- Clear ALL data -->
-    <button
-      class="action-button"
-      style="background:linear-gradient(90deg,#ff5252,#e91e63);padding:10px 12px;min-width:160px"
-      onclick="adminClearData()"
-    >
-      🧨 Clear Data
-    </button>
+          <div class="admin-section-title">Admin tools</div>
+          <div id="adminMsg" class="admin-msg"></div>
 
-    <!-- Clear only TEST tickets -->
-    <button
-      class="action-button"
-      style="background:linear-gradient(90deg,#ff9800,#ff5722);padding:10px 12px;min-width:210px"
-      onclick="adminClearTestTickets()"
-    >
-      🧹 Clear Test Tickets / QRCodes
-    </button>
-  </div>
+          <div class="admin-tools-grid">
+            <div class="admin-tile" onclick="adminExport()">
+              <div class="admin-label">⬇ Export Data</div>
+              <div class="admin-sub">Download full backup JSON.</div>
+            </div>
+
+            <label class="admin-tile">
+              <input id="adminImportFile"
+                     type="file"
+                     accept="application/json"
+                     style="display:none"
+                     onchange="adminImportFile(event)" />
+              <div class="admin-label">⬆ Import Backup</div>
+              <div class="admin-sub">Restore from a saved JSON file.</div>
+            </label>
+
+            <div class="admin-tile warning" onclick="adminClearAllocationLog()">
+              <div class="admin-label">🧾 Clear Allocation Log</div>
+              <div class="admin-sub">Clears seller ↔ ticket allocation history only.</div>
+            </div>
+
+            <div class="admin-tile danger" onclick="adminClearData()">
+              <div class="admin-label">🧨 Clear ALL Data</div>
+              <div class="admin-sub">Wipes tickets, logs and allocations.</div>
+            </div>
+
+            <div class="admin-tile warning" onclick="adminClearTestTickets()">
+              <div class="admin-label">🧹 Clear Test Tickets / QR PNGs</div>
+              <div class="admin-sub">Remove TEST tickets and TEST-*.png files.</div>
+            </div>
+          </div>
+
 
   <!-- keep your adminMsg + cancel section exactly as you have it -->
   <div id="adminMsg"
