@@ -737,6 +737,7 @@ loadTicketAllocations();   // ✅ ADD THIS EXACT LINE HERE
 
 
 // === AUTO-BACKUP SYSTEM (periodic JSON saves) ===
+
 const BACKUP_FILE = path.join(__dirname, "aura-backup.json");
 const BACKUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -764,7 +765,7 @@ function createBackup() {
         status: record.status,
       })),
 
-      // NEW: cancelled tickets log (if you’re tracking it)
+      // cancelled tickets log (if present)
       cancelledTicketsLog,
     };
 
@@ -8763,7 +8764,27 @@ app.get("/guest-scan-log", (req, res) => {
 });
 
 // NEW: Cancelled tickets log
-const cancelledTicketsLog = []; // { ticketId, token, cancelledBy, source, timestamp }
+// shape: { ticketId, token, cancelledBy, source, timestamp }
+const cancelledTicketsLog = [];
+``` :contentReference[oaicite:3]{index=3}  
+
+If you see another `const cancelledTicketsLog = []` somewhere else, delete the extra one so it’s only defined once.
+
+---
+
+## 5️⃣ Save, redeploy, and test
+
+1. Save `server.js`.
+2. Commit and push to GitHub (if that’s how you connect to Render).
+3. Let Render redeploy.
+4. Go to your app and try **Management Hub** again.
+
+Because the app was crashing on startup, that’s why you only saw **“Internal Server Error”** when trying to open `/management-hub`. Fixing this syntax error lets the whole server boot properly, so the Management Hub page should load again.
+
+---
+
+If you want, next message you can paste your **entire backup section** from `server.js` and I’ll triple-check that it matches the clean version above.
+
 
 
 // ------------------------------------------------------
