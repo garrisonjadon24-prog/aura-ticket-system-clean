@@ -5994,28 +5994,39 @@ app.get("/giveaway", (req, res) => {
           .catch(err => alert('Error: ' + err));
       }
 
-      function refreshHistory() {
-        fetch(`/api/giveaway-history?key=${encodeURIComponent(STAFF_PIN)}`)
-          .then(r => r.json())
-          .then(data => {
+           function refreshHistory() {
+        fetch("/api/giveaway-history?key=" + encodeURIComponent(STAFF_PIN))
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
             const tbody = document.getElementById("historyBody");
 
+            if (!tbody) return;
+
             if (!data.draws || data.draws.length === 0) {
-              tbody.innerHTML = '<tr><td colspan="4" class="empty">No draws yet</td></tr>';
+              tbody.innerHTML =
+                '<tr><td colspan="4" class="empty">No draws yet</td></tr>';
               return;
             }
 
-            tbody.innerHTML = data.draws.map(draw => {
+            tbody.innerHTML = data.draws.map(function (draw) {
               const time = new Date(draw.timestamp).toLocaleString();
-              return `<tr>
-                <td><strong>${draw.winnerTicketId}</strong></td>
-                <td>${draw.winnerName || "(no name on file)"}</td>
-                <td>${draw.prizeDescription}</td>
-                <td style="font-size:0.85rem;">${time}</td>
-              </tr>`;
+
+              return (
+                '<tr>' +
+                  '<td><strong>' + (draw.winnerTicketId || '') + '</strong></td>' +
+                  '<td>' + (draw.winnerName || '(no name on file)') + '</td>' +
+                  '<td>' + (draw.prizeDescription || '') + '</td>' +
+                  '<td style="font-size:0.85rem;">' + time + '</td>' +
+                '</tr>'
+              );
             }).join('');
+          })
+          .catch(function (err) {
+            console.error(err);
+            alert('Error loading giveaway history');
           });
       }
+
 
       // 🔹 These two functions are for the small buttons you added:
       //    "Clear Guest Entries" and "Clear Prize Draw History"
