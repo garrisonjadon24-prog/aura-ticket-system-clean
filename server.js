@@ -3029,6 +3029,14 @@ app.get("/guest-prize-entries", (req, res) => {
       <div class="card">
         <h1>🎁 Guest Prize Draw Entries</h1>
         <div class="subtitle">Guests who entered the mystery prize draw. Select a random winner!</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+  <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;" onclick="clearGuestEntries()">
+    🧹 Clear Guest Entries
+  </button>
+  <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;background:linear-gradient(135deg,#ff9800,#ff5722);" onclick="clearPrizeHistory()">
+    ♻ Clear Prize Draw History
+  </button>
+</div>
 
         <div class="stats-row">
           <div class="stat-box">
@@ -3080,6 +3088,47 @@ app.get("/guest-prize-entries", (req, res) => {
             return iso;
           }
         }
+
+async function clearGuestEntries() {
+  if (!confirm("Clear ALL guest prize entries? This cannot be undone.")) return;
+
+  try {
+    const res = await fetch(
+      "/admin/clear-guest-entries?key=" + encodeURIComponent(MGMT_KEY),
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) }
+    );
+    const data = await res.json();
+    if (!data.ok) {
+      alert("Failed to clear guest entries: " + (data.error || "Unknown error"));
+      return;
+    }
+    alert("Guest prize entries cleared.");
+    window.location.reload();
+  } catch (err) {
+    console.error(err);
+    alert("Error clearing guest entries.");
+  }
+}
+
+async function clearPrizeHistory() {
+  if (!confirm("Clear prize draw history (winners log)?")) return;
+
+  try {
+    const res = await fetch(
+      "/admin/clear-prize-draw-history?key=" + encodeURIComponent(MGMT_KEY),
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) }
+    );
+    const data = await res.json();
+    if (!data.ok) {
+      alert("Failed to clear prize draw history: " + (data.error || "Unknown error"));
+      return;
+    }
+    alert("Prize draw history cleared.");
+  } catch (err) {
+    console.error(err);
+    alert("Error clearing prize draw history.");
+  }
+}
 
         function loadAllocations() {
           fetch('/api/allocations-detail?key=' + encodeURIComponent(MGMT_KEY))
@@ -4418,13 +4467,11 @@ app.get("/dashboard", (req, res) => {
             Also see:
             <a href="/live-analytics?key=${encodeURIComponent(MANAGEMENT_PIN)}">Live Analytics</a>
             ·
-<a
-  href="/staff/qr-list?key=${encodeURIComponent(MANAGEMENT_PIN)}"
-  class="action-button btn-qrfiles"
->
-  📂 View / Download Generated QR Files →
-</a>
-          </div>
+<div class="admin-tile" onclick="go('/qr-files')">
+  <div class="admin-label">📁 QR Files</div>
+  <div class="admin-sub">View / download generated QR PNGs.</div>
+</div>
+
         </div>
       </div>
 
@@ -4721,13 +4768,12 @@ app.get("/allocations", (req, res) => {
         <div class="title"><span>Ticket Allocations</span></div>
         <div class="subtitle">
           Track how many tickets each seller or location has been allocated and how many are sold.
-        </div>
-        <div class="top-actions">
-          <a href="/allocation-scanner?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="pill-link">
-            Allocation Scanner
-          </a>
-          <button type="button" id="refreshBtn" class="pill-btn">Refresh</button>
-        </div>
+      <div class="top-actions">
+  <a href="/allocation-scanner?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="pill-link">
+    Allocation Scanner
+  </a>
+</div>
+
       </div>
 
       <div class="card">
@@ -4901,6 +4947,24 @@ app.post("/admin/clear-qr-files", (req, res) => {
     console.error("Error clearing QR files:", err);
     return res.status(500).json({ ok: false, error: "Server error" });
   }
+});
+
+// ADMIN: Clear guest prize-draw entries ONLY
+app.post("/admin/clear-guest-entries", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).json({ ok: false, error: "Unauthorized" });
+  }
+  guestNameEntries.length = 0;
+  return res.json({ ok: true });
+});
+
+// ADMIN: Clear prize draw history ONLY
+app.post("/admin/clear-prize-draw-history", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).json({ ok: false, error: "Unauthorized" });
+  }
+  giveawayEvents.draws = [];
+  return res.json({ ok: true });
 });
 
 // ------------------------------------------------------
@@ -5705,6 +5769,28 @@ app.get("/api/giveaway-history", (req, res) => {
   });
 });
 
+// Clear ONLY the guest prize-draw entries
+app.post("/admin/clear-guest-entries", (req, res) => {
+  const { key } = req.body || {};
+  if (!(key === STAFF_PIN || isMgmtAuthorizedReq(req))) {
+    return res.status(403).json({ ok: false, error: "Invalid PIN" });
+  }
+
+  guestNameEntries.length = 0; // wipe entries
+  return res.json({ ok: true });
+});
+
+// Clear ONLY the prize draw history (past draws)
+app.post("/admin/clear-prize-draw-history", (req, res) => {
+  const { key } = req.body || {};
+  if (!(key === STAFF_PIN || isMgmtAuthorizedReq(req))) {
+    return res.status(403).json({ ok: false, error: "Invalid PIN" });
+  }
+
+  giveawayEvents.draws = []; // wipe history
+  return res.json({ ok: true });
+});
+
 app.get("/giveaway", (req, res) => {
   const { key } = req.query;
   if (!(key === STAFF_PIN || isMgmtAuthorizedReq(req))) {
@@ -5835,6 +5921,15 @@ app.get("/giveaway", (req, res) => {
     <div class="container">
       <h1>Prize Draw</h1>
       <div class="subtitle">Randomly select winners from used tickets.</div>
+      <div style="margin-top:8px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
+  <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;" onclick="clearGuestEntries()">
+    🧹 Clear Guest Entries
+  </button>
+  <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;background:linear-gradient(135deg,#ff9800,#ff5722);" onclick="clearPrizeHistory()">
+    ♻ Clear Prize Draw History
+  </button>
+</div>
+
 
       <div class="card">
         <label for="prize">Prize Description</label>
@@ -5869,7 +5964,7 @@ app.get("/giveaway", (req, res) => {
       </a>
     </div>
 
-    ${themeScript()}
+        ${themeScript()}
     <script>
       const STAFF_PIN = "${STAFF_PIN}";
 
@@ -5890,7 +5985,7 @@ app.get("/giveaway", (req, res) => {
             document.getElementById("winnerTicket").textContent = data.winner;
             document.getElementById("winnerPrize").textContent = data.prize;
             document.getElementById("winnerName").textContent =
-              data.winnerName || "(no name on file)";   // 🔹 show name
+              data.winnerName || "(no name on file)";
 
             document.getElementById("winnerBox").classList.add("show");
 
@@ -5900,7 +5995,7 @@ app.get("/giveaway", (req, res) => {
       }
 
       function refreshHistory() {
-        fetch(\`/api/giveaway-history?key=\${encodeURIComponent(STAFF_PIN)}\`)
+        fetch(`/api/giveaway-history?key=${encodeURIComponent(STAFF_PIN)}`)
           .then(r => r.json())
           .then(data => {
             const tbody = document.getElementById("historyBody");
@@ -5912,21 +6007,69 @@ app.get("/giveaway", (req, res) => {
 
             tbody.innerHTML = data.draws.map(draw => {
               const time = new Date(draw.timestamp).toLocaleString();
-              return \`<tr>
-                <td><strong>\${draw.winnerTicketId}</strong></td>
-                <td>\${draw.winnerName || "(no name on file)"}</td>
-                <td>\${draw.prizeDescription}</td>
-                <td style="font-size:0.85rem;">\${time}</td>
-              </tr>\`;
+              return `<tr>
+                <td><strong>${draw.winnerTicketId}</strong></td>
+                <td>${draw.winnerName || "(no name on file)"}</td>
+                <td>${draw.prizeDescription}</td>
+                <td style="font-size:0.85rem;">${time}</td>
+              </tr>`;
             }).join('');
           });
       }
 
+      // 🔹 These two functions are for the small buttons you added:
+      //    "Clear Guest Entries" and "Clear Prize Draw History"
+      async function clearGuestEntries() {
+        if (!confirm("Clear ALL guest prize entries? This cannot be undone.")) return;
+
+        try {
+          const res = await fetch("/admin/clear-guest-entries", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: STAFF_PIN })
+          });
+          const data = await res.json();
+          if (!data.ok) {
+            alert("Failed to clear guest entries: " + (data.error || "Unknown error"));
+            return;
+          }
+          alert("Guest prize entries cleared.");
+          refreshHistory();
+        } catch (err) {
+          console.error(err);
+          alert("Error clearing guest entries.");
+        }
+      }
+
+      async function clearPrizeHistory() {
+        if (!confirm("Clear prize draw history?")) return;
+
+        try {
+          const res = await fetch("/admin/clear-prize-draw-history", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ key: STAFF_PIN })
+          });
+          const data = await res.json();
+          if (!data.ok) {
+            alert("Failed to clear prize draw history: " + (data.error || "Unknown error"));
+            return;
+          }
+          alert("Prize draw history cleared.");
+          refreshHistory();
+        } catch (err) {
+          console.error(err);
+          alert("Error clearing prize draw history.");
+        }
+      }
+
+      // initial load
       refreshHistory();
     </script>
   </body>
   </html>`);
 });
+
 
 
 // ------------------------------------------------------
@@ -7189,10 +7332,11 @@ app.get("/management-hub", (req, res) => {
      <span class="desc">View staff login activity and usage.</span>
    </button>
 
-   <button class="action-button btn-guestlog" onclick="go('/guest-scans')">
-     <span class="label">🎫 Scan Log</span>
-     <span class="desc">Guest ticket scans recorded in backend.</span>
-   </button>
+<div class="tile" onclick="go('/guest-scan-log')">
+  <div class="tile-label">📋 Scan Log</div>
+  <div class="tile-sub">Timeline of guest scans (non-staff).</div>
+</div>
+
 
    <!-- NEW: Mailing list tile inside the grid -->
    <button class="action-button btn-mailing" onclick="go('/subscriber-log')">
@@ -7202,16 +7346,63 @@ app.get("/management-hub", (req, res) => {
 
  </div>
 
-<div class="top-actions">
-  <button class="pill-btn" onclick="reloadAllocations()">↻ Refresh</button>
-  <button class="pill-btn" onclick="clearAllocationLog()">🧹 Clear Allocation Log</button>
+  <!-- ROW 2: HUB CARDS -->
+  <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;">
+    <!-- Allocation Hub -->
+    <a
+      href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
+      class="tool-card tool-purple"
+    >
+      <div class="tool-title">🎟 Allocation Hub</div>
+      <div class="tool-sub">Allocations, scanner, and allocation log.</div>
+    </a>
+
+    <!-- Log Hub -->
+    <a
+      href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
+      class="tool-card tool-blue"
+    >
+      <div class="tool-title">📘 Log Hub</div>
+      <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
+    </a>
+
+    <!-- Prize Hub -->
+    <a
+      href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
+      class="tool-card tool-pink"
+    >
+      <div class="tool-title">🎁 Prize Hub</div>
+      <div class="tool-sub">Prize draws and guest entries.</div>
+    </a>
+<div class="admin-tools-grid">
+  <div class="admin-tile" onclick="adminExport()">
+    <div class="admin-label">⬇ Export Data</div>
+    <div class="admin-sub">Download backup JSON.</div>
+  </div>
+
+  <label class="admin-tile upload-label">
+    <input id="importFile" type="file" accept="application/json" style="display:none"
+           onchange="adminImport(this.files[0])" />
+    <div class="admin-label">⬆ Import Backup</div>
+    <div class="admin-sub">Restore from a saved JSON file.</div>
+  </label>
+
+  <button class="admin-tile warning" type="button" onclick="adminClearAllocationLog()">
+    <div class="admin-label">🧹 Clear Allocation Log</div>
+    <div class="admin-sub">Clears seller ↔ ticket allocation history.</div>
+  </button>
+
+  <button class="admin-tile danger" type="button" onclick="adminClearData()">
+    <div class="admin-label">⚠ Clear ALL Data</div>
+    <div class="admin-sub">Wipes tickets, logs and allocations.</div>
+  </button>
+
+  <button class="admin-tile danger" type="button" onclick="adminClearTestTickets()">
+    <div class="admin-label">🧪 Clear Test Tickets / QR</div>
+    <div class="admin-sub">Remove TEST tickets + QR PNGs.</div>
+  </button>
 </div>
 
-<div style="margin-top:18px;border-top:1px dashed rgba(255,255,255,0.04);padding-top:14px;">
-
-  <h3 style="margin:0 0 8px 0;font-size:0.95rem;color:#ffd86b">
-    Admin Tools
-  </h3>
 
   <!-- ROW 1: EXPORT / IMPORT / CLEAR -->
   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -7256,36 +7447,6 @@ app.get("/management-hub", (req, res) => {
     >
       🧹 Clear Test Tickets / QRCodes
     </button>
-  </div>
-
-  <!-- ROW 2: HUB CARDS -->
-  <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;">
-    <!-- Allocation Hub -->
-    <a
-      href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
-      class="tool-card tool-purple"
-    >
-      <div class="tool-title">🎟 Allocation Hub</div>
-      <div class="tool-sub">Allocations, scanner, and allocation log.</div>
-    </a>
-
-    <!-- Log Hub -->
-    <a
-      href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
-      class="tool-card tool-blue"
-    >
-      <div class="tool-title">📘 Log Hub</div>
-      <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
-    </a>
-
-    <!-- Prize Hub -->
-    <a
-      href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}"
-      class="tool-card tool-pink"
-    >
-      <div class="tool-title">🎁 Prize Hub</div>
-      <div class="tool-sub">Prize draws and guest entries.</div>
-    </a>
   </div>
 
   <!-- keep your adminMsg + cancel section exactly as you have it -->
@@ -7488,6 +7649,33 @@ app.get("/management-hub", (req, res) => {
           }
         }
 
+async function adminClearAllocationLog() {
+  if (!confirm("Clear ALL allocation log entries? Tickets stay – only the log is wiped.")) {
+    return;
+  }
+
+  try {
+    const params   = new URLSearchParams(window.location.search);
+    const MGMT_KEY = params.get("key") || "";
+
+    const res = await fetch(
+      "/admin/clear-allocation-log?key=" + encodeURIComponent(MGMT_KEY),
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) }
+    );
+
+    const data = await res.json();
+    if (!data.ok) {
+      alert(data.error || "Unable to clear allocation log");
+      return;
+    }
+
+    alert("Allocation log cleared.");
+  } catch (err) {
+    console.error(err);
+    alert("Error clearing allocation log.");
+  }
+}
+
         // ❌ CANCEL A SINGLE TICKET
         async function adminCancelTicket() {
           const input = document.getElementById("cancelCode");
@@ -7605,6 +7793,298 @@ app.get("/allocation-hub", (req, res) => {
     </div>
   </div>
   ${themeScript()}
+</body>
+</html>`);
+});
+
+// ------------------------------------------------------
+// LOGS HUB  (Staff log, scan log, mailing list, cancelled)
+// ------------------------------------------------------
+app.get("/logs-hub", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.redirect("/?error=mgmt");
+  }
+
+  const { key } = req.query;
+
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Log Hub — AURA</title>
+  <style>
+    ${themeCSSRoot()}
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(33,150,243,0.35), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(156,39,176,0.35), transparent 55%),
+        var(--bg-dark);
+      color: var(--text-main);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 720px;
+      background: radial-gradient(circle at top, #120020, #050007 60%);
+      border-radius: 24px;
+      padding: 22px 22px 20px;
+      box-shadow:
+        0 0 0 1px rgba(100,181,246,0.5),
+        0 20px 50px rgba(0,0,0,0.9);
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.35rem;
+      background: linear-gradient(120deg,#64b5f6,#ba68c8);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
+      gap: 12px;
+    }
+
+    .tile {
+      padding: 14px 14px 12px;
+      border-radius: 18px;
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(100,181,246,0.35);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    }
+
+    .tile:hover {
+      transform: translateY(-1px);
+      border-color: rgba(186,104,200,0.75);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.7);
+    }
+
+    .tile-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .tile-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: #64b5f6;
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>📘 Log Hub</h1>
+    <div class="subtitle">
+      Staff activity, guest scan history, mailing list, and cancelled tickets in one place.
+    </div>
+
+    <div class="grid">
+      <div class="tile" onclick="go('/staff-log')">
+        <div class="tile-label">👥 Staff Activity Log</div>
+        <div class="tile-sub">Logins and management actions.</div>
+      </div>
+
+      <div class="tile" onclick="go('/guest-scan-log')">
+        <div class="tile-label">📋 Guest Scan Log</div>
+        <div class="tile-sub">Timeline of all non-staff scans.</div>
+      </div>
+
+      <div class="tile" onclick="go('/subscriber-log')">
+        <div class="tile-label">📧 Mailing List</div>
+        <div class="tile-sub">Guests who opted into email / SMS.</div>
+      </div>
+
+      <div class="tile" onclick="go('/cancelled-tickets-log')">
+        <div class="tile-label">⛔ Cancelled Tickets</div>
+        <div class="tile-sub">Tickets cancelled via admin tools.</div>
+      </div>
+    </div>
+
+    <a class="back-link" href="/management-hub?key=${encodeURIComponent(key || "")}">
+      ← Back to Management Hub
+    </a>
+  </div>
+
+  ${themeScript()}
+  <script>
+    const params   = new URLSearchParams(window.location.search);
+    const MGMT_KEY = params.get("key") || "";
+
+    function go(path) {
+      const url = path + '?key=' + encodeURIComponent(MGMT_KEY);
+      window.location.href = url;
+    }
+  </script>
+</body>
+</html>`);
+});
+
+// ------------------------------------------------------
+// PRIZE HUB  (Prize draw + guest entries)
+// ------------------------------------------------------
+app.get("/prize-hub", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.redirect("/?error=mgmt");
+  }
+
+  const { key } = req.query;
+
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prize Hub — AURA</title>
+  <style>
+    ${themeCSSRoot()}
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,64,129,0.4), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(255,193,7,0.45), transparent 55%),
+        var(--bg-dark);
+      color: var(--text-main);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 720px;
+      background: radial-gradient(circle at top, #260010, #050007 60%);
+      border-radius: 24px;
+      padding: 22px 22px 20px;
+      box-shadow:
+        0 0 0 1px rgba(255,64,129,0.5),
+        0 20px 50px rgba(0,0,0,0.9);
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.35rem;
+      background: linear-gradient(120deg,#ff1744,#ffb300);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+      gap: 12px;
+    }
+
+    .tile {
+      padding: 14px 14px 12px;
+      border-radius: 18px;
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,111,0,0.45);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    }
+
+    .tile:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,64,129,0.85);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.7);
+    }
+
+    .tile-label {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .tile-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: #ffb300;
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🎁 Prize Hub</h1>
+    <div class="subtitle">
+      Prize draws and guest entries — one place to manage everything.
+    </div>
+
+    <div class="grid">
+      <div class="tile" onclick="go('/giveaway')">
+        <div class="tile-label">🎲 Prize Draw Control</div>
+        <div class="tile-sub">Run draws and view winners.</div>
+      </div>
+
+      <div class="tile" onclick="go('/guest-prize-entries')">
+        <div class="tile-label">📝 Guest Prize Entries</div>
+        <div class="tile-sub">View & manage guest submissions.</div>
+      </div>
+    </div>
+
+    <a class="back-link" href="/management-hub?key=${encodeURIComponent(key || "")}">
+      ← Back to Management Hub
+    </a>
+  </div>
+
+  ${themeScript()}
+  <script>
+    const params   = new URLSearchParams(window.location.search);
+    const MGMT_KEY = params.get("key") || "";
+
+    function go(path) {
+      const url = path + '?key=' + encodeURIComponent(MGMT_KEY);
+      window.location.href = url;
+    }
+  </script>
 </body>
 </html>`);
 });
