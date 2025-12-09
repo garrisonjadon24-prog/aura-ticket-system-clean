@@ -4679,9 +4679,11 @@ app.get("/allocation-log", (req, res) => {
           )}" class="back-link">← <span>Back to Management Hub</span></a>
         </div>
       </div>
-      ${themeScript()}
+         ${themeScript()}
       <script>
-        const MGMT_KEY = "${MANAGEMENT_PIN}";
+        // Read management key from the URL (?key=...)
+        const params   = new URLSearchParams(window.location.search);
+        const MGMT_KEY = params.get("key") || "";
 
         function formatDate(iso) {
           if (!iso) return "--";
@@ -4695,37 +4697,29 @@ app.get("/allocation-log", (req, res) => {
 
         function loadAllocations() {
           fetch('/api/allocations-detail?key=' + encodeURIComponent(MGMT_KEY))
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
               var body = document.getElementById('allocBody');
               body.innerHTML = '';
 
               if (!data.ok || !data.allocations || data.allocations.length === 0) {
-                body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;">No allocations yet.</td></tr>';
-                document.getElementById('statTotal').textContent = '0';
-                document.getElementById('statSold').textContent = '0';
+                body.innerHTML =
+                  '<tr><td colspan="6" style="text-align:center;color:#888;">No allocations yet.</td></tr>';
+                document.getElementById('statTotal').textContent  = '0';
+                document.getElementById('statSold').textContent   = '0';
                 document.getElementById('statUnsold').textContent = '0';
                 return;
               }
 
-              document.getElementById('statTotal').textContent = data.total;
-              document.getElementById('statSold').textContent = data.sold;
+              document.getElementById('statTotal').textContent  = data.total;
+              document.getElementById('statSold').textContent   = data.sold;
               document.getElementById('statUnsold').textContent = data.unsold;
-  
-    // Show test ticket stats if available
-    const testSummary = document.getElementById("testSummary");
-    if (testSummary && data.testStats) {
-      testSummary.textContent =
-        `Test tickets – generated: ${data.testStats.total}, ` +
-        `scanned: ${data.testStats.used}, ` +
-        `pending: ${data.testStats.pending}`;
-    }
 
-              data.allocations.forEach(function(a) {
+              data.allocations.forEach(function (a) {
                 var sellerContact = [a.sellerPhone, a.sellerEmail].filter(Boolean).join(' · ');
-                var guestContact = [a.guestPhone, a.guestEmail].filter(Boolean).join(' · ');
+                var guestContact  = [a.guestPhone, a.guestEmail].filter(Boolean).join(' · ');
 
-                var row = document.createElement('tr');
+                var row  = document.createElement('tr');
                 var html = ''
                   + '<td>'
                   +   '<strong>' + (a.ticketId || '--') + '</strong><br/>'
@@ -4751,19 +4745,22 @@ app.get("/allocation-log", (req, res) => {
                 body.appendChild(row);
               });
             })
-            .catch(function(err) {
+            .catch(function (err) {
               var body = document.getElementById('allocBody');
-              body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#f88;">Error loading allocations: ' + err.message + '</td></tr>';
+              body.innerHTML =
+                '<tr><td colspan="6" style="text-align:center;color:#f88;">Error loading allocations: '
+                + err.message + '</td></tr>';
             });
         }
 
-        loadAllocations();
+        document.addEventListener('DOMContentLoaded', loadAllocations);
       </script>
     </div>
   </body>
 </html>
 `);
 });
+
 
 // ------------------------------------------------------
 // PAYMENTS API (NO CONVERSIONS – raw amounts only)
