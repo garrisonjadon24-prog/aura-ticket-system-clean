@@ -1847,6 +1847,44 @@ app.get("/staff/qr-list", (req, res) => {
     console.error("Error reading QR folder:", err);
   }
 
+    const liveFiles = files.filter((f) => !f.toUpperCase().startsWith("TEST-"));
+  const testFiles = files.filter((f) => f.toUpperCase().startsWith("TEST-"));
+
+  const renderList = (arr) =>
+    arr
+      .map(
+        (f) => `
+          <li>
+            <a class="qr-link"
+               href="/generated_qr/${encodeURIComponent(f)}"
+               target="_blank">
+              <span>📁</span>
+              <span>${f}</span>
+            </a>
+          </li>`
+      )
+      .join("");
+
+  const qrSectionsHtml =
+    files.length === 0
+      ? '<p class="empty"><em>No QR PNG files found in generated_qr/ yet.</em></p>'
+      : `
+        ${
+          liveFiles.length
+            ? `<h2 class="section-title">Live Tickets</h2><ul>${renderList(
+                liveFiles
+              )}</ul>`
+            : ""
+        }
+        ${
+          testFiles.length
+            ? `<h2 class="section-title">Test Tickets</h2><ul>${renderList(
+                testFiles
+              )}</ul>`
+            : ""
+        }
+      `;
+
   res.send(`<!DOCTYPE html>
   <html>
   <head>
@@ -1854,7 +1892,7 @@ app.get("/staff/qr-list", (req, res) => {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>AURA QR Files</title>
     <style>
-      ${themeCSSRoot()}
+      ${qrSectionsHtml}
       * { box-sizing: border-box; }
 
       body {
@@ -1871,6 +1909,14 @@ app.get("/staff/qr-list", (req, res) => {
         align-items:center;
         justify-content:center;
       }
+
+.section-title {
+  margin: 12px 0 6px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-gold);
+}
 
       .card {
         width:100%;
@@ -2133,6 +2179,29 @@ app.get("/ticket", (req, res) => {
 
   const record = tickets.get(token);
 
+    // 🔥 If this ticket was cancelled, treat guest scans as invalid and bounce
+  const isCancelled = record.status === "cancelled";
+
+  if (isCancelled && staff !== "1") {
+    const timestamp = new Date().toISOString();
+    scanEvents.invalid.push({
+      token,
+      ticketId: record.id,
+      timestamp,
+      reason: "cancelled"
+    });
+
+    ipLogging.events.push({
+      ip: clientIP,
+      token,
+      ticketId: record.id,
+      timestamp: Date.now(),
+      status: "cancelled"
+    });
+
+    return res.redirect(INSTAGRAM_URL);
+  }
+
   // STAFF-SIDE logging for duplicates/valid
   if (record.status === "used" && staff === "1") {
     const timestamp = new Date().toISOString();
@@ -2188,9 +2257,24 @@ if (staff !== "1") {
     }
 
     const isUsed = record.status === "used";
-    const statusText = isUsed ? "USED" : "VALID";
-    const statusColor = isUsed ? "#ff3b30" : "#34c759";
-    const statusBg = isUsed ? "rgba(255,59,48,0.1)" : "rgba(52,199,89,0.12)";
+    const isCancelledStaff = record.status === "cancelled";
+
+    let statusText, statusColor, statusBg;
+
+    if (isCancelledStaff) {
+      statusText = "CANCELLED";
+      statusColor = "#ff9800";
+      statusBg = "rgba(255,152,0,0.18)";
+    } else if (isUsed) {
+      statusText = "USED";
+      statusColor = "#ff3b30";
+      statusBg = "rgba(255,59,48,0.1)";
+    } else {
+      statusText = "VALID";
+      statusColor = "#34c759";
+      statusBg = "rgba(52,199,89,0.12)";
+    }
+
 
     return res.send(`<!DOCTYPE html>
       <html>
@@ -2990,25 +3074,93 @@ app.post('/admin/seed', (req, res) => {
 
 app.post('/admin/clear', (req, res) => {
   const { key } = req.query;
-  if (!isMgmtAuthorizedReq(req)) return res.status(403).json({ error: 'Unauthorized' });
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+
   const { what } = req.body || {};
+
+  // Clear EVERYTHING – tickets + logs
   if (what === 'all') {
     guestNameEntries.length = 0;
     staffActivityLog.length = 0;
     guestScanLog.length = 0;
     tickets.clear();
-    try { saveTickets(); } catch(e){}
-    return res.json({ ok:true, cleared: 'all' });
+    try { saveTickets(); } catch (e) {}
+    return res.json({ ok: true, cleared: 'all' });
   }
-  if (what === 'guestEntries') { guestNameEntries.length = 0; return res.json({ ok:true }); }
-  if (what === 'staffActivity') { staffActivityLog.length = 0; return res.json({ ok:true }); }
-  if (what === 'guestScans') { guestScanLog.length = 0; return res.json({ ok:true }); }
-  if (what === 'tickets') { tickets.clear(); try { saveTickets(); } catch(e){} return res.json({ ok:true }); }
+
+  // Existing individual clears
+  if (what === 'guestEntries') {
+    guestNameEntries.length = 0;
+    return res.json({ ok: true });
+  }
+  if (what === 'staffActivity') {
+    staffActivityLog.length = 0;
+    return res.json({ ok: true });
+  }
+  if (what === 'guestScans') {
+    guestScanLog.length = 0;
+    return res.json({ ok: true });
+  }
+  if (what === 'tickets') {
+    tickets.clear();
+    try { saveTickets(); } catch (e) {}
+    return res.json({ ok: true });
+  }
+
+  // 🔥 NEW: clear ONLY TEST tickets + their QR PNGs + related logs
+  if (what === 'testTickets') {
+    // 1) Remove TEST tickets from tickets map
+    for (const [token, rec] of Array.from(tickets.entries())) {
+      if (rec && rec.type === "test") {
+        tickets.delete(token);
+      }
+    }
+    try { saveTickets(); } catch (e) {}
+
+    // 2) Delete TEST-*.png files from QR folder
+    try {
+      if (fs.existsSync(QR_DIR)) {
+        for (const f of fs.readdirSync(QR_DIR)) {
+          if (f.toUpperCase().startsWith("TEST-") && f.toLowerCase().endsWith(".png")) {
+            try {
+              fs.unlinkSync(path.join(QR_DIR, f));
+            } catch (e) {
+              console.error("Failed deleting test QR", f, e);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error clearing test QR files:", e);
+    }
+
+    const isTestId = (id) =>
+      typeof id === "string" && id.toUpperCase().startsWith("TEST-");
+
+    // 3) Clean logs that reference TEST tickets
+    scanEvents.invalid = scanEvents.invalid.filter((e) => !isTestId(e.ticketId));
+    scanEvents.duplicates = scanEvents.duplicates.filter((e) => !isTestId(e.ticketId));
+    ipLogging.events = ipLogging.events.filter((e) => !isTestId(e.ticketId));
+
+    const keptGuestScans = guestScanLog.filter((e) => !isTestId(e.ticketId));
+    guestScanLog.length = 0;
+    guestScanLog.push(...keptGuestScans);
+
+    const keptNameEntries = guestNameEntries.filter((e) => !isTestId(e.ticketId));
+    guestNameEntries.length = 0;
+    guestNameEntries.push(...keptNameEntries);
+
+    return res.json({ ok: true, cleared: 'testTickets' });
+  }
+
+  // unknown option
   return res.status(400).json({ error: 'Invalid clear target' });
 });
 
+
 // ------------------------------------------------------
-// NEW ENDPOINT: Mark ticket as used with logging
 // NEW ENDPOINT: Mark ticket as used with logging (staff-only)
 app.post("/api/mark-ticket-used", (req, res) => {
   const { token, key } = req.body || {};
@@ -3410,6 +3562,14 @@ app.get("/live-analytics", (req, res) => {
               document.getElementById("giveawayCount").textContent = data.giveaways;
               document.getElementById("boxOfficeCount").textContent = data.boxOfficeSales;
 
+const testTotalEl = document.getElementById("testTotal");
+const testSummaryEl = document.getElementById("testSummary");
+if (testTotalEl && testSummaryEl && data.testStats) {
+  testTotalEl.textContent = data.testStats.total;
+  testSummaryEl.textContent =
+    data.testStats.used + " used / " + data.testStats.unused + " pending";
+}
+
               const typeBody = document.getElementById("typeBody");
               typeBody.innerHTML = Object.entries(data.byType).map(([type, stats]) => {
                 const arrivalPct = stats.total > 0 ? Math.round((stats.used / stats.total) * 100) : 0;
@@ -3452,10 +3612,10 @@ app.get("/dashboard", (req, res) => {
     return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
   }
 
-  // ---- TICKET STATS ----
+    // ---- TICKET STATS ----
   let total = 0;
   let used = 0;
-  const byType = {}; // { general: {total, used}, earlybird: {...}, ... }
+  const byType = {}; // { general: {total, used}, earlybird: {...}, test: {...}, ... }
 
   for (const [_token, record] of tickets.entries()) {
     total++;
@@ -3471,6 +3631,21 @@ app.get("/dashboard", (req, res) => {
       byType[t].used++;
     }
   }
+
+  const unused = total - used;
+  const usagePercent = total > 0 ? Math.round((used / total) * 100) : 0;
+
+  // Separate TEST tickets from live event tickets
+  const rawTestStats = byType.test || { total: 0, used: 0 };
+  const testTotal = rawTestStats.total;
+  const testUsed = rawTestStats.used;
+  const testPending = testTotal - testUsed;
+
+  const liveTotal = total - testTotal;
+  const liveUsed = used - testUsed;
+  const livePending = liveTotal - liveUsed;
+  const liveUsagePercent = liveTotal > 0 ? Math.round((liveUsed / liveTotal) * 100) : 0;
+
 
   const unused = total - used;
   const usagePercent = total > 0 ? Math.round((used / total) * 100) : 0;
@@ -6376,21 +6551,19 @@ app.get("/management-hub", (req, res) => {
         .btn-prizeentries { background:linear-gradient(135deg,#00bcd4,#0097a7); }
         .btn-stafflog { background:linear-gradient(135deg,#03a9f4,#0288d1); }
         .btn-guestlog { background:linear-gradient(135deg,#ff5722,#e64a19); }
-        .btn-qrfiles {
-  background: linear-gradient(135deg, #ff1744, #ff4081);
-  border: 1px solid rgba(255, 23, 68, 0.6);
-}
-.btn-qrfiles {
-  background: linear-gradient(135deg, #ff1744, #ff4081);
-  border: 1px solid rgba(255, 23, 68, 0.6);
-  color: #fff;
-}
 
-.btn-generate {
-  background: linear-gradient(135deg, #7b1fa2, #9c27b0);
-  border: 1px solid rgba(155, 89, 182, 0.5);
-  color: #fff !important;
-}
+        .btn-qrfiles {
+          background: linear-gradient(135deg, #ff1744, #ff4081);
+          border: 1px solid rgba(255, 23, 68, 0.6);
+          color: #fff;
+        }
+
+        .btn-generate {
+          background: linear-gradient(135deg, #7b1fa2, #9c27b0);
+          border: 1px solid rgba(155, 89, 182, 0.5);
+          color: #fff !important;
+        }
+
 
 
         .theme-toggle {
@@ -6454,16 +6627,15 @@ app.get("/management-hub", (req, res) => {
     <span class="label">📈 Live Analytics</span>
     <span class="desc">Real-time check-in stats and last scans.</span>
     
-  </button>
-<a
-  href="/staff/qr-list?key=${encodeURIComponent(MANAGEMENT_PIN)}"
-  class="tile tile-small"
->
-  View / Download Generated QR Files →
-</a>
+</button>
 
+<button class="action-button btn-qrfiles" onclick="go('/staff/qr-list')">
+  <span class="label">📂 QR Files</span>
+  <span class="desc">View / download generated QR PNGs.</span>
+</button>
 
   <button class="action-button btn-alloc" onclick="go('/allocations')">
+
     <span class="label">📑 Allocations</span>
     <span class="desc">Track prefixes, sold vs unsold, export CSV.</span>
   </button>
@@ -6509,6 +6681,25 @@ app.get("/management-hub", (req, res) => {
               <button class="action-button" style="background:linear-gradient(90deg,#9c27b0,#6a1b9a);padding:10px 12px;min-width:160px" onclick="adminSeedPrompt()">🎲 Seed Data</button>
               <button class="action-button" style="background:linear-gradient(90deg,#ff5722,#e64a19);padding:10px 12px;min-width:160px" onclick="adminClearPrompt()">🧹 Clear Data</button>
               <div id="adminMsg" style="margin-left:8px;color:#fff;font-size:0.9rem;opacity:0.9"></div>
+              <button class="action-button"
+        style="background:linear-gradient(135deg,#ff9800,#ffc107);min-width:180px"
+        onclick="adminClearTestsPrompt()">
+  🧹 Clear Test Tickets / QRCodes
+</button>
+<div style="margin-top:10px;font-size:0.85rem;">
+  <label for="cancelTicketId">Cancel Ticket / QR Code:</label>
+  <input id="cancelTicketId"
+         type="text"
+         placeholder="e.g. EB-015"
+         style="margin-left:6px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,0.25);background:rgba(0,0,0,0.5);color:#fff;max-width:140px" />
+  <button type="button"
+          style="margin-left:6px;padding:6px 10px;border-radius:999px;border:none;background:linear-gradient(135deg,#ff7043,#ff9800);font-size:0.8rem;font-weight:700;cursor:pointer"
+          onclick="adminCancelTicket()">
+    Cancel
+  </button>
+</div>
+
+
             </div>
           </div>
 
@@ -6610,24 +6801,56 @@ const ALLOWED_MANAGERS = [
           }
         }
 
-        async function adminClearPrompt() {
-          if (!confirm('Clear ALL tickets, logs, and entries? This cannot be undone.')) return;
-          try {
-            const res = await fetch('/admin/clear?key=' + encodeURIComponent(MGMT_KEY), {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ what: 'all' })
-            });
-            const data = await res.json();
-            if (!res.ok || !data.ok) {
-              throw new Error(data.error || 'Clear failed');
-            }
-            setAdminMsg('All data cleared.');
-          } catch (err) {
-            console.error(err);
-            setAdminMsg('Clear error: ' + err.message);
-          }
-        }
+async function adminClearTestsPrompt() {
+  if (!confirm('Clear ONLY TEST tickets, their QR PNGs, and related logs?')) return;
+  try {
+    const res = await fetch('/admin/clear?key=' + encodeURIComponent(MGMT_KEY), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ what: 'testTickets' })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || 'Clear failed');
+    }
+    setAdminMsg('Test tickets / QR codes cleared.');
+  } catch (err) {
+    console.error(err);
+    setAdminMsg('Clear test error: ' + err.message);
+  }
+}
+
+app.post("/admin/cancel-ticket", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
+
+  const { ticketId } = req.body || {};
+  if (!ticketId) {
+    return res.status(400).json({ error: "ticketId is required" });
+  }
+
+  // Find the token that matches this ID
+  let foundToken = null;
+  for (const [token, rec] of tickets.entries()) {
+    if (rec && rec.id === ticketId) {
+      foundToken = token;
+      break;
+    }
+  }
+
+  if (!foundToken) {
+    return res.status(404).json({ error: "Ticket not found" });
+  }
+
+  const rec = tickets.get(foundToken);
+  rec.status = "cancelled";
+  tickets.set(foundToken, rec);
+  try { saveTickets(); } catch (e) {}
+
+  return res.json({ ok: true, ticketId: rec.id, status: rec.status });
+});
+
 
         (function initManager() {
           // Prefer server-provided manager name (validated server-side) then sessionStorage
@@ -6641,6 +6864,26 @@ const ALLOWED_MANAGERS = [
           } else {
             managerSpan.textContent = 'Restricted';
           }
+
+          async function adminClearTestsPrompt() {
+  if (!confirm('Clear ONLY TEST tickets, their QR PNGs, and related logs?')) return;
+  try {
+    const res = await fetch('/admin/clear?key=' + encodeURIComponent(MGMT_KEY), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ what: 'testTickets' })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || 'Clear failed');
+    }
+    setAdminMsg('Test tickets / QR codes cleared.');
+  } catch (err) {
+    console.error(err);
+    setAdminMsg('Clear test error: ' + err.message);
+  }
+}
+
         })();
 
         // mgmtLogout removed: management logout is handled by server endpoint but no visible logout button is shown per UX decision
