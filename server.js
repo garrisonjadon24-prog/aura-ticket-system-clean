@@ -2889,67 +2889,71 @@ app.get("/guest-prize-entries", (req, res) => {
         <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-btn">← Back to Management Hub</a>
       </div>
 
-      ${themeScript()}
+            ${themeScript()}
       <script>
-        const MGMT_KEY = "${MANAGEMENT_PIN}";
+        // Grab the management key from the URL (?key=...)
+        const params   = new URLSearchParams(window.location.search);
+        const MGMT_KEY = params.get("key") || "";
 
-        function loadEntries() {
-          fetch(\`/api/guest-name-entries?key=\${encodeURIComponent(MGMT_KEY)}\`)
-            .then(r => r.json())
-            .then(data => {
-              if (data.error) return;
-
-              const tbody = document.getElementById('entriesBody');
-              const totalSpan = document.getElementById('totalEntries');
-              const uniqueSpan = document.getElementById('uniqueTickets');
-
-              totalSpan.textContent = data.length;
-              const uniqueTickets = new Set(data.map(e => e.ticketId));
-              uniqueSpan.textContent = uniqueTickets.size;
-
-              if (!data.length) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty">No entries yet.</td></tr>';
-              } else {
-                tbody.innerHTML = data.map(e => {
-                  const time = new Date(e.timestamp).toLocaleString();
-                  const shortToken = e.token ? (e.token.substring(0, 8) + '...') : '';
-                  return \`<tr>
-                    <td>\${e.guestName || '(not provided)'}</td>
-                    <td>\${e.guestEmail || '(no email)'}</td>
-                    <td>\${e.guestPhone || '(no cell)'}</td>
-                    <td>\${e.ticketId}</td>
-                    <td>\${shortToken}</td>
-                    <td>\${e.ip || 'N/A'}</td>
-                    <td style="font-size:0.85rem;">\${time}</td>
-                  </tr>\`;
-                }).join('');
-              }
-            });
+        function formatDate(iso) {
+          if (!iso) return "--";
+          try {
+            const d = new Date(iso);
+            return d.toLocaleDateString() + " " + d.toLocaleTimeString();
+          } catch (e) {
+            return iso;
+          }
         }
 
-        function drawWinner() {
-          fetch(\`/api/guest-name-entries?key=\${encodeURIComponent(MGMT_KEY)}\`)
-            .then(r => r.json())
-            .then(data => {
-              if (!data.length || data.error) {
-                alert('No entries to draw from');
+        function loadAllocations() {
+          fetch('/api/allocations-detail?key=' + encodeURIComponent(MGMT_KEY))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              var body = document.getElementById('allocBody');
+              body.innerHTML = '';
+
+              if (!data.ok || !data.allocations || data.allocations.length === 0) {
+                body.innerHTML =
+                  '<tr><td colspan="6" style="text-align:center;color:#888;">No allocations yet.</td></tr>';
+                document.getElementById('statTotal').textContent = '0';
+                document.getElementById('statSold').textContent  = '0';
+                document.getElementById('statUnsold').textContent = '0';
                 return;
               }
 
-              // Pick random winner
-              const winner = data[Math.floor(Math.random() * data.length)];
-              const display = document.getElementById('winnerDisplay');
-              display.innerHTML = \`
-                <div style="font-size:2rem; margin-bottom:8px;">🎉 WINNER 🎉</div>
-                <div style="font-size:1.3rem;">\${winner.guestName}</div>
-                <div style="font-size:0.95rem; opacity:0.9;">Ticket: \${winner.ticketId}</div>
-              \`;
-              display.style.display = 'block';
+              document.getElementById('statTotal').textContent  = data.total;
+              document.getElementById('statSold').textContent   = data.sold;
+              document.getElementById('statUnsold').textContent = data.unsold;
+
+              data.allocations.forEach(function(a) {
+                var sellerContact = [a.sellerPhone, a.sellerEmail].filter(Boolean).join(' · ');
+                var guestContact  = [a.guestPhone, a.guestEmail].filter(Boolean).join(' · ');
+
+                var row  = document.createElement('tr');
+                var html = ''
+                  + '<td>'
+                  +   '<strong>' + (a.ticketId || '--') + '</strong><br/>'
+                  +   '<span style="font-size:0.75rem;color:#aaa;">' + (a.ticketType || '') + '</span>'
+                  + '</td>'
+                  + '<td>'
+                  +   (a.sellerName || '<span style="color:#777;">(none)</span>') + '<br/>'
+                  +   '<span style="font-size:0.75rem;color:#aaa;">' + (sellerContact || '') + '</span>'
+                  + '</td>'
+                  + '<td>'
+                  +   (a.guestName || '<span style="color:#777;">(none)</span>') + '<br/>'
+                  +   '<span style="font-size:0.75rem;color:#aaa;">' + (guestContact || '') + '</span>'
+                  + '</td>'
+                  + '<td>' + (formatDate(a.allocatedAt) || '--') + '</td>'
+                  + '<td>' + (formatDate(a.redeemedAt) || '--') + '</td>'
+                  + '<td>' + (a.status || '--') + '</td>';
+
+                row.innerHTML = html;
+                body.appendChild(row);
+              });
             });
         }
 
-        loadEntries();
-        setInterval(loadEntries, 5000);
+        document.addEventListener('DOMContentLoaded', loadAllocations);
       </script>
     </body>
     </html>`);
