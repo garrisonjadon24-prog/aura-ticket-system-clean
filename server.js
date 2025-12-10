@@ -7643,12 +7643,6 @@ a.back-link:hover {
     <span class="label">📁 QR Files</span>
     <span class="desc">View / download generated QR PNGs.</span>
   </button>
-
-  <!-- Mailing list (already matching size) -->
-  <button class="action-button btn-mailing" onclick="go('/subscriber-log')">
-    <span class="label">📬 Mailing List</span>
-    <span class="desc">View guests who opted into POP / AURA updates.</span>
-  </button>
 </div>
 
 
@@ -7775,7 +7769,9 @@ a.back-link:hover {
 
            ${themeScript()}
       <script>
-        const MGMT_KEY = "${MANAGEMENT_PIN}";
+        // Pull management key from URL (fallback to hard-coded pin)
+        const params   = new URLSearchParams(window.location.search);
+        const MGMT_KEY = params.get("key") || "${MANAGEMENT_PIN}";
         const ALLOWED_MANAGERS = ["RAY","SHAWN","NIQUE","CHE"];
 
         function go(path) {
@@ -7791,13 +7787,10 @@ a.back-link:hover {
           const el = document.getElementById("adminMsg");
           if (!el) return;
           el.textContent = text;
-          if (isError) {
-            el.style.color = "#ff8a80";
-          } else {
-            el.style.color = "#ffffff";
-          }
+          el.style.color = isError ? "#ff8a80" : "#ffffff";
         }
 
+        // ⬇ EXPORT BACKUP
         async function adminExport() {
           try {
             const res = await fetch(
@@ -7805,6 +7798,7 @@ a.back-link:hover {
             );
             if (!res.ok) throw new Error("Export failed (" + res.status + ")");
             const data = await res.json();
+
             const blob = new Blob([JSON.stringify(data, null, 2)], {
               type: "application/json",
             });
@@ -7826,6 +7820,7 @@ a.back-link:hover {
           }
         }
 
+        // ⬆ IMPORT BACKUP
         async function adminImportFile(event) {
           const file = event.target.files && event.target.files[0];
           if (!file) return;
@@ -7872,8 +7867,9 @@ a.back-link:hover {
             !confirm(
               "This will CLEAR ALL tickets, logs and allocations from memory. Continue?"
             )
-          )
+          ) {
             return;
+          }
 
           try {
             const res = await fetch(
@@ -7901,8 +7897,9 @@ a.back-link:hover {
             !confirm(
               "Clear ONLY TEST tickets, their TEST-*.png QRs and related logs?"
             )
-          )
+          ) {
             return;
+          }
 
           try {
             const res = await fetch(
@@ -7924,84 +7921,91 @@ a.back-link:hover {
           }
         }
 
-async function adminClearAllocationLog() {
-  if (!confirm("Clear ALL allocation log entries? Tickets stay – only the log is wiped.")) {
-    return;
-  }
+        // 🧾 CLEAR ALLOCATION LOG ONLY
+        async function adminClearAllocationLog() {
+          if (!confirm("Clear ALL allocation log entries? Tickets stay – only the log is wiped.")) {
+            return;
+          }
 
-  try {
-    const params   = new URLSearchParams(window.location.search);
-    const MGMT_KEY = params.get("key") || "";
+          try {
+            const res = await fetch(
+              "/admin/clear-allocation-log?key=" + encodeURIComponent(MGMT_KEY),
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})
+              }
+            );
 
-    const res = await fetch(
-      "/admin/clear-allocation-log?key=" + encodeURIComponent(MGMT_KEY),
-      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) }
-    );
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+              throw new Error(data.error || "Unable to clear allocation log");
+            }
 
-// 📋 CLEAR GUEST SCAN LOG ONLY
-async function adminClearScanLog() {
-  if (!confirm("Clear the Guest Scan Log? This only clears the scan history, tickets stay the same.")) {
-    return;
-  }
+            setAdminMsg("Allocation log cleared.");
+          } catch (err) {
+            console.error(err);
+            setAdminMsg("Error clearing allocation log: " + err.message, true);
+          }
+        }
 
-  try {
-    const res = await fetch(
-      "/admin/clear-scan-log?key=" + encodeURIComponent(MGMT_KEY),
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
-      }
-    );
-    const data = await res.json();
-    if (!res.ok || !data.ok) {
-      throw new Error(data.error || "Clear failed");
-    }
-    setAdminMsg("Guest Scan Log cleared.");
-  } catch (err) {
-    console.error(err);
-    setAdminMsg("Scan log clear error: " + err.message, true);
-  }
-}
+        // 📋 CLEAR GUEST SCAN LOG ONLY
+        async function adminClearScanLog() {
+          if (!confirm("Clear the Guest Scan Log? This only clears the scan history, tickets stay the same.")) {
+            return;
+          }
 
-// 🛡 CLEAR SECURITY LOG (IP + invalid/duplicate history)
-async function adminClearSecurityLog() {
-  if (!confirm("Clear the Security Monitor log (IP events + invalid/duplicate scan history)?")) {
-    return;
-  }
+          try {
+            const res = await fetch(
+              "/admin/clear-scan-log?key=" + encodeURIComponent(MGMT_KEY),
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})
+              }
+            );
 
-  try {
-    const res = await fetch(
-      "/admin/clear-security-log?key=" + encodeURIComponent(MGMT_KEY),
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({})
-      }
-    );
-    const data = await res.json();
-    if (!res.ok || !data.ok) {
-      throw new Error(data.error || "Clear failed");
-    }
-    setAdminMsg("Security log cleared. The AURA Security Monitor will now show fresh stats.");
-  } catch (err) {
-    console.error(err);
-    setAdminMsg("Security clear error: " + err.message, true);
-  }
-}
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+              throw new Error(data.error || "Unable to clear guest scan log");
+            }
 
-    const data = await res.json();
-    if (!data.ok) {
-      alert(data.error || "Unable to clear allocation log");
-      return;
-    }
+            setAdminMsg("Guest scan log cleared.");
+          } catch (err) {
+            console.error(err);
+            setAdminMsg("Scan log clear error: " + err.message, true);
+          }
+        }
 
-    alert("Allocation log cleared.");
-  } catch (err) {
-    console.error(err);
-    alert("Error clearing allocation log.");
-  }
-}
+        // 🛡 CLEAR SECURITY LOG ONLY
+        async function adminClearSecurityLog() {
+          if (!confirm("Clear SECURITY log (IP + invalid/duplicate stats)?")) {
+            return;
+          }
+
+          try {
+            const res = await fetch(
+              "/admin/clear-security-log?key=" + encodeURIComponent(MGMT_KEY),
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})
+              }
+            );
+
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+              throw new Error(data.error || "Unable to clear security log");
+            }
+
+            setAdminMsg(
+              "Security log cleared. The AURA Security Monitor will now show fresh stats."
+            );
+          } catch (err) {
+            console.error(err);
+            setAdminMsg("Security clear error: " + err.message, true);
+          }
+        }
 
         // ❌ CANCEL A SINGLE TICKET
         async function adminCancelTicket() {
@@ -8043,6 +8047,7 @@ async function adminClearSecurityLog() {
           }
         }
 
+        // 🌟 INITIALIZE MANAGER NAME DISPLAY
         (function initManager() {
           const serverName = ${JSON.stringify(managerName || "")};
           const qs = new URLSearchParams(window.location.search);
@@ -8059,6 +8064,7 @@ async function adminClearSecurityLog() {
             managerSpan.textContent = "Restricted";
           }
         })();
+
       </script>
 
     </body>
@@ -8737,13 +8743,14 @@ app.get("/qr-files", (req, res) => {
 });
 
 
-// ------------------------------------------------------
 // MANAGEMENT: ALLOCATION SCANNER (QR → Seller/Box Office)
-// ------------------------------------------------------
 app.get("/allocation-scanner", (req, res) => {
+
   if (!isMgmtAuthorizedReq(req)) {
     return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
   }
+
+  const key = req.query.key || "";
 
   res.send(`<!DOCTYPE html>
   <html>
@@ -9578,17 +9585,21 @@ app.get("/admin/export-mailing-list", (req, res) => {
 // ------------------------------------------------------
 app.get("/guest-scan-log", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
-    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
+    return res.redirect("/management-hub?key=" + encodeURIComponent(MANAGEMENT_PIN));
   }
 
-  // Make a copy, newest first, and enrich with guest info
+  const key = req.query.key || "";
+
+  // Newest first, and attach latest guest info to each scan
   const rows = [...guestScanLog].slice().reverse().map(evt => {
     const info = getGuestInfoForTicket(evt.ticketId);
     return {
       ticketId: evt.ticketId || "",
-      tokenShort: (evt.token || "").slice(0, 8) + "...",
+      tokenShort: (evt.token || "").slice(0, 10),
       ip: evt.ip || "unknown",
-      time: evt.timestamp || "",
+      time: evt.timestamp
+        ? new Date(evt.timestamp).toLocaleString("en-GB")
+        : "",
       guestName: info ? info.name : "",
       guestEmail: info ? info.email : "",
       guestPhone: info ? info.phone : ""
@@ -9596,166 +9607,165 @@ app.get("/guest-scan-log", (req, res) => {
   });
 
   res.send(`<!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Guest Scan Log</title>
-    <style>
-      ${themeCSSRoot()}
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Guest Scan Log</title>
+  <style>
+    ${themeCSSRoot()}
 
-      * { box-sizing: border-box; }
+    * { box-sizing:border-box; }
 
-      body {
-        margin:0;
-        padding:16px;
-        min-height:100vh;
-        font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-        background:#050007;
-        color:#f5f5f5;
-        display:flex;
-        justify-content:center;
-      }
+    body {
+      margin:0;
+      padding:16px;
+      min-height:100vh;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      background:#050007;
+      color:#f5f5f5;
+      display:flex;
+      justify-content:center;
+    }
 
-      .wrap {
-        width:100%;
-        max-width:1024px;
-      }
+    .wrap {
+      width:100%;
+      max-width:1100px;
+    }
 
-      .card {
-        width:100%;
-        border-radius:24px;
-        padding:20px 20px 18px;
-        background:radial-gradient(circle at top,#260020,#050007 65%);
-        box-shadow:
-          0 0 0 1px rgba(255,64,129,0.25),
-          0 24px 60px rgba(0,0,0,0.9);
-      }
+    .card {
+      width:100%;
+      border-radius:24px;
+      padding:20px 20px 18px;
+      background:radial-gradient(circle at top,#260020,#050007 65%);
+      box-shadow:
+        0 0 0 1px rgba(255,64,129,0.25),
+        0 24px 60px rgba(0,0,0,0.9);
+    }
 
-      h1 {
-        margin:0 0 4px;
-        font-size:1.4rem;
-        letter-spacing:0.06em;
-        text-transform:uppercase;
-        background:linear-gradient(135deg,#ffb300,#ff4081);
-        -webkit-background-clip:text;
-        color:transparent;
-      }
+    h1 {
+      margin:0 0 4px;
+      font-size:1.4rem;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+    }
 
-      .subtitle {
-        margin:0 0 16px;
-        font-size:0.9rem;
-        color:#c2b6ff;
-      }
+    p.sub {
+      margin:0 0 14px;
+      font-size:0.82rem;
+      opacity:0.85;
+    }
 
-      table {
-        width:100%;
-        border-collapse:collapse;
-        font-size:0.85rem;
-      }
+    .scroll {
+      max-height:70vh;
+      overflow:auto;
+      margin-top:8px;
+    }
 
-      th, td {
-        padding:8px 10px;
-        border-bottom:1px solid rgba(255,255,255,0.06);
-        text-align:left;
-        white-space:nowrap;
-      }
+    table {
+      width:100%;
+      border-collapse:collapse;
+      font-size:0.8rem;
+    }
 
-      th {
-        font-size:0.75rem;
-        text-transform:uppercase;
-        letter-spacing:0.12em;
-        color:#ffb347;
-        background:rgba(0,0,0,0.35);
-        position:sticky;
-        top:0;
-        z-index:1;
-      }
+    th, td {
+      padding:6px 8px;
+      border-bottom:1px solid rgba(255,255,255,0.05);
+      text-align:left;
+      vertical-align:top;
+    }
 
-      tbody tr:nth-child(odd) td {
-        background:rgba(255,255,255,0.01);
-      }
+    th {
+      font-size:0.72rem;
+      text-transform:uppercase;
+      letter-spacing:0.12em;
+      color:#ffb347;
+      background:rgba(0,0,0,0.35);
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
 
-      .btn-back {
-        display:inline-flex;
-        align-items:center;
-        gap:6px;
-        margin-top:14px;
-        padding:8px 14px;
-        border-radius:999px;
-        border:1px solid rgba(255,64,129,0.6);
-        background:transparent;
-        color:#ffb347;
-        font-size:0.8rem;
-        text-decoration:none;
-        text-transform:uppercase;
-        letter-spacing:0.12em;
-      }
+    tbody tr:nth-child(odd) td {
+      background:rgba(255,255,255,0.02);
+    }
 
-      .btn-back:hover {
-        background:rgba(255,64,129,0.15);
-      }
+    .bottom-links {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:16px;
+    }
 
-      .scroll {
-        max-height:70vh;
-        overflow:auto;
-        margin-top:8px;
-      }
+    .btn-back {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:7px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.25);
+      font-size:0.78rem;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+      color:#fff;
+      background:rgba(255,255,255,0.04);
+    }
 
-      @media (max-width: 720px) {
-        table { font-size:0.78rem; }
-        th, td { padding:6px 6px; }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="wrap">
-      <div class="card">
-        <h1>Guest Scan Log</h1>
-        <div class="subtitle">
-          Backend record of guest ticket scans (non-staff).<br/>
-          If a ticket has guest details from the Mystery Prize form, they appear in the columns below.
-        </div>
+    .btn-back:hover {
+      background:rgba(255,255,255,0.08);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Guest Scan Log</h1>
+      <p class="sub">All guest scans with IP, time, and latest guest info.</p>
 
-        <div class="scroll">
-          <table>
-            <thead>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Token</th>
+              <th>IP</th>
+              <th>Time</th>
+              <th>Guest Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
               <tr>
-                <th>Ticket ID</th>
-                <th>Token (Short)</th>
-                <th>IP</th>
-                <th>Time</th>
-                <th>Guest Name</th>
-                <th>Guest Email</th>
-                <th>Guest Phone</th>
+                <td><strong>${r.ticketId}</strong></td>
+                <td>${r.tokenShort}</td>
+                <td>${r.ip}</td>
+                <td>${r.time}</td>
+                <td>${r.guestName}</td>
+                <td>${r.guestEmail}</td>
+                <td>${r.guestPhone}</td>
               </tr>
-            </thead>
-            <tbody>
-              ${rows.map(r => `
-                <tr>
-                  <td><strong>${r.ticketId}</strong></td>
-                  <td>${r.tokenShort}</td>
-                  <td>${r.ip}</td>
-                  <td>${r.time}</td>
-                  <td>${r.guestName || ""}</td>
-                  <td>${r.guestEmail || ""}</td>
-                  <td>${r.guestPhone || ""}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
 
-<div class="bottom-links">
-  <a href="/logs-hub?key=${encodeURIComponent(key || "")}" class="btn-back">← Back to Log Hub</a>
-  <a href="/management-hub?key=${encodeURIComponent(key || "")}" class="btn-back">← Back to Management Hub</a>
-</div>
-
+      <div class="bottom-links">
+        <a href="/logs-hub?key=${encodeURIComponent(key || "")}" class="btn-back">
+          ← Back to Log Hub
+        </a>
+        <a href="/management-hub?key=${encodeURIComponent(key || "")}" class="btn-back">
+          ← Back to Management Hub
+        </a>
+      </div>
     </div>
-    ${themeScript()}
-  </body>
-  </html>`);
+  </div>
+  ${themeScript()}
+</body>
+</html>`);
 });
+
 
 // NEW: Cancelled tickets log
 // shape: { ticketId, token, cancelledBy, source, timestamp }
