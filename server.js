@@ -3024,6 +3024,8 @@ app.get("/guest-prize-entries", (req, res) => {
     return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
   }
 
+  const { key } = req.query;
+
   res.send(`<!DOCTYPE html>
     <html>
     <head>
@@ -3119,19 +3121,7 @@ app.get("/guest-prize-entries", (req, res) => {
           font-size:0.85rem;
         }
         .draw-btn:hover { filter:brightness(1.1); }
-        .back-btn {
-          display:inline-block;
-          margin-top:12px;
-          margin-left:8px;
-          padding:8px 16px;
-          border-radius:999px;
-          border:1px solid rgba(255,255,255,0.2);
-          text-decoration:none;
-          color:#fff;
-          font-size:0.85rem;
-          letter-spacing:0.08em;
-          text-transform:uppercase;
-        }
+
         .empty {
           text-align:center;
           color:#888;
@@ -3147,20 +3137,48 @@ app.get("/guest-prize-entries", (req, res) => {
           text-align:center;
           font-weight:700;
         }
+
+        /* 🔹 New shared back-button styles for Prize pages */
+        .bottom-links {
+          display:flex;
+          gap:8px;
+          flex-wrap:wrap;
+          margin-top:16px;
+        }
+
+        .btn-back {
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+          padding:7px 14px;
+          border-radius:999px;
+          border:1px solid rgba(255,193,7,0.7);
+          text-decoration:none;
+          font-size:0.8rem;
+          letter-spacing:0.08em;
+          text-transform:uppercase;
+          color:#f5f5f5;
+          background:rgba(0,0,0,0.55);
+        }
+        .btn-back:hover {
+          background:rgba(255,255,255,0.08);
+        }
       </style>
     </head>
     <body>
       <div class="card">
         <h1>🎁 Guest Prize Draw Entries</h1>
         <div class="subtitle">Guests who entered the mystery prize draw. Select a random winner!</div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
-  <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;" onclick="clearGuestEntries()">
-    🧹 Clear Guest Entries
-  </button>
-  <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;background:linear-gradient(135deg,#ff9800,#ff5722);" onclick="clearPrizeHistory()">
-    ♻ Clear Prize Draw History
-  </button>
-</div>
+
+        <!-- small clear buttons at the top -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;" onclick="clearGuestEntries()">
+            🧹 Clear Guest Entries
+          </button>
+          <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;background:linear-gradient(135deg,#ff9800,#ff5722);" onclick="clearPrizeHistory()">
+            ♻ Clear Prize Draw History
+          </button>
+        </div>
 
         <div class="stats-row">
           <div class="stat-box">
@@ -3194,10 +3212,18 @@ app.get("/guest-prize-entries", (req, res) => {
           </table>
         </div>
 
-        <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-btn">← Back to Management Hub</a>
+        <!-- 🔹 NEW: dual back buttons -->
+        <div class="bottom-links">
+          <a href="/prize-hub?key=${encodeURIComponent(key || "")}" class="btn-back">
+            ← Back to Prize Hub
+          </a>
+          <a href="/management-hub?key=${encodeURIComponent(key || "")}" class="btn-back">
+            ← Back to Management Hub
+          </a>
+        </div>
       </div>
 
-            ${themeScript()}
+      ${themeScript()}
       <script>
         // Grab the management key from the URL (?key=...)
         const params   = new URLSearchParams(window.location.search);
@@ -3213,99 +3239,155 @@ app.get("/guest-prize-entries", (req, res) => {
           }
         }
 
-async function clearGuestEntries() {
-  if (!confirm("Clear ALL guest prize entries? This cannot be undone.")) return;
+        // 🔹 Clear ALL guest entries – send key in BODY (matches your /admin/clear-guest-entries handler)
+        async function clearGuestEntries() {
+          if (!confirm("Clear ALL guest prize entries? This cannot be undone.")) return;
 
-  try {
-    const res = await fetch(
-      "/admin/clear-guest-entries?key=" + encodeURIComponent(MGMT_KEY),
-      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) }
-    );
-    const data = await res.json();
-    if (!data.ok) {
-      alert("Failed to clear guest entries: " + (data.error || "Unknown error"));
-      return;
-    }
-    alert("Guest prize entries cleared.");
-    window.location.reload();
-  } catch (err) {
-    console.error(err);
-    alert("Error clearing guest entries.");
-  }
-}
+          try {
+            const res = await fetch("/admin/clear-guest-entries", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ key: MGMT_KEY })
+            });
+            const data = await res.json();
+            if (!data.ok) {
+              alert("Failed to clear guest entries: " + (data.error || "Unknown error"));
+              return;
+            }
+            alert("Guest prize entries cleared.");
+            loadEntries();
+          } catch (err) {
+            console.error(err);
+            alert("Error clearing guest entries.");
+          }
+        }
 
-async function clearPrizeHistory() {
-  if (!confirm("Clear prize draw history (winners log)?")) return;
+        // 🔹 Clear prize draw history – send key in BODY
+        async function clearPrizeHistory() {
+          if (!confirm("Clear prize draw history (winners log)?")) return;
 
-  try {
-    const res = await fetch(
-      "/admin/clear-prize-draw-history?key=" + encodeURIComponent(MGMT_KEY),
-      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) }
-    );
-    const data = await res.json();
-    if (!data.ok) {
-      alert("Failed to clear prize draw history: " + (data.error || "Unknown error"));
-      return;
-    }
-    alert("Prize draw history cleared.");
-  } catch (err) {
-    console.error(err);
-    alert("Error clearing prize draw history.");
-  }
-}
+          try {
+            const res = await fetch("/admin/clear-prize-draw-history", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ key: MGMT_KEY })
+            });
+            const data = await res.json();
+            if (!data.ok) {
+              alert("Failed to clear prize draw history: " + (data.error || "Unknown error"));
+              return;
+            }
+            alert("Prize draw history cleared.");
+          } catch (err) {
+            console.error(err);
+            alert("Error clearing prize draw history.");
+          }
+        }
 
-        function loadAllocations() {
-          fetch('/api/allocations-detail?key=' + encodeURIComponent(MGMT_KEY))
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-              var body = document.getElementById('allocBody');
+        // 🔹 Load entries into the table + stats
+        function loadEntries() {
+          fetch('/api/guest-prize-entries?key=' + encodeURIComponent(MGMT_KEY))
+            .then(r => r.json())
+            .then(data => {
+              const body = document.getElementById('entriesBody');
+              const totalEl = document.getElementById('totalEntries');
+              const uniqueEl = document.getElementById('uniqueTickets');
+
               body.innerHTML = '';
 
-              if (!data.ok || !data.allocations || data.allocations.length === 0) {
+              if (!data.ok || !data.entries || data.entries.length === 0) {
                 body.innerHTML =
-                  '<tr><td colspan="6" style="text-align:center;color:#888;">No allocations yet.</td></tr>';
-                document.getElementById('statTotal').textContent = '0';
-                document.getElementById('statSold').textContent  = '0';
-                document.getElementById('statUnsold').textContent = '0';
+                  '<tr><td colspan="7" class="empty">No guest prize entries yet.</td></tr>';
+                if (totalEl) totalEl.textContent  = '0';
+                if (uniqueEl) uniqueEl.textContent = '0';
                 return;
               }
 
-              document.getElementById('statTotal').textContent  = data.total;
-              document.getElementById('statSold').textContent   = data.sold;
-              document.getElementById('statUnsold').textContent = data.unsold;
+              if (totalEl) totalEl.textContent  = data.totalEntries || data.entries.length;
+              if (uniqueEl) uniqueEl.textContent = data.uniqueTickets || 0;
 
-              data.allocations.forEach(function(a) {
-                var sellerContact = [a.sellerPhone, a.sellerEmail].filter(Boolean).join(' · ');
-                var guestContact  = [a.guestPhone, a.guestEmail].filter(Boolean).join(' · ');
-
-                var row  = document.createElement('tr');
-                var html = ''
-                  + '<td>'
-                  +   '<strong>' + (a.ticketId || '--') + '</strong><br/>'
-                  +   '<span style="font-size:0.75rem;color:#aaa;">' + (a.ticketType || '') + '</span>'
-                  + '</td>'
-                  + '<td>'
-                  +   (a.sellerName || '<span style="color:#777;">(none)</span>') + '<br/>'
-                  +   '<span style="font-size:0.75rem;color:#aaa;">' + (sellerContact || '') + '</span>'
-                  + '</td>'
-                  + '<td>'
-                  +   (a.guestName || '<span style="color:#777;">(none)</span>') + '<br/>'
-                  +   '<span style="font-size:0.75rem;color:#aaa;">' + (guestContact || '') + '</span>'
-                  + '</td>'
-                  + '<td>' + (formatDate(a.allocatedAt) || '--') + '</td>'
-                  + '<td>' + (formatDate(a.redeemedAt) || '--') + '</td>'
-                  + '<td>' + (a.status || '--') + '</td>';
-
-                row.innerHTML = html;
-                body.appendChild(row);
+              data.entries.forEach(e => {
+                const shortToken = e.token ? (e.token.substring(0,8) + '…') : '';
+                const tr = document.createElement('tr');
+                tr.innerHTML =
+                  '<td>' + (e.guestName  || '') + '</td>' +
+                  '<td>' + (e.guestEmail || '') + '</td>' +
+                  '<td>' + (e.guestPhone || '') + '</td>' +
+                  '<td>' + (e.ticketId   || '') + '</td>' +
+                  '<td>' + shortToken + '</td>' +
+                  '<td>' + (e.ip || '') + '</td>' +
+                  '<td style="font-size:0.8rem;">' + formatDate(e.timestamp) + '</td>';
+                body.appendChild(tr);
               });
+            })
+            .catch(err => {
+              console.error(err);
+              const body = document.getElementById('entriesBody');
+              body.innerHTML =
+                '<tr><td colspan="7" class="empty">Error loading entries: ' +
+                err.message + '</td></tr>';
             });
         }
 
-        document.addEventListener('DOMContentLoaded', loadAllocations);
+        // 🔹 Simple random winner from entries shown
+        function drawWinner() {
+          const rows = Array.from(document.querySelectorAll('#entriesBody tr'));
+          // If first row is "no entries", bail
+          if (!rows.length || rows[0].querySelector('.empty')) {
+            alert('No entries to draw from.');
+            return;
+          }
+
+          const randomIndex = Math.floor(Math.random() * rows.length);
+          const row = rows[randomIndex];
+          const cells = row.querySelectorAll('td');
+          const name  = cells[0]?.textContent || '';
+          const email = cells[1]?.textContent || '';
+          const ticket = cells[3]?.textContent || '';
+
+          const box = document.getElementById('winnerDisplay');
+          box.innerHTML =
+            '🎉 Winner: <strong>' + (name || '(no name)') +
+            '</strong><br/>Ticket: <strong>' + (ticket || '--') +
+            '</strong><br/>' +
+            (email ? 'Email: ' + email : '');
+          box.style.display = 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadEntries);
       </script>
     </body>
     </html>`);
+});
+
+// API: Guest prize entries (for management views)
+app.get("/api/guest-prize-entries", (req, res) => {
+  const { key } = req.query;
+  if (!(key === STAFF_PIN || isMgmtAuthorizedReq(req))) {
+    return res.json({ ok: false, error: "Unauthorized", entries: [] });
+  }
+
+  const entries = guestNameEntries.map(e => ({
+    guestName:  e.guestName  || "",
+    guestEmail: e.guestEmail || "",
+    guestPhone: e.guestPhone || "",
+    ticketId:   e.ticketId   || "",
+    token:      e.token      || "",
+    ip:         e.ip         || "",
+    timestamp:  e.timestamp  || ""
+  }));
+
+  const totalEntries = entries.length;
+  const uniqueTickets = new Set(
+    entries.map(e => e.ticketId).filter(Boolean)
+  ).size;
+
+  res.json({
+    ok: true,
+    entries,
+    totalEntries,
+    uniqueTickets
+  });
 });
 
 // ------------------------------------------------------
@@ -4660,7 +4742,6 @@ app.get("/api/lookup-ticket-by-token", (req, res) => {
     type: record.type || null,
   });
 });
-
 // ------------------------------------------------------
 // MANAGEMENT: Seller Allocations Overview
 // ------------------------------------------------------
@@ -4718,35 +4799,15 @@ app.get("/allocations", (req, res) => {
         color:#c0c0c0;
       }
 
-.top-actions {
-  display: flex;
-  gap: 8px;
-  margin: 10px 0 18px;
-  flex-wrap: wrap;
-}
-
-.pill-btn {
-  border-radius: 999px;
-  padding: 6px 12px;
-  border: none;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  cursor: pointer;
-  background: linear-gradient(135deg,#ff5fa2,#ffb347);
-  color:#050007;
-}
-.pill-btn:active { transform: translateY(1px); }
-
       .top-actions {
         display:flex;
         flex-wrap:wrap;
         gap:8px;
-        margin-top:8px;
+        margin-top:10px;
+        margin-bottom:18px;
       }
 
-      .pill-link,
-      .pill-btn {
+      .pill-link {
         display:inline-flex;
         align-items:center;
         justify-content:center;
@@ -4758,22 +4819,13 @@ app.get("/allocations", (req, res) => {
         letter-spacing:0.12em;
         text-transform:uppercase;
         cursor:pointer;
-      }
-
-      .pill-link {
         background:linear-gradient(90deg,#ff4081,#ffb300);
         color:#050007;
         font-weight:700;
       }
 
-      .pill-btn {
-        background:rgba(255,255,255,0.02);
-        color:#f5f5f5;
-        border:1px solid rgba(255,255,255,0.2);
-      }
-
       .card {
-        margin-top:14px;
+        margin-top:4px;
         border-radius:20px;
         padding:14px 12px 16px;
         background:radial-gradient(circle at top,#200018,#060008 65%);
@@ -4864,14 +4916,29 @@ app.get("/allocations", (req, res) => {
         font-size:0.86rem;
       }
 
-      .back-link {
+      .btn-back {
         display:inline-flex;
         align-items:center;
         gap:6px;
-        margin-top:14px;
-        font-size:0.86rem;
+        padding:7px 14px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,0.22);
         text-decoration:none;
-        color:#ffd86b;
+        font-size:0.8rem;
+        letter-spacing:0.08em;
+        text-transform:uppercase;
+        color:#f5f5f5;
+        background:rgba(0,0,0,0.45);
+      }
+      .btn-back:hover {
+        background:rgba(255,255,255,0.08);
+      }
+
+      .bottom-links {
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-top:16px;
       }
 
       @media (max-width:600px) {
@@ -4887,12 +4954,13 @@ app.get("/allocations", (req, res) => {
         <div class="title"><span>Ticket Allocations</span></div>
         <div class="subtitle">
           Track how many tickets each seller or location has been allocated and how many are sold.
-      <div class="top-actions">
-  <a href="/allocation-scanner?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="pill-link">
-    Allocation Scanner
-  </a>
-</div>
+        </div>
 
+        <div class="top-actions">
+          <a href="/allocation-scanner?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="pill-link">
+            Allocation Scanner
+          </a>
+        </div>
       </div>
 
       <div class="card">
@@ -4921,22 +4989,23 @@ app.get("/allocations", (req, res) => {
                 <th>Unsold</th>
                 <th>% Sold</th>
               </tr>
-<div class="table-wrap">
-  <table>
-    <thead>
-      <!-- keep your existing header row here -->
-    </thead>
-    <tbody id="allocBody">
-      <tr><td colspan="5" class="empty">Loading…</td></tr>
-    </tbody>
-  </table>
-</div>
-
+            </thead>
+            <tbody id="allocBody">
+              <tr><td colspan="5" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-link">
-        ← <span>Back to Management Hub</span>
-      </a>
+      <!-- NEW: back buttons -->
+      <div class="bottom-links">
+        <a href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+          ← Back to Allocation Hub
+        </a>
+        <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+          ← Back to Management Hub
+        </a>
+      </div>
 
       ${themeScript()}
 
@@ -4946,7 +5015,7 @@ app.get("/allocations", (req, res) => {
         const statAllocated = document.getElementById("statAllocated");
         const statSold = document.getElementById("statSold");
         const statUnsold = document.getElementById("statUnsold");
-        const refreshBtn = document.getElementById("refreshBtn");
+        const refreshBtn = document.getElementById("refreshBtn"); // may be null
 
         function statusClassFor(percent) {
           if (percent >= 90) return "status-pill status-good";
@@ -4955,6 +5024,7 @@ app.get("/allocations", (req, res) => {
         }
 
         async function loadAllocations() {
+          if (!bodyEl) return;
           bodyEl.innerHTML = '<tr><td colspan="5" class="empty">Loading…</td></tr>';
 
           try {
@@ -4966,7 +5036,7 @@ app.get("/allocations", (req, res) => {
             if (!data || !data.ok) {
               bodyEl.innerHTML =
                 '<tr><td colspan="5" class="empty">' +
-                (data.error || "Unable to load allocations.") +
+                (data && data.error ? data.error : "Unable to load allocations.") +
                 "</td></tr>";
               return;
             }
@@ -5005,38 +5075,16 @@ app.get("/allocations", (req, res) => {
           }
         }
 
-        refreshBtn.addEventListener("click", loadAllocations);
+        if (refreshBtn) {
+          refreshBtn.addEventListener("click", loadAllocations);
+        }
         loadAllocations();
-
-        const params = new URLSearchParams(location.search);
-const MGMT_KEY = params.get("key") || "";
-
-async function reloadAllocations() {
-  await loadAllocations(); // you already have this
-}
-
-async function clearAllocationLog() {
-  if (!confirm("Clear ALL allocation log entries? This does NOT cancel tickets, only the log.")) return;
-
-  const res = await fetch(
-    "/admin/clear-allocation-log?key=" + encodeURIComponent(MGMT_KEY),
-    { method: "POST" }
-  );
-
-  const data = await res.json().catch(() => ({}));
-  if (!data.ok) {
-    alert(data.error || "Unable to clear allocation log");
-    return;
-  }
-
-  await loadAllocations();
-  alert("Allocation log cleared.");
-}
       </script>
     </div>
   </body>
   </html>`);
 });
+
 
 // ------------------------------------------------------
 // ADMIN: Clear ALL QR PNG files (images only, tickets stay)
@@ -5087,6 +5135,7 @@ app.post("/admin/clear-prize-draw-history", (req, res) => {
 });
 
 // ------------------------------------------------------
+//// ------------------------------------------------------
 // MANAGEMENT: Allocation Log (detailed per ticket)
 // ------------------------------------------------------
 app.get("/allocation-log", (req, res) => {
@@ -5185,12 +5234,6 @@ app.get("/allocation-log", (req, res) => {
         margin-bottom:14px;
       }
 
-        .table-wrap {
-    width:100%;
-    overflow-x:auto;
-    margin-top:4px;
-  }
-
       .stat-pill {
         padding:8px 12px;
         border-radius:999px;
@@ -5250,20 +5293,35 @@ app.get("/allocation-log", (req, res) => {
         color:#ffeb3b;
       }
 
-      .back-link {
-        display:inline-block;
-        margin-top:14px;
-        font-size:0.8rem;
-        color:#aaa;
-        text-decoration:none;
-      }
-
-      .back-link span { text-decoration:underline; }
-
       .note {
         margin-top:8px;
         font-size:0.78rem;
         color:#999;
+      }
+
+      .nav-row {
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-top:16px;
+      }
+
+      .btn-back {
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:7px 14px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,0.22);
+        text-decoration:none;
+        font-size:0.8rem;
+        letter-spacing:0.08em;
+        text-transform:uppercase;
+        color:#f5f5f5;
+        background:rgba(0,0,0,0.45);
+      }
+      .btn-back:hover {
+        background:rgba(255,255,255,0.08);
       }
 
       @media (max-width:768px) {
@@ -5272,59 +5330,33 @@ app.get("/allocation-log", (req, res) => {
         .title-main { font-size:1.05rem; }
         table { font-size:0.76rem; }
       }
-          @media (max-width: 600px) {
-    body {
-      padding:10px 6px;
-      justify-content:flex-start;
-    }
 
-    .wrap {
-      max-width:100%;
-    }
-
-    .card {
-      width:100%;
-      padding:14px 10px 14px;
-      border-radius:18px;
-    }
-
-    .header-row {
-      flex-direction:column;
-      align-items:flex-start;
-      gap:8px;
-    }
-
-    .title-main {
-      font-size:1.05rem;
-    }
-
-    .subtitle {
-      font-size:0.82rem;
-    }
-
-    .stats-row {
-      gap:8px;
-    }
-
-    .stat-pill {
-      font-size:0.75rem;
-      padding:6px 10px;
-    }
-
-    table {
-      font-size:0.74rem;
-    }
-
-    th, td {
-      padding:4px 3px;
-    }
-
-    .note,
-    .back-link {
-      font-size:0.75rem;
-    }
-  }
-
+      @media (max-width: 600px) {
+        body {
+          padding:10px 6px;
+          justify-content:flex-start;
+        }
+        .wrap {
+          max-width:100%;
+        }
+        .card {
+          width:100%;
+          padding:14px 10px 14px;
+          border-radius:18px;
+        }
+        .header-row {
+          flex-direction:column;
+          align-items:flex-start;
+          gap:8px;
+        }
+        .title-main { font-size:1.05rem; }
+        .subtitle { font-size:0.82rem; }
+        .stats-row { gap:8px; }
+        .stat-pill { font-size:0.75rem; padding:6px 10px; }
+        table { font-size:0.74rem; }
+        th, td { padding:4px 3px; }
+        .note { font-size:0.75rem; }
+      }
     </style>
   </head>
   <body>
@@ -5375,12 +5407,19 @@ app.get("/allocation-log", (req, res) => {
             • Guest details are taken from guest prize entries or box office sales.
           </div>
 
-          <a href="/management-hub?key=${encodeURIComponent(
-            MANAGEMENT_PIN
-          )}" class="back-link">← <span>Back to Management Hub</span></a>
+          <!-- NEW: nav buttons -->
+          <div class="nav-row">
+            <a href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+              ← Back to Allocation Hub
+            </a>
+            <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+              ← Back to Management Hub
+            </a>
+          </div>
         </div>
       </div>
-         ${themeScript()}
+
+      ${themeScript()}
       <script>
         // Read management key from the URL (?key=...)
         const params   = new URLSearchParams(window.location.search);
@@ -5398,9 +5437,9 @@ app.get("/allocation-log", (req, res) => {
 
         function loadAllocations() {
           fetch('/api/allocations-detail?key=' + encodeURIComponent(MGMT_KEY))
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-              var body = document.getElementById('allocBody');
+            .then(r => r.json())
+            .then(data => {
+              const body = document.getElementById('allocBody');
               body.innerHTML = '';
 
               if (!data.ok || !data.allocations || data.allocations.length === 0) {
@@ -5416,61 +5455,48 @@ app.get("/allocation-log", (req, res) => {
               document.getElementById('statSold').textContent   = data.sold;
               document.getElementById('statUnsold').textContent = data.unsold;
 
-              data.allocations.forEach(function (a) {
-                var sellerContact = [a.sellerPhone, a.sellerEmail].filter(Boolean).join(' · ');
-                var guestContact  = [a.guestPhone, a.guestEmail].filter(Boolean).join(' · ');
+              data.allocations.forEach(a => {
+                const sellerContact = [a.sellerPhone, a.sellerEmail].filter(Boolean).join(' · ');
+                const guestContact  = [a.guestPhone, a.guestEmail].filter(Boolean).join(' · ');
 
-                var row  = document.createElement('tr');
-                var html = ''
-                  + '<td>'
-                  +   '<strong>' + (a.ticketId || '--') + '</strong><br/>'
-                  +   '<span style="font-size:0.75rem;color:#aaa;">' + (a.ticketType || '') + '</span>'
-                  + '</td>'
-                  + '<td>'
-                  +   (a.sellerName || '<span style="color:#777;">(none)</span>') + '<br/>'
-                  +   '<span style="font-size:0.75rem;color:#aaa;">' + (sellerContact || '') + '</span>'
-                  + '</td>'
-                  + '<td>'
-                  +   (a.guestName || '<span style="color:#777;">(no guest yet)</span>') + '<br/>'
-                  +   '<span style="font-size:0.75rem;color:#aaa;">' + (guestContact || '') + '</span>'
-                  + '</td>'
-                  + '<td>'
-                  +   (a.sold
-                        ? '<span class="pill pill-sold">SOLD</span>'
-                        : '<span class="pill pill-unsold">UNSOLD</span>')
-                  + '</td>'
-                  + '<td>' + (a.ticketStatus || '--') + '</td>'
-                  + '<td style="font-size:0.75rem;color:#ccc;">' + formatDate(a.lastActivity) + '</td>';
+                const row = document.createElement('tr');
+                row.innerHTML =
+                  '<td><strong>' + (a.ticketId || '--') + '</strong><br/>' +
+                    '<span style="font-size:0.75rem;color:#aaa;">' + (a.ticketType || '') + '</span></td>' +
+                  '<td>' +
+                    (a.sellerName || '<span style="color:#777;">(none)</span>') + '<br/>' +
+                    '<span style="font-size:0.75rem;color:#aaa;">' + (sellerContact || '') + '</span>' +
+                  '</td>' +
+                  '<td>' +
+                    (a.guestName || '<span style="color:#777;">(no guest yet)</span>') + '<br/>' +
+                    '<span style="font-size:0.75rem;color:#aaa;">' + (guestContact || '') + '</span>' +
+                  '</td>' +
+                  '<td>' +
+                    (a.sold
+                      ? '<span class="pill pill-sold">SOLD</span>'
+                      : '<span class="pill pill-unsold">UNSOLD</span>') +
+                  '</td>' +
+                  '<td>' + (a.ticketStatus || '--') + '</td>' +
+                  '<td style="font-size:0.75rem;color:#ccc;">' + formatDate(a.lastActivity) + '</td>';
 
-                row.innerHTML = html;
                 body.appendChild(row);
               });
             })
-            .catch(function (err) {
-              var body = document.getElementById('allocBody');
+            .catch(err => {
+              const body = document.getElementById('allocBody');
               body.innerHTML =
-                '<tr><td colspan="6" style="text-align:center;color:#f88;">Error loading allocations: '
-                + err.message + '</td></tr>';
+                '<tr><td colspan="6" style="text-align:center;color:#f88;">Error loading allocations: ' +
+                err.message + '</td></tr>';
             });
         }
 
         document.addEventListener('DOMContentLoaded', loadAllocations);
-        
-<script>
-  const params   = new URLSearchParams(location.search);
-  const MGMT_KEY = params.get("key") || "";
-
-  function exportMailingList() {
-    const url = "/admin/export-mailing-list?key=" + encodeURIComponent(MGMT_KEY);
-    window.location.href = url;
-  }
-</script>
-
+      </script>
     </div>
   </body>
-</html>
-`);
+  </html>`);
 });
+
 
 
 // ------------------------------------------------------
@@ -6022,17 +6048,31 @@ app.get("/giveaway", (req, res) => {
         text-align:center;
         color:#888;
       }
-      .back-btn {
-        display:inline-block;
-        margin-top:12px;
-        padding:8px 16px;
+
+      /* 🔹 New shared back-button styles for Prize pages */
+      .bottom-links {
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-top:16px;
+      }
+
+      .btn-back {
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:7px 14px;
         border-radius:999px;
-        border:1px solid rgba(255,255,255,0.2);
+        border:1px solid rgba(255,193,7,0.7);
         text-decoration:none;
-        color:#fff;
-        font-size:0.85rem;
+        font-size:0.8rem;
         letter-spacing:0.08em;
         text-transform:uppercase;
+        color:#f5f5f5;
+        background:rgba(0,0,0,0.55);
+      }
+      .btn-back:hover {
+        background:rgba(255,255,255,0.08);
       }
     </style>
   </head>
@@ -6040,15 +6080,16 @@ app.get("/giveaway", (req, res) => {
     <div class="container">
       <h1>Prize Draw</h1>
       <div class="subtitle">Randomly select winners from used tickets.</div>
-      <div style="margin-top:8px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
-  <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;" onclick="clearGuestEntries()">
-    🧹 Clear Guest Entries
-  </button>
-  <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;background:linear-gradient(135deg,#ff9800,#ff5722);" onclick="clearPrizeHistory()">
-    ♻ Clear Prize Draw History
-  </button>
-</div>
 
+      <!-- small clear buttons at the top -->
+      <div style="margin-top:8px;margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;" onclick="clearGuestEntries()">
+          🧹 Clear Guest Entries
+        </button>
+        <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;background:linear-gradient(135deg,#ff9800,#ff5722);" onclick="clearPrizeHistory()">
+          ♻ Clear Prize Draw History
+        </button>
+      </div>
 
       <div class="card">
         <label for="prize">Prize Description</label>
@@ -6058,7 +6099,7 @@ app.get("/giveaway", (req, res) => {
 
         <div id="winnerBox" class="winner-box">
           <div><strong>Winning Ticket:</strong> <span id="winnerTicket"></span></div>
-          <div><strong>Guest:</strong> <span id="winnerName"></span></div>      <!-- 🔹 NEW -->
+          <div><strong>Guest:</strong> <span id="winnerName"></span></div>
           <div><strong>Prize:</strong> <span id="winnerPrize"></span></div>
         </div>
       </div>
@@ -6069,7 +6110,7 @@ app.get("/giveaway", (req, res) => {
           <thead>
             <tr>
               <th>Ticket</th>
-              <th>Guest</th>     <!-- 🔹 NEW -->
+              <th>Guest</th>
               <th>Prize</th>
               <th>Time</th>
             </tr>
@@ -6078,12 +6119,18 @@ app.get("/giveaway", (req, res) => {
         </table>
       </div>
 
-      <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-btn">
-        ← Back to Management Hub
-      </a>
+      <!-- 🔹 NEW: dual back buttons for Prize Hub + Management Hub -->
+      <div class="bottom-links">
+        <a href="/prize-hub?key=${encodeURIComponent(key || "")}" class="btn-back">
+          ← Back to Prize Hub
+        </a>
+        <a href="/management-hub?key=${encodeURIComponent(key || "")}" class="btn-back">
+          ← Back to Management Hub
+        </a>
+      </div>
     </div>
 
-        ${themeScript()}
+    ${themeScript()}
     <script>
       const STAFF_PIN = "${STAFF_PIN}";
 
@@ -6113,7 +6160,7 @@ app.get("/giveaway", (req, res) => {
           .catch(err => alert('Error: ' + err));
       }
 
-           function refreshHistory() {
+      function refreshHistory() {
         fetch("/api/giveaway-history?key=" + encodeURIComponent(STAFF_PIN))
           .then(function (r) { return r.json(); })
           .then(function (data) {
@@ -6146,9 +6193,7 @@ app.get("/giveaway", (req, res) => {
           });
       }
 
-
-      // 🔹 These two functions are for the small buttons you added:
-      //    "Clear Guest Entries" and "Clear Prize Draw History"
+      // Clear ALL guest prize entries
       async function clearGuestEntries() {
         if (!confirm("Clear ALL guest prize entries? This cannot be undone.")) return;
 
@@ -6171,6 +6216,7 @@ app.get("/giveaway", (req, res) => {
         }
       }
 
+      // Clear prize draw history
       async function clearPrizeHistory() {
         if (!confirm("Clear prize draw history?")) return;
 
@@ -6201,10 +6247,6 @@ app.get("/giveaway", (req, res) => {
 });
 
 
-
-// ------------------------------------------------------
-// IP SECURITY SUMMARY (unchanged core)
-// ------------------------------------------------------
 // ------------------------------------------------------
 // IP SECURITY SUMMARY (staff-only page)
 // ------------------------------------------------------
@@ -7490,13 +7532,25 @@ app.get("/management-hub", (req, res) => {
           font-size:0.85rem;
           color:#ccc;
         }
-        a.back-link {
-          display:inline-block;
-          margin-top:14px;
-          font-size:0.8rem;
-          color:#aaa;
-          text-decoration:none;
-        }
+a.back-link {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:18px;
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(0,0,0,0.55);
+  border:1px solid rgba(255,255,255,0.24);
+  font-size:0.78rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  text-decoration:none;
+  color:#f5f5f5;
+}
+a.back-link:hover {
+  background:rgba(255,255,255,0.08);
+}
+
       </style>
     </head>
     <body>
@@ -7517,34 +7571,38 @@ app.get("/management-hub", (req, res) => {
             </div>
           </div>
 
-                  <div class="button-grid">
-            <button class="action-button btn-dashboard" onclick="go('/dashboard')">
-              <span class="label">📊 Dashboard</span>
-              <span class="desc">Quick snapshot of total tickets and arrivals.</span>
-            </button>
+<div class="button-grid">
+  <!-- Dashboard -->
+  <button class="action-button btn-dashboard" onclick="go('/dashboard')">
+    <span class="label">📊 Dashboard</span>
+    <span class="desc">Quick snapshot of total tickets and arrivals.</span>
+  </button>
 
-            <button class="action-button btn-generate"
-                    onclick="go('/staff/generate?key=${encodeURIComponent(MANAGEMENT_PIN)}')">
-              <span class="label">🧾 Generate Tickets / QRCodes</span>
-              <span class="desc">Create ticket batches and QR PNGs.</span>
-            </button>
+  <!-- Generate tickets / QRs -->
+  <button class="action-button btn-generate" onclick="go('/staff/generate')">
+    <span class="label">🧾 Generate Tickets / QRCodes</span>
+    <span class="desc">Create ticket batches and QR PNGs.</span>
+  </button>
 
-            <button class="action-button btn-analytics" onclick="go('/live-analytics')">
-              <span class="label">📈 Live Analytics</span>
-              <span class="desc">Real-time check-in stats and last scans.</span>
-              <div class="mini-link">
-                <a href="/qr-files?key=${encodeURIComponent(MANAGEMENT_PIN)}">
-                  📁 OR Files
-                  <span>View / download generated QR PNGs.</span>
-                </a>
-              </div>
-            </button>
+  <!-- Live analytics -->
+  <button class="action-button btn-analytics" onclick="go('/live-analytics')">
+    <span class="label">📈 Live Analytics</span>
+    <span class="desc">Real-time check-in stats and last scans.</span>
+  </button>
 
-            <button class="action-button btn-mailing" onclick="go('/subscriber-log')">
-              <span class="label">📬 Mailing List</span>
-              <span class="desc">View guests who opted into POP / AURA updates.</span>
-            </button>
-          </div>
+  <!-- NEW: QR Files own tile -->
+  <button class="action-button btn-qrfiles" onclick="go('/qr-files')">
+    <span class="label">📁 QR Files</span>
+    <span class="desc">View / download generated QR PNGs.</span>
+  </button>
+
+  <!-- Mailing list (already matching size) -->
+  <button class="action-button btn-mailing" onclick="go('/subscriber-log')">
+    <span class="label">📬 Mailing List</span>
+    <span class="desc">View guests who opted into POP / AURA updates.</span>
+  </button>
+</div>
+
 
 
            <!-- ROW 2: HUB CARDS -->
@@ -8045,14 +8103,29 @@ app.get("/logs-hub", (req, res) => {
       color: var(--text-muted);
     }
 
-    .back-link {
-      display: inline-block;
-      margin-top: 16px;
-      font-size: 0.85rem;
-      color: #64b5f6;
-      text-decoration: none;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+    .bottom-links {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .btn-back {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:7px 14px;
+      border-radius:999px;
+      border:1px solid rgba(100,181,246,0.7);
+      text-decoration:none;
+      font-size:0.8rem;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      color:#f5f5f5;
+      background:rgba(0,0,0,0.55);
+    }
+    .btn-back:hover {
+      background:rgba(255,255,255,0.08);
     }
   </style>
 </head>
@@ -8085,9 +8158,11 @@ app.get("/logs-hub", (req, res) => {
       </div>
     </div>
 
-    <a class="back-link" href="/management-hub?key=${encodeURIComponent(key || "")}">
-      ← Back to Management Hub
-    </a>
+    <div class="bottom-links">
+      <a class="btn-back" href="/management-hub?key=${encodeURIComponent(key || "")}">
+        ← Back to Management Hub
+      </a>
+    </div>
   </div>
 
   ${themeScript()}
@@ -8103,6 +8178,7 @@ app.get("/logs-hub", (req, res) => {
 </body>
 </html>`);
 });
+
 
 // ------------------------------------------------------
 // PRIZE HUB  (Prize draw + guest entries)
@@ -8196,14 +8272,29 @@ app.get("/prize-hub", (req, res) => {
       color: var(--text-muted);
     }
 
-    .back-link {
-      display: inline-block;
-      margin-top: 16px;
-      font-size: 0.85rem;
-      color: #ffb300;
-      text-decoration: none;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+    .bottom-links {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .btn-back {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:7px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,193,7,0.7);
+      text-decoration:none;
+      font-size:0.8rem;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      color:#f5f5f5;
+      background:rgba(0,0,0,0.55);
+    }
+    .btn-back:hover {
+      background:rgba(255,255,255,0.08);
     }
   </style>
 </head>
@@ -8226,9 +8317,11 @@ app.get("/prize-hub", (req, res) => {
       </div>
     </div>
 
-    <a class="back-link" href="/management-hub?key=${encodeURIComponent(key || "")}">
-      ← Back to Management Hub
-    </a>
+    <div class="bottom-links">
+      <a class="btn-back" href="/management-hub?key=${encodeURIComponent(key || "")}">
+        ← Back to Management Hub
+      </a>
+    </div>
   </div>
 
   ${themeScript()}
@@ -8244,6 +8337,7 @@ app.get("/prize-hub", (req, res) => {
 </body>
 </html>`);
 });
+
 
 
 app.get("/cancelled-tickets-log", (req, res) => {
@@ -8343,7 +8437,8 @@ app.get("/cancelled-tickets-log", (req, res) => {
     </p>
 
     <div class="top-links">
-      <a class="pill-link" href="/management-hub?key=${encodeURIComponent(key || "")}">⬅ Back to Management Hub</a>
+      <a class="pill-link" href="/logs-hub?key=${encodeURIComponent(key || "")}">⬅ Back to Log Hub</a>
+      <a class="pill-link" href="/management-hub?key=${encodeURIComponent(key || "")}">🏠 Management Hub</a>
       <a class="pill-link" href="/dashboard?key=${encodeURIComponent(key || "")}">📊 Dashboard</a>
       <a class="pill-link" href="/allocation-log?key=${encodeURIComponent(key || "")}">📚 Allocation Log</a>
       <a class="pill-link" href="/allocations?key=${encodeURIComponent(key || "")}">🎟 Allocation Summary</a>
@@ -8767,14 +8862,14 @@ app.get("/allocation-scanner", (req, res) => {
         <div id="status" class="status"></div>
 
 <div class="bottom-links">
-  <a href="/allocations?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
-    ← Back to Allocations Overview
+  <a href="/allocation-hub?key=${encodeURIComponent(key || "")}" class="btn-back">
+    ← Back to Allocation Hub
   </a>
-
-  <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+  <a href="/management-hub?key=${encodeURIComponent(key || "")}" class="btn-back">
     ← Back to Management Hub
   </a>
 </div>
+
 
 
       ${themeScript()}
