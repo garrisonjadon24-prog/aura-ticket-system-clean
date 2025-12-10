@@ -1885,9 +1885,9 @@ app.get("/staff/generate", (req, res) => {
           </div>
         </div>
 
-        <button class="btn-main" onclick="generateCustomBatch()">
-          Generate Tickets / QR Codes
-        </button>
+<button class="primary-btn" onclick="generateCustomBatch()">
+  Generate Tickets / QR CODES
+</button>
 
     <a class="back-link" href="/management-hub">
   ← Back to Management Hub
@@ -3410,6 +3410,54 @@ app.post("/admin/clear-allocation-log", (req, res) => {
     return res.json({ ok: true });
   } catch (err) {
     console.error("Error clearing allocation log:", err);
+    return res.status(500).json({ ok: false, error: "Server error" });
+  }
+});
+
+// ------------------------------------------------------
+// ADMIN: Clear SECURITY log (IP + invalid/duplicate scans)
+// ------------------------------------------------------
+app.post("/admin/clear-security-log", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).json({ ok: false, error: "Unauthorized" });
+  }
+
+  try {
+    // Clear the IP activity log used by /security
+    if (ipLogging && Array.isArray(ipLogging.events)) {
+      ipLogging.events = [];
+    }
+
+    // Clear invalid / duplicate scan summaries
+    if (scanEvents) {
+      if (Array.isArray(scanEvents.invalid)) {
+        scanEvents.invalid = [];
+      }
+      if (Array.isArray(scanEvents.duplicates)) {
+        scanEvents.duplicates = [];
+      }
+    }
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("Error clearing security log:", err);
+    return res.status(500).json({ ok: false, error: "Server error" });
+  }
+});
+
+// ------------------------------------------------------
+// ADMIN: Clear guest scan log ONLY
+// ------------------------------------------------------
+app.post("/admin/clear-scan-log", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.status(403).json({ ok: false, error: "Unauthorized" });
+  }
+
+  try {
+    guestScanLog.length = 0;
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("Error clearing scan log:", err);
     return res.status(500).json({ ok: false, error: "Server error" });
   }
 });
@@ -7630,37 +7678,50 @@ a.back-link:hover {
           <div class="admin-section-title">Admin tools</div>
           <div id="adminMsg" class="admin-msg"></div>
 
-          <div class="admin-tools-grid">
-            <div class="admin-tile" onclick="adminExport()">
-              <div class="admin-label">⬇ Export Data</div>
-              <div class="admin-sub">Download full backup JSON.</div>
-            </div>
+<div class="admin-tools-grid">
+  <div class="admin-tile" onclick="adminExport()">
+    <div class="admin-label">⬇ Export Data</div>
+    <div class="admin-sub">Download full backup JSON.</div>
+  </div>
 
-            <label class="admin-tile">
-              <input id="adminImportFile"
-                     type="file"
-                     accept="application/json"
-                     style="display:none"
-                     onchange="adminImportFile(event)" />
-              <div class="admin-label">⬆ Import Backup</div>
-              <div class="admin-sub">Restore from a saved JSON file.</div>
-            </label>
+  <label class="admin-tile">
+    <input id="adminImportFile"
+           type="file"
+           accept="application/json"
+           style="display:none"
+           onchange="adminImportFile(event)" />
+    <div class="admin-label">⬆ Import Backup</div>
+    <div class="admin-sub">Restore from a saved JSON file.</div>
+  </label>
 
-            <div class="admin-tile warning" onclick="adminClearAllocationLog()">
-              <div class="admin-label">🧾 Clear Allocation Log</div>
-              <div class="admin-sub">Clears seller ↔ ticket allocation history only.</div>
-            </div>
+  <div class="admin-tile warning" onclick="adminClearAllocationLog()">
+    <div class="admin-label">🧾 Clear Allocation Log</div>
+    <div class="admin-sub">Clears seller ↔ ticket allocation history only.</div>
+  </div>
 
-            <div class="admin-tile danger" onclick="adminClearData()">
-              <div class="admin-label">🧨 Clear ALL Data</div>
-              <div class="admin-sub">Wipes tickets, logs and allocations.</div>
-            </div>
+  <div class="admin-tile danger" onclick="adminClearData()">
+    <div class="admin-label">🧨 Clear ALL Data</div>
+    <div class="admin-sub">Wipes tickets, logs and allocations.</div>
+  </div>
 
-            <div class="admin-tile warning" onclick="adminClearTestTickets()">
-              <div class="admin-label">🧹 Clear Test Tickets / QR PNGs</div>
-              <div class="admin-sub">Remove TEST tickets and TEST-*.png files.</div>
-            </div>
-          </div>
+  <!-- NEW: clear guest scan log only -->
+  <div class="admin-tile" onclick="adminClearScanLog()">
+    <div class="admin-label">📋 Clear Scan Log</div>
+    <div class="admin-sub">Reset guest scan history only.</div>
+  </div>
+
+  <!-- NEW: small security clear button -->
+  <div class="admin-tile" onclick="adminClearSecurityLog()">
+    <div class="admin-label">🛡 Clear Security Log</div>
+    <div class="admin-sub">Reset IP monitor + invalid/duplicate stats.</div>
+  </div>
+
+  <div class="admin-tile warning" onclick="adminClearTestTickets()">
+    <div class="admin-label">🧹 Clear Test Tickets / QR PNGs</div>
+    <div class="admin-sub">Remove TEST tickets and TEST-*.png files.</div>
+  </div>
+</div>
+
 
 
   <!-- keep your adminMsg + cancel section exactly as you have it -->
@@ -7876,6 +7937,58 @@ async function adminClearAllocationLog() {
       "/admin/clear-allocation-log?key=" + encodeURIComponent(MGMT_KEY),
       { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) }
     );
+
+// 📋 CLEAR GUEST SCAN LOG ONLY
+async function adminClearScanLog() {
+  if (!confirm("Clear the Guest Scan Log? This only clears the scan history, tickets stay the same.")) {
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      "/admin/clear-scan-log?key=" + encodeURIComponent(MGMT_KEY),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+      }
+    );
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || "Clear failed");
+    }
+    setAdminMsg("Guest Scan Log cleared.");
+  } catch (err) {
+    console.error(err);
+    setAdminMsg("Scan log clear error: " + err.message, true);
+  }
+}
+
+// 🛡 CLEAR SECURITY LOG (IP + invalid/duplicate history)
+async function adminClearSecurityLog() {
+  if (!confirm("Clear the Security Monitor log (IP events + invalid/duplicate scan history)?")) {
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      "/admin/clear-security-log?key=" + encodeURIComponent(MGMT_KEY),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({})
+      }
+    );
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || "Clear failed");
+    }
+    setAdminMsg("Security log cleared. The AURA Security Monitor will now show fresh stats.");
+  } catch (err) {
+    console.error(err);
+    setAdminMsg("Security clear error: " + err.message, true);
+  }
+}
 
     const data = await res.json();
     if (!data.ok) {
@@ -9127,6 +9240,31 @@ app.get("/staff-log", (req, res) => {
           text-align:center;
           color:#888;
         }
+        .bottom-links {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:16px;
+}
+
+.btn-back {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.25);
+  font-size:0.78rem;
+  text-decoration:none;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  color:#fff;
+  background:rgba(255,255,255,0.04);
+}
+.btn-back:hover {
+  background:rgba(255,255,255,0.08);
+}
+
       </style>
     </head>
     <body>
@@ -9148,10 +9286,15 @@ app.get("/staff-log", (req, res) => {
           </tbody>
         </table>
 
-        <a href="/management-hub?key=${encodeURIComponent(
-          MANAGEMENT_PIN
-        )}" class="back-btn">← Back to Management Hub</a>
-      </div>
+<div class="bottom-links">
+  <a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+    ← Back to Log Hub
+  </a>
+  <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+    ← Back to Management Hub
+  </a>
+</div>
+
 
       ${themeScript()}
       <script>
@@ -9364,8 +9507,15 @@ app.get("/subscriber-log", (req, res) => {
           </table>
         </div>
 
-        <a href="/management-hub" class="btn-back">← Back to Management Hub</a>
-      </div>
+<div class="bottom-links">
+  <a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+    ← Back to Log Hub
+  </a>
+  <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+    ← Back to Management Hub
+  </a>
+</div>
+
     </div>
     ${themeScript()}
   </body>
@@ -9596,8 +9746,11 @@ app.get("/guest-scan-log", (req, res) => {
           </table>
         </div>
 
-        <a href="/management-hub" class="btn-back">← Back to Management Hub</a>
-      </div>
+<div class="bottom-links">
+  <a href="/logs-hub?key=${encodeURIComponent(key || "")}" class="btn-back">← Back to Log Hub</a>
+  <a href="/management-hub?key=${encodeURIComponent(key || "")}" class="btn-back">← Back to Management Hub</a>
+</div>
+
     </div>
     ${themeScript()}
   </body>
