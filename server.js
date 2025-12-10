@@ -9990,10 +9990,6 @@ app.get("/guest-scan-log", (req, res) => {
 });
 
 
-// NEW: Cancelled tickets log
-// shape: { ticketId, token, cancelledBy, source, timestamp }
-const cancelledTicketsLog = [];
-
 // ------------------------------------------------------
 // ROUTE: QR FILES PAGE (VIEW + DOWNLOAD ALL PNG QR CODES)
 // ------------------------------------------------------
