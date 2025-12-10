@@ -209,6 +209,70 @@ function isMgmtAuthorizedReq(req) {
 const QR_DIR = path.join(__dirname, "generated_qr");
 app.use("/generated_qr", express.static(QR_DIR));
 
+// ------------------------------------------------------
+// PAGE: List & Download All General QR Codes
+// ------------------------------------------------------
+app.get("/qr-files", (req, res) => {
+  // Management/staff must be logged in
+  if (!isMgmtAuthorizedReq(req) && req.query.key !== STAFF_PIN) {
+    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
+  }
+
+  const files = fs.readdirSync(QR_DIR).filter(f => f.toLowerCase().endsWith(".png"));
+
+  const list = files
+    .map(f => {
+      return `
+        <li style="margin:6px 0;">
+          <a href="/generated_qr/${f}" download style="
+            color:#ffb347;
+            font-weight:600;
+            text-decoration:none;
+          ">
+            ${f}
+          </a>
+        </li>`;
+    })
+    .join("");
+
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>General QR Codes</title>
+      <style>
+        body {
+          background:#050007;
+          color:#fff;
+          font-family:system-ui;
+          padding:20px;
+        }
+        h1 {
+          font-size:1.4rem;
+          margin-bottom:12px;
+          background:linear-gradient(135deg,#ffb347,#ff4b9a);
+          -webkit-background-clip:text;
+          color:transparent;
+        }
+        ul { list-style:none; padding:0; }
+      </style>
+    </head>
+    <body>
+      <h1>General QR Codes</h1>
+      <ul>${list}</ul>
+      <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" style="
+        display:inline-block;
+        margin-top:20px;
+        color:#fff;
+        text-decoration:none;
+      ">← Back</a>
+    </body>
+    </html>
+  `);
+});
+
 // In-memory ticket store: token -> { id, type, status }
 const tickets = new Map();
 
@@ -9733,6 +9797,115 @@ app.get("/guest-scan-log", (req, res) => {
 // NEW: Cancelled tickets log
 // shape: { ticketId, token, cancelledBy, source, timestamp }
 const cancelledTicketsLog = [];
+
+// ------------------------------------------------------
+// ROUTE: QR FILES PAGE (VIEW + DOWNLOAD ALL PNG QR CODES)
+// ------------------------------------------------------
+app.get("/qr-files", (req, res) => {
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
+  }
+
+  let files = [];
+  try {
+    files = fs.readdirSync(QR_DIR)
+      .filter(f => f.toLowerCase().endsWith(".png"))
+      .sort();
+  } catch (err) {
+    console.error("QR-FILES ERROR:", err);
+  }
+
+  const listHTML = files
+    .map(f => `
+      <tr>
+        <td>${f}</td>
+        <td>
+          <a href="/generated_qr/${f}" download class="dl-btn">
+            ⬇ Download
+          </a>
+        </td>
+      </tr>
+    `)
+    .join("");
+
+  res.send(`<!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>QR Files</title>
+    <style>
+      ${themeCSSRoot()}
+      body {
+        margin:0;
+        padding:16px;
+        background:#050007;
+        color:#fff;
+        font-family:system-ui;
+      }
+      .card {
+        max-width:900px;
+        margin:auto;
+        padding:20px;
+        background:radial-gradient(circle at top,#260020,#050007 65%);
+        border-radius:20px;
+        box-shadow:0 0 0 1px rgba(255,64,129,0.35),0 20px 60px rgba(0,0,0,0.85);
+      }
+      table {
+        width:100%;
+        border-collapse:collapse;
+      }
+      th, td {
+        padding:8px;
+        border-bottom:1px solid rgba(255,255,255,0.15);
+      }
+      th {
+        color:#ffb347;
+        text-transform:uppercase;
+        font-size:0.75rem;
+        letter-spacing:0.1em;
+      }
+      .dl-btn {
+        color:#ffb347;
+        text-decoration:none;
+        font-weight:600;
+      }
+      .back-btn {
+        display:inline-block;
+        margin-top:16px;
+        padding:8px 14px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,0.3);
+        text-decoration:none;
+        text-transform:uppercase;
+        letter-spacing:0.1em;
+        color:#fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>📁 QR Files</h1>
+      <p>Download all generated QR PNGs.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${listHTML}
+        </tbody>
+      </table>
+
+      <a class="back-btn" href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}">
+        ← Back to Management Hub
+      </a>
+    </div>
+  </body>
+  </html>`);
+});
 
 // ------------------------------------------------------
 // START SERVER
