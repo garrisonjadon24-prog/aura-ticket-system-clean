@@ -9147,7 +9147,8 @@ app.get("/guest-scan-log", (req, res) => {
   </div>
   ${themeScript()}
 </body>
-</html>`);
+</html>`
+  );
 });
 
 
