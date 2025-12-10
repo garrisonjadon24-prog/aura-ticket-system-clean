@@ -9160,4 +9160,7 @@ const cancelledTicketsLog = [];
 // ------------------------------------------------------
 app.listen(PORT, () => {
   console.log(`AURA ticket system running at http://${HOST}:${PORT}`);
-})
+});
+
+// FINAL CLOSING BRACE (fixes Unexpected end of input)
+}
