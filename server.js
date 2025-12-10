@@ -2842,22 +2842,47 @@ if (staff !== "1") {
   </div>
 
 <script>
-  const ticketToken = "${token}";
-  const ticketId    = "${record.id}";
-  const IG_URL      = "${INSTAGRAM_URL}";
+      const ticketToken = "${token}";
+      const ticketId = "${record.id}";
+      const IG_URL = "${INSTAGRAM_URL}";
 
-  /* 🔊 Autoplay welcome audio */
-  const audio = new Audio('/aura-welcome.mp3');
-  audio.volume = 0.9;
-  audio.play().catch(err => console.warn("Autoplay blocked:", err));
+      const audio = document.createElement('audio');
+      audio.id = 'bgAudio';
+      audio.src = '/aura-welcome.mp3';
+      audio.preload = 'auto';
+      audio.loop = false;
+      audio.autoplay = true;
+      audio.playsInline = true;
+      audio.setAttribute('playsinline', '');
+      audio.setAttribute('webkit-playsinline', '');
+      audio.volume = 0.9;
+      document.body.appendChild(audio);
 
-  /* BUTTONS + PRIZE ENTRY */
-  const nameInput   = document.getElementById('guestNameInput');
-  const emailInput  = document.getElementById('guestEmailInput');
-  const phoneInput  = document.getElementById('guestPhoneInput');
-  const submitBtn   = document.getElementById('submitNameBtn');
-  const successMsg  = document.getElementById('successMsg');
-  const visitIgBtn  = document.getElementById('visitIgBtn');
+      const overlay = document.createElement('div');
+      
+      overlay.id = 'playOverlay';
+      overlay.style = 'position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:9999; pointer-events:auto; background: rgba(0,0,0,0.18);';
+
+      const playBtn = document.createElement('button');
+      playBtn.textContent = 'Tap to play audio';
+      playBtn.style = 'pointer-events:auto; padding:12px 18px; border-radius:12px; border:none; background:linear-gradient(120deg,#ff4081,#ff1744); color:#fff; font-weight:700; font-size:1rem; box-shadow:0 8px 20px rgba(0,0,0,0.6);';
+      playBtn.addEventListener('click', async () => {
+        try {
+          audio.muted = false;
+          await audio.play();
+          playBtn.style.display = 'none';
+          overlay.style.display = 'none';
+        } catch (err) { console.warn('Playback failed on user play:', err); }
+      });
+
+      overlay.appendChild(playBtn);
+      document.body.appendChild(overlay);
+
+      audio.muted = true;
+      audio.play().then(() => {
+        audio.muted = false;
+        audio.play().catch(() => {});
+      }).catch(() => {});
 
   visitIgBtn.addEventListener('click', () => goToIG());
 
