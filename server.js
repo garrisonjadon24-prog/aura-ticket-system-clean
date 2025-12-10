@@ -262,6 +262,10 @@ function getNameForTicketId(ticketId) {
 function getGuestInfoForTicket(ticketId) {
   if (!ticketId) return null;
 
+  // NEW: Cancelled tickets log
+const cancelledTicketsLog = [];
+
+
   // Walk backwards so we get the most recent entry
   for (let i = guestNameEntries.length - 1; i >= 0; i--) {
     const e = guestNameEntries[i];
