@@ -7671,11 +7671,13 @@ app.get("/management-hub", (req, res) => {
       font-size:0.76rem;
       color:#ffffff;
     }
-   .admin-tools-grid {
+.admin-tools-grid {
   margin-top: 8px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 14px;   /* increased spacing */
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); /* increased min size */
+  gap: 16px; /* more space between tiles */
+}
+
 }
     .admin-tile {
       padding:7px 10px;                 /* smaller padding */
@@ -7689,6 +7691,13 @@ app.get("/management-hub", (req, res) => {
       justify-content:space-between;
       min-height:60px;                  /* shorter */
     }
+
+    /* Prevents tiles from stretching too wide */
+.admin-tile {
+  max-width: 300px;
+  justify-self: start;
+}
+
     .admin-tile.warning {
       background:linear-gradient(135deg,#ffb300,#ff9800);
       color:#1b0500;
@@ -7872,10 +7881,11 @@ app.get("/management-hub", (req, res) => {
         </div>
       </div>
 
-      <div class="admin-tile warning" onclick="adminClearQRFiles()">
+<div class="admin-tile" style="margin-top:14px;" onclick="adminClearQrFiles()">
   <div class="admin-label">🧹 Clear ALL QR PNG Files</div>
   <div class="admin-sub">Deletes every QR PNG + removes entries from QR log.</div>
 </div>
+
 
 
       <!-- CANCEL TICKET / QR -->
