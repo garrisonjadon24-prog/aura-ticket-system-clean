@@ -797,6 +797,55 @@ function verifyToken(token, signature) {
   );
 }
 
+// ------------------------------------------------------
+// CORE IN-MEMORY DATA STRUCTURES
+// ------------------------------------------------------
+
+// token -> { id, type, status }
+const tickets = new Map();
+
+// Track invalid and duplicate scan attempts
+const scanEvents = {
+  invalid: [],   // tokens that don't exist in tickets map
+  duplicates: [] // tokens scanned multiple times
+};
+
+// Track payment transactions
+const paymentEvents = {
+  transactions: [] // { ticketId, method, amount, currency, notes, timestamp }
+};
+
+// Track box office sales
+const boxOfficeSales = {
+  prefix: "BOX-",
+  nextNumber: 1,
+  sales: [] // { ticketId, qrPath, timestamp, soldTo, amount }
+};
+
+// Track giveaways / prize draws
+const giveawayEvents = {
+  draws: [] // { prizeId, winnerTicketId, timestamp, prizeDescription }
+};
+
+// Track IP activity and suspicious behavior
+const ipLogging = {
+  events: [],             // { ip, token, ticketId, timestamp, status }
+  suspicious: new Map()   // ip -> [events...] for IPs with >3 scans/min
+};
+
+// Staff / guest logs
+const staffActivityLog = [];  // { name, action, ip, timestamp }
+const guestScanLog     = [];  // { ticketId, token, ip, timestamp }
+
+// Guest entries for prize draw / mailing list
+const guestNameEntries = [];  // { ticketId, token, guestName, guestEmail, guestPhone, ip, timestamp, subscribe }
+
+// ticketId -> { sellerName, sellerPhone, sellerEmail, sold }
+const ticketAllocations = new Map();
+
+// Cancelled tickets log
+const cancelledTicketsLog = []; // { ticketId, token, cancelledBy, source, timestamp }
+
 // ---- PERSISTENCE: LOAD + SAVE TICKETS ----------------
 
 function loadTickets() {
@@ -9927,10 +9976,6 @@ app.get("/guest-scan-log", (req, res) => {
 </html>`);
 });
 
-
-// NEW: Cancelled tickets log
-// shape: { ticketId, token, cancelledBy, source, timestamp }
-const cancelledTicketsLog = [];
 
 // ------------------------------------------------------
 // ROUTE: QR FILES PAGE (VIEW + DOWNLOAD ALL PNG QR CODES)
