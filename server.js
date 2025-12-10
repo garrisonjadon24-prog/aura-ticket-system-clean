@@ -7922,11 +7922,6 @@ app.get("/management-hub", (req, res) => {
           <div class="admin-sub">Clears seller ↔ ticket allocation history only.</div>
         </div>
 
-        <div class="admin-tile warning" onclick="adminClearTestTickets()">
-          <div class="admin-label">🧹 Clear Test Tickets / QR PNGs</div>
-          <div class="admin-sub">Remove TEST tickets and TEST-*.png files.</div>
-        </div>
-
         <div class="admin-tile danger" onclick="adminClearData()">
           <div class="admin-label">🧨 Clear ALL Data</div>
           <div class="admin-sub">Wipes tickets, logs and allocations.</div>
