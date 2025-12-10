@@ -6681,10 +6681,6 @@ app.get("/security", (req, res) => {
             </tbody>
           </table>
         </div>
-
-        <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" class="back-link">
-          ← <span>Back to Staff Tools</span>
-        </a>
       </div>
     </div>
 
@@ -7599,6 +7595,29 @@ a.back-link:hover {
   background:rgba(255,255,255,0.08);
 }
 
+.bottom-left-link {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.25);
+  font-size:0.78rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:#fff;
+  background:rgba(255,255,255,0.04);
+  text-decoration:none;
+  position:absolute;
+  bottom:18px;
+  left:22px;
+}
+
+.bottom-left-link:hover {
+  background:rgba(255,255,255,0.08);
+}
+
+
       </style>
     </head>
     <body>
@@ -7758,17 +7777,16 @@ a.back-link:hover {
       </button>
     </div>
   </div>
-</div>
 
+          <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" class="bottom-left-link">
+            ← Back to Staff Home
+          </a>
+        </div> <!-- card-inner -->
+      </div>   <!-- card -->
 
-          <a href="/staff?key=${encodeURIComponent(
-            STAFF_PIN
-          )}" class="back-link">← Back to Staff Home</a>
-        </div>
-      </div>
-
-           ${themeScript()}
+      ${themeScript()}
       <script>
+
         // Pull management key from URL (fallback to hard-coded pin)
         const params   = new URLSearchParams(window.location.search);
         const MGMT_KEY = params.get("key") || "${MANAGEMENT_PIN}";
