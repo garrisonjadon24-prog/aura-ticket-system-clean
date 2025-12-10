@@ -6,58 +6,6 @@ const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const QRCode = require("qrcode");
- 
-// ======================================================
-// 🔥 GLOBAL IN-MEMORY DATA STORES (MUST BE AT TOP)
-// ======================================================
-
-// Tickets store: token → { id, type, status }
-const tickets = new Map();
-
-// Guest name entries for prize draw form
-const guestNameEntries = []; // { ticketId, token, guestName, guestEmail, guestPhone, ip, timestamp }
-
-// Staff activity log
-const staffActivityLog = []; // { name, action, ip, timestamp }
-
-// Guest scan log (valid scans)
-const guestScanLog = []; // { ticketId, token, ip, timestamp }
-
-// Track invalid + duplicate scan attempts
-const scanEvents = {
-  invalid: [],
-  duplicates: [],
-};
-
-// Payment events (box office / card / cash)
-const paymentEvents = {
-  transactions: [], // { ticketId, method, amount, currency, notes, timestamp }
-};
-
-// Box office sales log
-const boxOfficeSales = {
-  prefix: "BOX-",
-  nextNumber: 1,
-  sales: [], // { ticketId, qrPath, timestamp, soldTo, amount }
-};
-
-// Giveaway / prize draw results
-const giveawayEvents = {
-  draws: [], // { prizeId, winnerTicketId, timestamp, prizeDescription }
-};
-
-// Security IP monitoring
-const ipLogging = {
-  events: [],          // all scans {ip, token, ticketId, timestamp, status}
-  suspicious: new Map() // ip → [events]
-};
-
-// Ticket allocations (seller assigned tickets)
-const ticketAllocations = new Map();
-// ticketId → { sellerName, sellerPhone, sellerEmail, sold }
-
-// Cancelled tickets log
-const cancelledTicketsLog = []; 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -907,6 +855,29 @@ function saveTicketAllocations() {
     console.log(`[ALLOC] Saved ${allocArr.length} ticket allocations.`);
   } catch (err) {
     console.error("Error saving ticket allocations:", err);
+  }
+}
+
+function loadTicketAllocations() {
+  try {
+    const file = path.join(__dirname, "ticket-allocations.json");
+    if (!fs.existsSync(file)) return;
+
+    const arr = JSON.parse(fs.readFileSync(file, "utf8"));
+    ticketAllocations.clear();
+
+    arr.forEach(a => {
+      ticketAllocations.set(a.ticketId, {
+        sellerName: a.sellerName,
+        sellerPhone: a.sellerPhone,
+        sellerEmail: a.sellerEmail,
+        sold: a.sold || false
+      });
+    });
+
+    console.log(`[ALLOC] Loaded ${arr.length} allocations.`);
+  } catch (err) {
+    console.error("Error loading allocations:", err);
   }
 }
 
@@ -7700,13 +7671,11 @@ app.get("/management-hub", (req, res) => {
       font-size:0.76rem;
       color:#ffffff;
     }
-.admin-tools-grid {
+   .admin-tools-grid {
   margin-top: 8px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); /* increased min size */
-  gap: 16px; /* more space between tiles */
-}
-
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;   /* increased spacing */
 }
     .admin-tile {
       padding:7px 10px;                 /* smaller padding */
@@ -7720,13 +7689,6 @@ app.get("/management-hub", (req, res) => {
       justify-content:space-between;
       min-height:60px;                  /* shorter */
     }
-
-    /* Prevents tiles from stretching too wide */
-.admin-tile {
-  max-width: 300px;
-  justify-self: start;
-}
-
     .admin-tile.warning {
       background:linear-gradient(135deg,#ffb300,#ff9800);
       color:#1b0500;
@@ -7899,17 +7861,21 @@ app.get("/management-hub", (req, res) => {
           <div class="admin-sub">Clears seller ↔ ticket allocation history only.</div>
         </div>
 
+        <div class="admin-tile warning" onclick="adminClearTestTickets()">
+          <div class="admin-label">🧹 Clear Test Tickets / QR PNGs</div>
+          <div class="admin-sub">Remove TEST tickets and TEST-*.png files.</div>
+        </div>
+
         <div class="admin-tile danger" onclick="adminClearData()">
           <div class="admin-label">🧨 Clear ALL Data</div>
           <div class="admin-sub">Wipes tickets, logs and allocations.</div>
         </div>
       </div>
 
-<div class="admin-tile" style="margin-top:14px;" onclick="adminClearQrFiles()">
+      <div class="admin-tile warning" onclick="adminClearQRFiles()">
   <div class="admin-label">🧹 Clear ALL QR PNG Files</div>
   <div class="admin-sub">Deletes every QR PNG + removes entries from QR log.</div>
 </div>
-
 
 
       <!-- CANCEL TICKET / QR -->
@@ -9961,6 +9927,10 @@ app.get("/guest-scan-log", (req, res) => {
 </html>`);
 });
 
+
+// NEW: Cancelled tickets log
+// shape: { ticketId, token, cancelledBy, source, timestamp }
+const cancelledTicketsLog = [];
 
 // ------------------------------------------------------
 // ROUTE: QR FILES PAGE (VIEW + DOWNLOAD ALL PNG QR CODES)
