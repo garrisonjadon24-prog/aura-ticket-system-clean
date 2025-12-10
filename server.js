@@ -262,10 +262,6 @@ function getNameForTicketId(ticketId) {
 function getGuestInfoForTicket(ticketId) {
   if (!ticketId) return null;
 
-  // NEW: Cancelled tickets log
-const cancelledTicketsLog = [];
-
-
   // Walk backwards so we get the most recent entry
   for (let i = guestNameEntries.length - 1; i >= 0; i--) {
     const e = guestNameEntries[i];
@@ -2617,7 +2613,7 @@ if (staff !== "1") {
   }
 
   // ========= GUEST VIEW =========
-  // Show welcome page with audio, then redirect to Instagram after 25s
+  // Show welcome page, let guest tap to play audio, then they can go to Instagram
   const ticketStatus = record.status === "used" ? "USED (STAFF)" : "VALID";
   const statusEmoji = record.status === "used" ? "⚠️" : "✅";
   const statusColor = record.status === "used" ? "#ff9500" : "#34c759";
@@ -2795,6 +2791,28 @@ if (staff !== "1") {
       text-align: center;
     }
 
+    /* Tap to play audio button */
+    #playWelcomeAudioBtn {
+      margin-top: 14px;
+      margin-bottom: 6px;
+      width: 100%;
+      padding: 11px 16px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg,#ff4b9a,#ffb347);
+      color: #1a0018;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    #playWelcomeAudioBtn:active {
+      transform: translateY(1px);
+    }
+
   </style>
 </head>
 
@@ -2812,6 +2830,13 @@ if (staff !== "1") {
     <p>Thank you for choosing to spend your night with us. Your presence adds to the magic — and we can't wait to make this moment unforgettable.</p>
 
     <p style="font-weight:700; margin-top:6px;">Feb 13 — See You There!</p>
+
+    <!-- 🔊 Hidden audio + visible button -->
+    <audio id="welcomeAudio" src="/aura-welcome.mp3"></audio>
+
+    <button id="playWelcomeAudioBtn" type="button">
+      ▶ Tap to Play Welcome Audio
+    </button>
 
     <!-- PRIZE SECTION -->
     <div class="prize-section">
@@ -2850,166 +2875,62 @@ if (staff !== "1") {
   const ticketId    = "${record.id}";
   const IG_URL      = "${INSTAGRAM_URL}";
 
-  /* ============================================================
-     🔊 WELCOME AUDIO — AUTOPLAY + TAP TO PLAY BUTTON + FALLBACK
-     ============================================================ */
-  const welcomeAudio = new Audio('/aura-welcome.mp3');
-  welcomeAudio.volume = 0.9;
+  /* ELEMENTS */
+  const nameInput     = document.getElementById('guestNameInput');
+  const emailInput    = document.getElementById('guestEmailInput');
+  const phoneInput    = document.getElementById('guestPhoneInput');
+  const submitBtn     = document.getElementById('submitNameBtn');
+  const successMsg    = document.getElementById('successMsg');
+  const visitIgBtn    = document.getElementById('visitIgBtn');
+  const welcomeAudio  = document.getElementById('welcomeAudio');
+  const playAudioBtn  = document.getElementById('playWelcomeAudioBtn');
 
-  let audioStarted = false;
-
-  function startWelcomeAudio() {
-    if (audioStarted) return;
-    audioStarted = true;
-
-    welcomeAudio.play().catch(err => {
-      console.warn("Audio blocked:", err);
-    });
-
-    // Hide the play button once audio starts
-    const playBtn = document.getElementById("playAudioBtn");
-    if (playBtn) playBtn.style.display = "none";
-  }
-
-  // Try automatic playback
-  startWelcomeAudio();
-
-  // Mobile fallback — first tap anywhere
-  ['click', 'touchstart'].forEach(evt => {
-    document.addEventListener(evt, startWelcomeAudio, {
-      once: true,
-      passive: true
-    });
-  });
-
-  /* Add Tap-to-Play button under header */
-  document.addEventListener("DOMContentLoaded", () => {
-    const card = document.querySelector(".card");
-    if (!card) return;
-
-    const btn = document.createElement("button");
-    btn.id = "playAudioBtn";
-    btn.innerText = "Tap to Play Audio 🔊";
-    btn.style.marginTop = "10px";
-    btn.style.padding = "10px 16px";
-    btn.style.borderRadius = "10px";
-    btn.style.border = "none";
-    btn.style.cursor = "pointer";
-    btn.style.fontWeight = "700";
-    btn.style.fontSize = "0.9rem";
-    btn.style.background = "linear-gradient(135deg, #ff4081, #ff1744)";
-    btn.style.color = "#fff";
-    btn.style.boxShadow = "0 0 12px rgba(255,64,129,0.5)";
-    btn.style.width = "100%";
-
-    btn.addEventListener("click", startWelcomeAudio);
-    card.insertBefore(btn, card.children[1]); // Insert after heart animation
-  });
-
-  /* ============================================================
-     🎁 PRIZE ENTRY + IG REDIRECT
-     ============================================================ */
-  const nameInput   = document.getElementById('guestNameInput');
-  const emailInput  = document.getElementById('guestEmailInput');
-  const phoneInput  = document.getElementById('guestPhoneInput');
-  const submitBtn   = document.getElementById('submitNameBtn');
-  const successMsg  = document.getElementById('successMsg');
-  const visitIgBtn  = document.getElementById('visitIgBtn');
-
-  // IG button (small)
-  if (visitIgBtn) {
-    visitIgBtn.addEventListener('click', () => {
-      goToIG();
-    });
-  }
-
-  // Submit prize entry
-  if (submitBtn) {
-    submitBtn.addEventListener('click', async () => {
-      const guestName  = nameInput.value.trim();
-      const guestEmail = emailInput.value.trim();
-      const guestPhone = phoneInput.value.trim();
-      const subscribeOptIn =
-        !!document.getElementById('subscribeOptIn')?.checked;
-
-      if (!guestName) {
-        alert('Please enter your name');
-        return;
-      }
-      if (!guestEmail || !guestPhone) {
-        alert('Please enter your email and cell number');
-        return;
-      }
-
+  /* 🔊 Play welcome audio when guest taps the button */
+  if (playAudioBtn && welcomeAudio) {
+    playAudioBtn.addEventListener('click', () => {
       try {
-        const response = await fetch('/api/guest-name-entry', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ticketId: ticketId,
-            token: ticketToken,
-            guestName,
-            guestEmail,
-            guestPhone,
-            subscribe: subscribeOptIn
-          })
+        welcomeAudio.currentTime = 0;
+        welcomeAudio.play().catch(err => {
+          console.log("Audio play blocked:", err);
+          alert("If audio didn't play, please tap again or check your volume.");
         });
-
-        const data = await response.json();
-
-        if (data.success) {
-          nameInput.disabled  = true;
-          emailInput.disabled = true;
-          phoneInput.disabled = true;
-          submitBtn.disabled  = true;
-          successMsg.style.display = 'block';
-
-          setTimeout(() => {
-            goToIG();
-          }, 2000);
-        } else {
-          alert(data.error || 'Error submitting entry');
-        }
-      } catch (err) {
-        console.error('Error:', err);
-        alert('Failed to submit entry');
+      } catch (e) {
+        console.log("Error playing audio:", e);
       }
     });
   }
 
-  function goToIG() {
-    window.location.href = IG_URL;
-  }
-</script>
+  /* BUTTONS + PRIZE ENTRY */
+  visitIgBtn.addEventListener('click', () => goToIG());
 
+  submitBtn.addEventListener('click', async () => {
+    const guestName  = nameInput.value.trim();
+    const guestEmail = emailInput.value.trim();
+    const guestPhone = phoneInput.value.trim();
+    const subscribe  = document.getElementById('subscribeOptIn').checked;
 
-// NEW ENDPOINT: Guest Name Entry for Prize Draw
-app.post("/api/guest-name-entry", (req, res) => {
-  const {
-    ticketId,
-    token,
-    guestName,
-    guestEmail,
-    guestPhone,
-    subscribe          // 👈 NEW
-  } = req.body || {};
+    if (!guestName || !guestEmail || !guestPhone) {
+      alert("Please fill out all fields");
+      return;
+    }
 
-  const clientIP = getClientIP(req);
+    try {
+      const res = await fetch('/api/guest-name-entry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId, token: ticketToken, guestName, guestEmail, guestPhone, subscribe })
+      });
 
-  if (!token || !ticketId || !guestName || !guestEmail || !guestPhone) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
+      const data = await res.json();
 
-  // Check if this token already has an entry
-  const existingEntry = guestNameEntries.find(e => e.token === token);
-  if (existingEntry) {
-    return res.status(400).json({ error: "Only one entry per ticket allowed" });
-  }
+      if (data.success) {
+        nameInput.disabled = true;
+        emailInput.disabled = true;
+        phoneInput.disabled = true;
+        submitBtn.disabled = true;
+        successMsg.style.display = "block";
 
-  // Verify ticket exists
-  if (!tickets.has(token)) {
-    return res.status(404).json({ error: "Invalid ticket" });
-  }
+        // Op
 
   // Add entry to guest name entries log
   pushWithLimit(guestNameEntries, {
