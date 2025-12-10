@@ -2612,693 +2612,146 @@ if (staff !== "1") {
     return res.redirect(INSTAGRAM_URL);
   }
 
-  // ========= GUEST VIEW =========
-  // Show welcome page, let guest tap to play audio, then they can go to Instagram
-  const ticketStatus = record.status === "used" ? "USED (STAFF)" : "VALID";
-  const statusEmoji = record.status === "used" ? "⚠️" : "✅";
-  const statusColor = record.status === "used" ? "#ff9500" : "#34c759";
+// ========= GUEST VIEW =========
+app.get("/ticket", (req, res) => {
+  const token = req.query.token || "";
+  const record = tickets.get(token);
 
-  return res.send(`
-<!DOCTYPE html>
+  if (!record) {
+    return res.status(404).send("Invalid Ticket");
+  }
+
+  const INSTAGRAM_URL = "https://instagram.com/aura.bypop";
+
+  if (record.status === "used") {
+    return res.redirect(INSTAGRAM_URL);
+  }
+
+  const ticketStatus = "VALID";
+  const statusEmoji = "✅";
+  const statusColor = "#34c759";
+
+  res.send(`<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Welcome to A.U.R.A</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Welcome to A.U.R.A</title>
 
-  <style>
-    :root {
-      --pink: #ff4081;
-      --red: #ff1744;
-      --gold: #ffb300;
-      --bg: #050007;
-    }
+<style>
+:root {
+  --pink: #ff4081;
+  --red: #ff1744;
+  --gold: #ffb300;
+  --bg: #050007;
+}
 
-    * { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at top left, rgba(255,64,129,0.25), transparent 55%),
+              radial-gradient(circle at bottom right, rgba(255,23,68,0.35), transparent 55%),
+              var(--bg);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  text-align: center;
+}
 
-    body {
-      margin: 0;
-      padding: 16px;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: radial-gradient(circle at top left, rgba(255,64,129,0.25), transparent 55%),
-                  radial-gradient(circle at bottom right, rgba(255,23,68,0.35), transparent 55%),
-                  var(--bg);
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      text-align: center;
-    }
+.card {
+  background: rgba(10,0,14,0.75);
+  backdrop-filter: blur(12px);
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+  border-radius: 20px;
+  box-shadow: 0 0 25px rgba(255,64,129,0.3);
+  margin-top: 20px;
+}
 
-    .card {
-      background: rgba(10,0,14,0.75);
-      backdrop-filter: blur(12px);
-      padding: 24px 20px 28px;
-      width: 100%;
-      max-width: 380px;
-      border-radius: 20px;
-      box-shadow: 0 0 25px rgba(255,64,129,0.3);
-      animation: fadeIn 1.2s ease-out;
-      margin-top: 16px;
-    }
+.status-alert {
+  margin-bottom: 16px;
+  padding: 14px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 2px solid ${statusColor};
+  color: ${statusColor};
+}
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ❤️♠️ Animated heart + spade */
-    .heart {
-      font-size: 2.6rem;
-      margin-bottom: 10px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: radial-gradient(circle at top, rgba(255,64,129,0.25), transparent 60%);
-      box-shadow:
-        0 0 18px rgba(255,64,129,0.8),
-        0 0 30px rgba(0,0,0,0.8);
-      animation: pulse 1.4s infinite ease-in-out;
-    }
-
-    @keyframes pulse {
-      0%   { transform: scale(1); opacity: 0.9; }
-      40%  { transform: scale(1.15); opacity: 1; }
-      70%  { transform: scale(0.97); opacity: 0.96; }
-      100% { transform: scale(1); opacity: 0.9; }
-    }
-
-    .status-alert {
-      background: linear-gradient(135deg, ${statusColor}30, ${statusColor}10);
-      border: 2px solid ${statusColor};
-      padding: 16px 12px;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: ${statusColor};
-      letter-spacing: 0.05em;
-    }
-
-    h1 {
-      font-size: 1.6rem;
-      background: linear-gradient(120deg, var(--gold), var(--pink), var(--red));
-      -webkit-background-clip: text;
-      color: transparent;
-      margin-bottom: 10px;
-    }
-
-    p {
-      font-size: 1rem;
-      color: #eee;
-      line-height: 1.5rem;
-      margin-bottom: 16px;
-    }
-
-    /* Prize section */
-    .prize-section {
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px solid rgba(255,64,129,0.3);
-    }
-
-    .prize-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #ffb300;
-      margin-bottom: 10px;
-    }
-
-    /* Input fields */
-    #guestNameInput,
-    #guestEmailInput,
-    #guestPhoneInput {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,64,129,0.5);
-      background: rgba(0,0,0,0.3);
-      color: #fff;
-      font-size: 0.95rem;
-      outline: none;
-      margin-bottom: 6px;
-    }
-
-    #guestNameInput:focus,
-    #guestEmailInput:focus,
-    #guestPhoneInput:focus {
-      border-color: #ffb300;
-      box-shadow: 0 0 12px rgba(255,179,0,0.4);
-    }
-
-    /* Submit button */
-    #submitNameBtn {
-      margin-top: 8px;
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      background: linear-gradient(135deg, #ffb300, #ff9800);
-      color: #000;
-      font-weight: 700;
-      font-size: 0.9rem;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    #submitNameBtn:hover {
-      filter: brightness(1.1);
-    }
-
-    #submitNameBtn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .entry-success {
-      display: none;
-      margin-top: 8px;
-      padding: 10px;
-      background: rgba(76,175,80,0.2);
-      border: 1px solid #4caf50;
-      border-radius: 8px;
-      color: #4caf50;
-      font-size: 0.9rem;
-      text-align: center;
-    }
-
-    /* Tap to play audio button */
-    #playWelcomeAudioBtn {
-      margin-top: 14px;
-      margin-bottom: 6px;
-      width: 100%;
-      padding: 11px 16px;
-      border-radius: 10px;
-      border: none;
-      background: linear-gradient(135deg,#ff4b9a,#ffb347);
-      color: #1a0018;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.4);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-    }
-
-    #playWelcomeAudioBtn:active {
-      transform: translateY(1px);
-    }
-
-  </style>
+#playWelcomeAudioBtn {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  background: linear-gradient(135deg,#ff4b9a,#ffb347);
+  border: none;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #1a0018;
+}
+</style>
 </head>
 
 <body>
-  <div class="card">
+<div class="card">
 
-    <div class="heart">❤️ ♠️</div>
+  <div class="status-alert">${statusEmoji} Ticket ${ticketStatus}</div>
 
-    <div class="status-alert">${statusEmoji} TICKET ${ticketStatus}</div>
+  <h1>Welcome to ✨ A.U.R.A by POP ✨</h1>
 
-    <h1>Welcome to ✨ A.U.R.A By PoP ✨</h1>
+  <p>🎉 You're officially on deck! A night of euphoria awaits as Hearts rise and Spades take control.</p>
+  <p>You are now part of A.U.R.A — Alluring. Unforgettable. Romantic. Affair.</p>
+  <p>Thank you for choosing to spend your night with us.</p>
 
-    <p>🎉 You're officially on deck! A night of euphoria awaits as Hearts rise and Spades take control.</p>
-    <p>You are now part of A.U.R.A — Alluring. Unforgettable. Romantic. Affair.</p>
-    <p>Thank you for choosing to spend your night with us. Your presence adds to the magic — and we can't wait to make this moment unforgettable.</p>
+  <p style="font-weight:700;">Feb 13 — See You There!</p>
 
-    <p style="font-weight:700; margin-top:6px;">Feb 13 — See You There!</p>
+  <!-- 🔊 AUDIO + BUTTON -->
+  <audio id="welcomeAudio" src="/aura-welcome.mp3"></audio>
 
-    <!-- 🔊 Hidden audio + visible button -->
-    <audio id="welcomeAudio" src="/aura-welcome.mp3"></audio>
+  <button id="playWelcomeAudioBtn">▶ Tap to Play Welcome Audio</button>
 
-    <button id="playWelcomeAudioBtn" type="button">
-      ▶ Tap to Play Welcome Audio
+  <!-- Prize Entry -->
+  <div style="margin-top:20px;">
+    <h3>🎁 Mystery Prize Entry</h3>
+
+    <input id="guestNameInput" placeholder="Your Name" style="width:100%;padding:10px;margin-bottom:6px;border-radius:8px;">
+    <input id="guestEmailInput" placeholder="Your Email" style="width:100%;padding:10px;margin-bottom:6px;border-radius:8px;">
+    <input id="guestPhoneInput" placeholder="Your Phone" style="width:100%;padding:10px;margin-bottom:6px;border-radius:8px;">
+
+    <button id="submitNameBtn" style="padding:10px 16px;border:none;border-radius:8px;background:#ffb300;color:#000;font-weight:700;width:100%;margin-top:6px;">
+      Submit for Prize Draw
     </button>
 
-    <!-- PRIZE SECTION -->
-    <div class="prize-section">
-      <div class="prize-title">🎁 Mystery Prize Entry</div>
+    <div id="successMsg" style="display:none;margin-top:10px;color:#4caf50;">✅ You're entered!</div>
 
-      <p style="font-size:0.85rem; color:#ccc; margin:0 0 8px;">
-        Enter your details for a chance to win an exclusive mystery prize! (One entry per ticket)
-      </p>
-
-      <input type="text" id="guestNameInput" placeholder="Enter your name" maxlength="50" />
-      <input type="email" id="guestEmailInput" placeholder="Enter your email" maxlength="80" />
-      <input type="tel" id="guestPhoneInput" placeholder="Enter your cell number" maxlength="20" />
-
-      <button id="submitNameBtn">Submit for Prize Draw</button>
-
-      <label style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;line-height:1.3;margin-top:8px;">
-        <input type="checkbox" id="subscribeOptIn" style="margin-top:3px;">
-        <span>I’d like to join the A.U.R.A / POP mailing list and receive updates about future events.</span>
-      </label>
-
-      <div class="entry-success" id="successMsg">✅ You're entered! Good luck!</div>
-
-      <button
-        id="visitIgBtn"
-        type="button"
-        style="margin-top:12px;padding:8px 14px;border-radius:6px;background:#ff2e6a;color:white;font-size:0.85rem;border:none;cursor:pointer;"
-      >
-        Visit Our Instagram ❤️🖤
-      </button>
-    </div>
-
+    <button id="visitIgBtn" style="margin-top:14px;padding:10px;border-radius:8px;background:#ff2e6a;color:white;border:none;width:100%;cursor:pointer;">
+      Visit Instagram ❤️🖤
+    </button>
   </div>
 
+</div>
+
 <script>
-  const ticketToken = "${token}";
-  const ticketId    = "${record.id}";
-  const IG_URL      = "${INSTAGRAM_URL}";
-
-  /* ELEMENTS */
-  const nameInput     = document.getElementById('guestNameInput');
-  const emailInput    = document.getElementById('guestEmailInput');
-  const phoneInput    = document.getElementById('guestPhoneInput');
-  const submitBtn     = document.getElementById('submitNameBtn');
-  const successMsg    = document.getElementById('successMsg');
-  const visitIgBtn    = document.getElementById('visitIgBtn');
-  const welcomeAudio  = document.getElementById('welcomeAudio');
-  const playAudioBtn  = document.getElementById('playWelcomeAudioBtn');
-
-  /* 🔊 Play welcome audio when guest taps the button */
-  if (playAudioBtn && welcomeAudio) {
-    playAudioBtn.addEventListener('click', () => {
-      try {
-        welcomeAudio.currentTime = 0;
-        welcomeAudio.play().catch(err => {
-          console.log("Audio play blocked:", err);
-          alert("If audio didn't play, please tap again or check your volume.");
-        });
-      } catch (e) {
-        console.log("Error playing audio:", e);
-      }
-    });
-  }
-
-  /* BUTTONS + PRIZE ENTRY */
-  visitIgBtn.addEventListener('click', () => goToIG());
-
-  submitBtn.addEventListener('click', async () => {
-    const guestName  = nameInput.value.trim();
-    const guestEmail = emailInput.value.trim();
-    const guestPhone = phoneInput.value.trim();
-    const subscribe  = document.getElementById('subscribeOptIn').checked;
-
-    if (!guestName || !guestEmail || !guestPhone) {
-      alert("Please fill out all fields");
-      return;
-    }
-
-    try {
-      const res = await fetch('/api/guest-name-entry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ticketId, token: ticketToken, guestName, guestEmail, guestPhone, subscribe })
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        nameInput.disabled = true;
-        emailInput.disabled = true;
-        phoneInput.disabled = true;
-        submitBtn.disabled = true;
-        successMsg.style.display = "block";
-
-        // Op
-
-  // Add entry to guest name entries log
-  pushWithLimit(guestNameEntries, {
-    ticketId,
-    token,
-    guestName,
-    guestEmail,
-    guestPhone,
-    subscribe: !!subscribe,          // 👈 NEW: true/false flag
-    ip: clientIP,
-    timestamp: new Date().toISOString()
-  }, 2000);
-
-  return res.json({ success: true, message: "Entry received! Good luck!" });
+const welcomeAudio = document.getElementById("welcomeAudio");
+document.getElementById("playWelcomeAudioBtn").addEventListener("click", () => {
+  welcomeAudio.currentTime = 0;
+  welcomeAudio.play().catch(err => alert("Tap again if audio didn’t play."));
 });
 
+/* IG redirect */
+document.getElementById("visitIgBtn").addEventListener("click", () => {
+  window.location.href = "${INSTAGRAM_URL}";
+});
+</script>
 
-// NEW ENDPOINT: Get guest name entries (Management only)
-app.get("/api/guest-name-entries", (req, res) => {
-  const { key } = req.query;
-  if (!(key === STAFF_PIN || isMgmtAuthorizedReq(req))) {
-    return res.json({ error: "Unauthorized" });
-  }
-
-  res.json(guestNameEntries.slice(-500));
+</body>
+</html>
+`);
 });
 
-// NEW PAGE: Guest Name Entries / Prize Draw Management
-app.get("/guest-prize-entries", (req, res) => {
-  if (!isMgmtAuthorizedReq(req)) {
-    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
-  }
-
-  const { key } = req.query;
-
-  res.send(`<!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>Guest Prize Entries</title>
-      <style>
-        ${themeCSSRoot()}
-        body {
-          margin:0;
-          padding:18px;
-          font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-          background:#050007;
-          color:#f5f5f5;
-          display:flex;
-          justify-content:center;
-          min-height:100vh;
-        }
-        .card {
-          width:100%;
-          max-width:1000px;
-          background:radial-gradient(circle at top,#220018,#070008 60%);
-          border-radius:16px;
-          padding:18px;
-          border:1px solid rgba(255,64,129,0.25);
-          box-shadow:0 10px 28px rgba(0,0,0,0.7);
-        }
-        h1 {
-          margin:0 0 8px;
-          font-size:1.6rem;
-          background:linear-gradient(120deg,#ffb300,#ff4081,#ff1744);
-          -webkit-background-clip:text;
-          color:transparent;
-        }
-        .subtitle {
-          font-size:0.9rem;
-          color:#aaa;
-          margin-bottom:14px;
-        }
-        .stats-row {
-          display:flex;
-          gap:12px;
-          margin-bottom:14px;
-          flex-wrap:wrap;
-        }
-        .stat-box {
-          flex:1;
-          min-width:140px;
-          padding:12px;
-          background:rgba(0,0,0,0.3);
-          border-radius:8px;
-          border-left:3px solid #ffb300;
-        }
-        .stat-label {
-          font-size:0.8rem;
-          color:#aaa;
-          text-transform:uppercase;
-          letter-spacing:0.05em;
-        }
-        .stat-value {
-          font-size:1.8rem;
-          font-weight:700;
-          color:#ffb300;
-        }
-        table {
-          width:100%;
-          border-collapse:collapse;
-          font-size:0.85rem;
-        }
-        th, td {
-          padding:8px;
-          border-bottom:1px solid rgba(255,255,255,0.08);
-        }
-        th {
-          text-align:left;
-          font-size:0.78rem;
-          text-transform:uppercase;
-          letter-spacing:0.08em;
-          color:#bbb;
-        }
-        .draw-btn {
-          display:inline-block;
-          margin-top:14px;
-          padding:10px 16px;
-          border-radius:999px;
-          background:linear-gradient(135deg,#ff1744,#ff4081);
-          color:#fff;
-          border:none;
-          cursor:pointer;
-          font-weight:700;
-          text-transform:uppercase;
-          letter-spacing:0.08em;
-          font-size:0.85rem;
-        }
-        .draw-btn:hover { filter:brightness(1.1); }
-
-        .empty {
-          text-align:center;
-          color:#888;
-        }
-        #winnerDisplay {
-          display:none;
-          margin-top:14px;
-          padding:14px;
-          background:rgba(76,175,80,0.15);
-          border:2px solid #4caf50;
-          border-radius:8px;
-          color:#4caf50;
-          text-align:center;
-          font-weight:700;
-        }
-
-        /* 🔹 New shared back-button styles for Prize pages */
-        .bottom-links {
-          display:flex;
-          gap:8px;
-          flex-wrap:wrap;
-          margin-top:16px;
-        }
-
-        .btn-back {
-          display:inline-flex;
-          align-items:center;
-          gap:6px;
-          padding:7px 14px;
-          border-radius:999px;
-          border:1px solid rgba(255,193,7,0.7);
-          text-decoration:none;
-          font-size:0.8rem;
-          letter-spacing:0.08em;
-          text-transform:uppercase;
-          color:#f5f5f5;
-          background:rgba(0,0,0,0.55);
-        }
-        .btn-back:hover {
-          background:rgba(255,255,255,0.08);
-        }
-      </style>
-    </head>
-    <body>
-      <div class="card">
-        <h1>🎁 Guest Prize Draw Entries</h1>
-        <div class="subtitle">Guests who entered the mystery prize draw. Select a random winner!</div>
-
-        <!-- small clear buttons at the top -->
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
-          <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;" onclick="clearGuestEntries()">
-            🧹 Clear Guest Entries
-          </button>
-          <button class="draw-btn" style="padding:7px 14px;font-size:0.78rem;background:linear-gradient(135deg,#ff9800,#ff5722);" onclick="clearPrizeHistory()">
-            ♻ Clear Prize Draw History
-          </button>
-        </div>
-
-        <div class="stats-row">
-          <div class="stat-box">
-            <div class="stat-label">Total Entries</div>
-            <div class="stat-value" id="totalEntries">0</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Unique Tickets</div>
-            <div class="stat-value" id="uniqueTickets">0</div>
-          </div>
-        </div>
-
-        <div id="winnerDisplay"></div>
-
-        <button class="draw-btn" onclick="drawWinner()">🎲 Draw Random Winner</button>
-
-        <div style="margin-top:14px;">
-          <table>
-            <thead>
-              <tr>
-                <th>Guest Name</th>
-                <th>Email</th>
-                <th>Cell</th>
-                <th>Ticket ID</th>
-                <th>Token (short)</th>
-                <th>IP</th>
-                <th>Submitted</th>
-              </tr>
-            </thead>
-            <tbody id="entriesBody"></tbody>
-          </table>
-        </div>
-
-        <!-- 🔹 NEW: dual back buttons -->
-        <div class="bottom-links">
-          <a href="/prize-hub?key=${encodeURIComponent(key || "")}" class="btn-back">
-            ← Back to Prize Hub
-          </a>
-          <a href="/management-hub?key=${encodeURIComponent(key || "")}" class="btn-back">
-            ← Back to Management Hub
-          </a>
-        </div>
-      </div>
-
-      ${themeScript()}
-      <script>
-        // Grab the management key from the URL (?key=...)
-        const params   = new URLSearchParams(window.location.search);
-        const MGMT_KEY = params.get("key") || "";
-
-        function formatDate(iso) {
-          if (!iso) return "--";
-          try {
-            const d = new Date(iso);
-            return d.toLocaleDateString() + " " + d.toLocaleTimeString();
-          } catch (e) {
-            return iso;
-          }
-        }
-
-        // 🔹 Clear ALL guest entries – send key in BODY (matches your /admin/clear-guest-entries handler)
-        async function clearGuestEntries() {
-          if (!confirm("Clear ALL guest prize entries? This cannot be undone.")) return;
-
-          try {
-            const res = await fetch("/admin/clear-guest-entries", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ key: MGMT_KEY })
-            });
-            const data = await res.json();
-            if (!data.ok) {
-              alert("Failed to clear guest entries: " + (data.error || "Unknown error"));
-              return;
-            }
-            alert("Guest prize entries cleared.");
-            loadEntries();
-          } catch (err) {
-            console.error(err);
-            alert("Error clearing guest entries.");
-          }
-        }
-
-        // 🔹 Clear prize draw history – send key in BODY
-        async function clearPrizeHistory() {
-          if (!confirm("Clear prize draw history (winners log)?")) return;
-
-          try {
-            const res = await fetch("/admin/clear-prize-draw-history", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ key: MGMT_KEY })
-            });
-            const data = await res.json();
-            if (!data.ok) {
-              alert("Failed to clear prize draw history: " + (data.error || "Unknown error"));
-              return;
-            }
-            alert("Prize draw history cleared.");
-          } catch (err) {
-            console.error(err);
-            alert("Error clearing prize draw history.");
-          }
-        }
-
-        // 🔹 Load entries into the table + stats
-        function loadEntries() {
-          fetch('/api/guest-prize-entries?key=' + encodeURIComponent(MGMT_KEY))
-            .then(r => r.json())
-            .then(data => {
-              const body = document.getElementById('entriesBody');
-              const totalEl = document.getElementById('totalEntries');
-              const uniqueEl = document.getElementById('uniqueTickets');
-
-              body.innerHTML = '';
-
-              if (!data.ok || !data.entries || data.entries.length === 0) {
-                body.innerHTML =
-                  '<tr><td colspan="7" class="empty">No guest prize entries yet.</td></tr>';
-                if (totalEl) totalEl.textContent  = '0';
-                if (uniqueEl) uniqueEl.textContent = '0';
-                return;
-              }
-
-              if (totalEl) totalEl.textContent  = data.totalEntries || data.entries.length;
-              if (uniqueEl) uniqueEl.textContent = data.uniqueTickets || 0;
-
-              data.entries.forEach(e => {
-                const shortToken = e.token ? (e.token.substring(0,8) + '…') : '';
-                const tr = document.createElement('tr');
-                tr.innerHTML =
-                  '<td>' + (e.guestName  || '') + '</td>' +
-                  '<td>' + (e.guestEmail || '') + '</td>' +
-                  '<td>' + (e.guestPhone || '') + '</td>' +
-                  '<td>' + (e.ticketId   || '') + '</td>' +
-                  '<td>' + shortToken + '</td>' +
-                  '<td>' + (e.ip || '') + '</td>' +
-                  '<td style="font-size:0.8rem;">' + formatDate(e.timestamp) + '</td>';
-                body.appendChild(tr);
-              });
-            })
-            .catch(err => {
-              console.error(err);
-              const body = document.getElementById('entriesBody');
-              body.innerHTML =
-                '<tr><td colspan="7" class="empty">Error loading entries: ' +
-                err.message + '</td></tr>';
-            });
-        }
-
-        // 🔹 Simple random winner from entries shown
-        function drawWinner() {
-          const rows = Array.from(document.querySelectorAll('#entriesBody tr'));
-          // If first row is "no entries", bail
-          if (!rows.length || rows[0].querySelector('.empty')) {
-            alert('No entries to draw from.');
-            return;
-          }
-
-          const randomIndex = Math.floor(Math.random() * rows.length);
-          const row = rows[randomIndex];
-          const cells = row.querySelectorAll('td');
-          const name  = cells[0]?.textContent || '';
-          const email = cells[1]?.textContent || '';
-          const ticket = cells[3]?.textContent || '';
-
-          const box = document.getElementById('winnerDisplay');
-          box.innerHTML =
-            '🎉 Winner: <strong>' + (name || '(no name)') +
-            '</strong><br/>Ticket: <strong>' + (ticket || '--') +
-            '</strong><br/>' +
-            (email ? 'Email: ' + email : '');
-          box.style.display = 'block';
-        }
-
-        document.addEventListener('DOMContentLoaded', loadEntries);
-      </script>
-    </body>
-    </html>`);
-});
 
 // API: Guest prize entries (for management views)
 app.get("/api/guest-prize-entries", (req, res) => {
