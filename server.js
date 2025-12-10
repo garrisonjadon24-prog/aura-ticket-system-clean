@@ -7451,7 +7451,7 @@ app.get("/management-hub", (req, res) => {
       box-shadow:0 16px 30px rgba(0,0,0,0.9);
     }
 
-    /* ADMIN TOOLS */
+    /* ADMIN TOOLS (smaller tiles) */
     .admin-section-title {
       margin-top:10px;
       font-size:0.78rem;
@@ -7467,20 +7467,20 @@ app.get("/management-hub", (req, res) => {
     .admin-tools-grid {
       margin-top:8px;
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:10px;
+      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+      gap:8px;
     }
     .admin-tile {
-      padding:10px 12px;
-      border-radius:16px;
+      padding:8px 10px;
+      border-radius:14px;
       background:radial-gradient(circle at top,#1c0022,#050008 70%);
       border:1px solid rgba(255,255,255,0.14);
-      box-shadow:0 12px 24px rgba(0,0,0,0.85);
+      box-shadow:0 8px 18px rgba(0,0,0,0.85);
       cursor:pointer;
       display:flex;
       flex-direction:column;
       justify-content:space-between;
-      min-height:82px;
+      min-height:68px;
     }
     .admin-tile.warning {
       background:linear-gradient(135deg,#ffb300,#ff9800);
@@ -7491,11 +7491,11 @@ app.get("/management-hub", (req, res) => {
     }
     .admin-label {
       font-weight:700;
-      font-size:0.82rem;
+      font-size:0.78rem;
       margin-bottom:2px;
     }
     .admin-sub {
-      font-size:0.76rem;
+      font-size:0.74rem;
       opacity:0.9;
     }
 
@@ -7537,23 +7537,21 @@ app.get("/management-hub", (req, res) => {
       cursor:pointer;
     }
 
-    /* SMALL BACK BUTTON (BOTTOM LEFT) */
+    /* SMALL BACK BUTTON – now under cancel section & smaller */
     .bottom-left-link {
       display:inline-flex;
       align-items:center;
       gap:6px;
-      padding:7px 14px;
+      padding:6px 12px;
       border-radius:999px;
       border:1px solid rgba(255,255,255,0.25);
-      font-size:0.78rem;
+      font-size:0.75rem;
       letter-spacing:0.08em;
       text-transform:uppercase;
       color:#fff;
       background:rgba(255,255,255,0.04);
       text-decoration:none;
-      position:absolute;
-      bottom:18px;
-      left:22px;
+      margin-top:14px;  /* sits below cancel row */
     }
     .bottom-left-link:hover {
       background:rgba(255,255,255,0.08);
@@ -7688,7 +7686,7 @@ app.get("/management-hub", (req, res) => {
         </div>
       </div>
 
-      <!-- SMALL BACK BUTTON -->
+      <!-- SMALL BACK BUTTON – now under cancel section -->
       <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" class="bottom-left-link">
         ← Back to Staff Home
       </a>
@@ -7995,6 +7993,7 @@ app.get("/management-hub", (req, res) => {
 });
 
 
+// Allocation Hub route (unchanged)
 app.get("/allocation-hub", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
     return res.status(403).send("Unauthorized");
