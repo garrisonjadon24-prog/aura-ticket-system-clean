@@ -9411,230 +9411,216 @@ function getGuestInfoForTicket(ticketId) {
 }
 
 // ------------------------------------------------------
-// MANAGEMENT: Mailing List / Subscription Log
+// SUBSCRIBER LOG (Mailing list)
 // ------------------------------------------------------
 app.get("/subscriber-log", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
-    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
+    return res.status(403).send("Unauthorized");
   }
 
-  // Only entries where subscribe === true
-  const subs = guestNameEntries
-    .filter(e => e && e.subscribe)
-    .slice()
-    .sort((a, b) => {
-      const ta = Date.parse(a.timestamp || "") || 0;
-      const tb = Date.parse(b.timestamp || "") || 0;
-      return tb - ta; // newest first
-    });
+  const { key } = req.query;
 
   res.send(`<!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mailing List Signups</title>
-    <style>
-      ${themeCSSRoot()}
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mailing List — AURA</title>
+  <style>
+    ${themeCSSRoot()}
+    body {
+      margin:0;
+      padding:16px;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      background:#050007;
+      color:#f5f5f5;
+    }
+    .page {
+      max-width:1100px;
+      margin:0 auto;
+    }
+    h1 {
+      margin:0 0 4px;
+      font-size:20px;
+      background: linear-gradient(120deg,#64b5f6,#ba68c8);
+      -webkit-background-clip:text;
+      color:transparent;
+    }
+    .subtitle {
+      margin:0 0 16px;
+      font-size:12px;
+      color:#aaa;
+    }
+    .top-links {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:14px;
+    }
+    .pill-link, .pill-btn {
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:11px;
+      border:none;
+      cursor:pointer;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:0.09em;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .pill-link {
+      background:rgba(0,0,0,0.55);
+      border:1px solid rgba(100,181,246,0.7);
+      color:#f5f5f5;
+    }
+    .pill-link:hover {
+      background:rgba(255,255,255,0.08);
+    }
+    .pill-btn {
+      background:linear-gradient(135deg,#64b5f6,#ba68c8);
+      color:#050007;
+    }
 
-      * { box-sizing:border-box; }
+    .section {
+      margin-top:18px;
+      border-radius:14px;
+      background:rgba(10,0,20,0.9);
+      border:1px solid rgba(255,255,255,0.05);
+      padding:12px;
+    }
+    table {
+      width:100%;
+      border-collapse:collapse;
+      font-size:11px;
+    }
+    th, td {
+      padding:6px 5px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      text-align:left;
+    }
+    th {
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:0.09em;
+      color:#bbdefb;
+    }
+    @media (max-width:720px) {
+      table { font-size:10px; }
+      th,td { padding:4px 3px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>📧 Mailing List / Opt-ins</h1>
+    <p class="subtitle">
+      Guests who submitted their details via prize entry. Use the button below to download a CSV.
+    </p>
 
-      body {
-        margin:0;
-        padding:16px;
-        min-height:100vh;
-        font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-        background:#050007;
-        color:#f5f5f5;
-        display:flex;
-        justify-content:center;
-      }
-
-      .wrap {
-        width:100%;
-        max-width:1024px;
-      }
-
-      .card {
-        width:100%;
-        border-radius:24px;
-        padding:20px 20px 18px;
-        background:radial-gradient(circle at top,#260020,#050007 65%);
-        box-shadow:
-          0 0 0 1px rgba(255,183,77,0.3),
-          0 24px 60px rgba(0,0,0,0.9);
-      }
-
-      h1 {
-        margin:0 0 4px;
-        font-size:1.4rem;
-        letter-spacing:0.06em;
-        text-transform:uppercase;
-        background:linear-gradient(135deg,#ffb300,#ff4081);
-        -webkit-background-clip:text;
-        color:transparent;
-      }
-
-      .subtitle {
-        margin:0 0 16px;
-        font-size:0.9rem;
-        color:#f5e1b0;
-      }
-
-      table {
-        width:100%;
-        border-collapse:collapse;
-        font-size:0.85rem;
-      }
-
-      th, td {
-        padding:8px 10px;
-        border-bottom:1px solid rgba(255,255,255,0.06);
-        text-align:left;
-        white-space:nowrap;
-      }
-
-      th {
-        font-size:0.75rem;
-        text-transform:uppercase;
-        letter-spacing:0.12em;
-        color:#ffb347;
-        background:rgba(0,0,0,0.35);
-        position:sticky;
-        top:0;
-        z-index:1;
-      }
-
-      tbody tr:nth-child(odd) td {
-        background:rgba(255,255,255,0.01);
-      }
-
-      .scroll {
-        max-height:70vh;
-        overflow:auto;
-        margin-top:8px;
-      }
-
-      .btn-back {
-        display:inline-flex;
-        align-items:center;
-        gap:6px;
-        margin-top:14px;
-        padding:8px 14px;
-        border-radius:999px;
-        border:1px solid rgba(255,183,77,0.7);
-        background:transparent;
-        color:#ffeb99;
-        font-size:0.8rem;
-        text-decoration:none;
-        text-transform:uppercase;
-        letter-spacing:0.12em;
-      }
-
-      .btn-back:hover {
-        background:rgba(255,183,77,0.15);
-      }
-
-      @media (max-width: 720px) {
-        table { font-size:0.78rem; }
-        th, td { padding:6px 6px; }
-      }
-    </style>
-  </head>
-  <body>
-  <div class="top-actions">
-  <button class="pill-btn" onclick="exportMailingList()">⬇ Export Mailing List</button>
-</div>
-    <div class="wrap">
-      <div class="card">
-        <h1>Mailing List Signups</h1>
-        <div class="subtitle">
-          All guest tickets that opted into the A.U.R.A / POP mailing list
-          via the welcome / Mystery Prize form.
-        </div>
-
-        <div class="scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Ticket ID</th>
-                <th>Guest Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${subs.map(e => `
-                <tr>
-                  <td><strong>${e.ticketId || ""}</strong></td>
-                  <td>${(e.guestName || "").trim()}</td>
-                  <td>${(e.guestEmail || "").trim()}</td>
-                  <td>${(e.guestPhone || "").trim()}</td>
-                  <td>${e.timestamp || ""}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-
-<div class="bottom-links">
-  <a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
-    ← Back to Log Hub
-  </a>
-  <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
-    ← Back to Management Hub
-  </a>
-</div>
-
+    <div class="top-links">
+      <a class="pill-link" href="/logs-hub?key=${encodeURIComponent(key || "")}">⬅ Back to Log Hub</a>
+      <a class="pill-link" href="/management-hub?key=${encodeURIComponent(key || "")}">🏠 Management Hub</a>
+      <a class="pill-btn" href="/admin/export-mailing-list?key=${encodeURIComponent(key || "")}">
+        ⬇ Export Mailing List CSV
+      </a>
     </div>
-    ${themeScript()}
-  </body>
-  </html>`);
+
+    <div class="section">
+      <table id="subsTable">
+        <thead>
+          <tr>
+            <th>Ticket ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Subscribed</th>
+            <th>Captured At</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  ${themeScript()}
+  <script>
+    const MGMT_KEY = ${JSON.stringify(req.query.key || "")};
+
+    async function loadSubs() {
+      try {
+        // if you already have an API, switch URL here
+        const res = await fetch("/api/guest-entries?key=" + encodeURIComponent(MGMT_KEY));
+        const data = await res.json();
+        if (!data.ok || !Array.isArray(data.entries)) return;
+
+        const tbody = document.querySelector("#subsTable tbody");
+        tbody.innerHTML = "";
+
+        data.entries.forEach(e => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = \`
+            <td>\${e.ticketId || ""}</td>
+            <td>\${e.guestName || ""}</td>
+            <td>\${e.guestEmail || ""}</td>
+            <td>\${e.guestPhone || ""}</td>
+            <td>\${e.subscribe ? "yes" : "no"}</td>
+            <td>\${e.timestamp ? new Date(e.timestamp).toLocaleString() : ""}</td>
+          \`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Failed to load mailing list:", err);
+      }
+    }
+
+    loadSubs();
+  </script>
+</body>
+</html>`);
 });
 
+
 // ------------------------------------------------------
-// ADMIN: Export mailing list as CSV
+// ADMIN: Export Mailing List (CSV)
 // ------------------------------------------------------
 app.get("/admin/export-mailing-list", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
     return res.status(403).send("Unauthorized");
   }
 
-  // Same logic as the subscriber-log page: pull from guestNameEntries
-  const subs = guestNameEntries
-    .filter(e => e.subscribe) // only people who opted in
-    .map(e => ({
-      ticketId: e.ticketId || "",
-      name: (e.guestName || "").trim(),
-      email: (e.guestEmail || "").trim(),
-      phone: (e.guestPhone || "").trim(),
-      time: e.timestamp || ""
-    }));
+  // Build CSV rows from guestNameEntries
+  // shape: { ticketId, token, guestName, guestEmail, guestPhone, ip, timestamp, subscribe? }
+  const rows = [];
+  rows.push(["Ticket ID", "Name", "Email", "Phone", "Subscribed", "Timestamp"]);
 
-  // Build CSV
-  const header = ["Ticket ID", "Guest Name", "Email", "Phone", "Time"];
-  const lines = [header.join(",")];
+  for (const e of guestNameEntries) {
+    // If you ONLY want people who opted in:
+    // if (!e.subscribe) continue;
 
-  subs.forEach(row => {
-    // Basic escaping of commas and quotes
-    const vals = [
-      row.ticketId,
-      row.name,
-      row.email,
-      row.phone,
-      row.time
-    ].map(v => {
-      const s = String(v || "");
-      if (s.includes(",") || s.includes('"')) {
-        return '"' + s.replace(/"/g, '""') + '"';
-      }
-      return s;
-    });
-    lines.push(vals.join(","));
-  });
+    // If you want everyone who left email/phone, keep as-is:
+    const subscribed = e.subscribe ? "yes" : "no";
+    rows.push([
+      e.ticketId || "",
+      (e.guestName || "").trim(),
+      (e.guestEmail || "").trim(),
+      (e.guestPhone || "").trim(),
+      subscribed,
+      e.timestamp ? new Date(e.timestamp).toISOString() : ""
+    ]);
+  }
 
-  const csv = lines.join("\n");
+  // Convert to CSV text
+  function csvEscape(value) {
+    const s = String(value || "");
+    if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  }
+
+  const csv = rows.map(row => row.map(csvEscape).join(",")).join("\n");
 
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader(
@@ -9643,6 +9629,7 @@ app.get("/admin/export-mailing-list", (req, res) => {
   );
   res.send(csv);
 });
+
 
 // ------------------------------------------------------
 // MANAGEMENT: Guest Scan Log (with optional guest info)
