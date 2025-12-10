@@ -4035,24 +4035,57 @@ app.post("/api/staff-logout", (req, res) => {
 });
 
 // API: Management login (sets cookie so pin required only once per session)
-app.post('/api/mgmt-login', (req, res) => {
-  const { name, pin } = req.body || {};
-  if (!name || !pin) return res.status(400).json({ error: 'Missing name or pin' });
-  if (pin !== MANAGEMENT_PIN) return res.status(403).json({ error: 'Invalid pin' });
-  const clean = String(name).trim().toUpperCase();
-  const ALLOWED_MANAGERS = ["RAY", "RAYMOND", "SHAWN", "NIQUE", "CHE"];
-  if (!ALLOWED_MANAGERS.includes(clean)) return res.status(403).json({ error: 'Name not authorized' });
+app.post("/api/mgmt-login", (req, res) => {
+  try {
+    // Safely read from body
+    const { name, pin } = req.body || {};
 
-  // Set cookies: mgmtAuth=1 (httpOnly) and mgmtName (not httpOnly so client can read)
-  res.setHeader('Set-Cookie', [
-    'mgmtAuth=1; Path=/; HttpOnly',
-    `mgmtName=${encodeURIComponent(name)}; Path=/`
-  ]);
+    const cleanName = (name || "").trim().toUpperCase();
+    const cleanPin  = (pin  || "").trim();   // trim spaces just in case
 
-  pushWithLimit(staffActivityLog, { name: name, role: 'management', action: 'login', ip: getClientIP(req), timestamp: new Date().toISOString() }, 500);
+    if (!cleanName || !cleanPin) {
+      return res.status(400).json({ error: "Please enter name and PIN." });
+    }
 
-  return res.json({ success: true });
+    // Management PIN from the top of the file:
+    // const MANAGEMENT_PIN = "POP!";
+    if (cleanPin !== MANAGEMENT_PIN) {
+      return res.status(403).json({ error: "Invalid management PIN." });
+    }
+
+    // Allowed management names
+    const ALLOWED_MANAGERS = ["RAY", "RAYMOND", "SHAWN", "NIQUE", "CHE"];
+
+    if (!ALLOWED_MANAGERS.includes(cleanName)) {
+      return res.status(403).json({ error: "Name not authorized for Management." });
+    }
+
+    // Set management cookies
+    res.setHeader("Set-Cookie", [
+      "mgmtAuth=1; Path=/; HttpOnly",
+      `mgmtName=${encodeURIComponent(cleanName)}; Path=/`
+    ]);
+
+    // Log the login in staffActivityLog
+    pushWithLimit(
+      staffActivityLog,
+      {
+        name: cleanName,
+        role: "management",
+        action: "login",
+        ip: getClientIP(req),
+        timestamp: new Date().toISOString(),
+      },
+      500
+    );
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("MGMT LOGIN ERROR:", err);
+    return res.status(500).json({ error: "Server error during management login." });
+  }
 });
+
 
 // API: Management logout (clears cookies)
 app.post('/api/mgmt-logout', (req, res) => {
