@@ -1,6 +1,7 @@
 // server.js (updated with requested changes)
 
 // CORE SETUP ----------------------------------------------------
+
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
@@ -10,9 +11,10 @@ const QRCode = require("qrcode");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Parse JSON and form bodies
+// 🔹 Parse JSON and form data for all POST requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 
 // Serve static files from the project root (for aura-logo.png, pop-logo.png, etc.)
 app.use(express.static(path.join(__dirname, "public")));
@@ -113,7 +115,7 @@ app.get("/", (req, res) => {
 
         <form onsubmit="event.preventDefault(); goToStaff();">
           <label for="name">Your Name</label>
-          <input id="name" name="name" placeholder="e.g. Ray" autocomplete="off" required />
+          <input id="name" name="name" placeholder="e.g. Joe" autocomplete="off" required />
 
           <label for="pin">Staff PIN</label>
           <input id="pin" name="pin" type="password" required />
@@ -205,7 +207,7 @@ function isMgmtAuthorizedReq(req) {
     if (q.key === MANAGEMENT_PIN) return true;
     const cookies = parseCookies(req);
     if (cookies.mgmtAuth === '1' && cookies.mgmtName) {
-      const allowed = ["RAY","RAYMOND","SHAWN","NIQUE","CHE"];
+      const allowed = ["RAY","SHAWN","NIQUE","CHA"];
       return allowed.includes(String(cookies.mgmtName).trim().toUpperCase());
     }
     return false;
@@ -1374,7 +1376,7 @@ app.get("/staff", (req, res) => {
 
             <form onsubmit="handleLogin(event)">
               <label for="staffName">Your Name</label>
-              <input id="staffName" type="text" placeholder="e.g. Ray" required />
+              <input id="staffName" type="text" placeholder="e.g. Joe" required />
 
               <label for="key">Staff PIN</label>
               <input id="key" type="password" autocomplete="off" required />
@@ -1835,7 +1837,7 @@ const ALLOWED_MANAGERS = [
   "RAY",
   "SHAWN",
   "NIQUE",
-  "CHE"
+  "CHA"
 ];
 
         function displayStaffName() {
@@ -3986,7 +3988,7 @@ app.post("/api/staff-login", (req, res) => {
   }
 
   // Determine if this is a manager or regular staff
-  const ALLOWED_MANAGERS = ["RAY", "SHAWN", "NIQUE", "CHE"];
+  const ALLOWED_MANAGERS = ["RAY", "SHAWN", "NIQUE", "CHA"];
   const isManager = ALLOWED_MANAGERS.includes(cleanName.toUpperCase());
   const role = isManager ? "management" : "staff";
 
@@ -4015,7 +4017,7 @@ app.post("/api/staff-logout", (req, res) => {
     return res.status(400).json({ error: "Missing name" });
   }
 
-  const ALLOWED_MANAGERS = ["RAY", "SHAWN", "NIQUE", "CHE"];
+  const ALLOWED_MANAGERS = ["RAY", "SHAWN", "NIQUE", "CHA"];
   const isManager = ALLOWED_MANAGERS.includes(cleanName.toUpperCase());
   const role = isManager ? "management" : "staff";
 
@@ -4054,7 +4056,7 @@ app.post("/api/mgmt-login", (req, res) => {
     }
 
     // Allowed management names
-    const ALLOWED_MANAGERS = ["RAY", "RAYMOND", "SHAWN", "NIQUE", "CHE"];
+    const ALLOWED_MANAGERS = ["RAY", "SHAWN", "NIQUE", "CHA"];
 
     if (!ALLOWED_MANAGERS.includes(cleanName)) {
       return res.status(403).json({ error: "Name not authorized for Management." });
@@ -8001,7 +8003,7 @@ app.get("/management-hub", (req, res) => {
     // Use URL key if present, otherwise fall back to server-side MANAGEMENT_PIN
     const params   = new URLSearchParams(window.location.search);
     const MGMT_KEY = params.get("key") || "${MANAGEMENT_PIN}";
-    const ALLOWED_MANAGERS = ["RAY","SHAWN","NIQUE","CHE"];
+    const ALLOWED_MANAGERS = ["RAY","SHAWN","NIQUE","CHA"];
 
     function go(path) {
       window.location.href = path + "?key=" + encodeURIComponent(MGMT_KEY);
