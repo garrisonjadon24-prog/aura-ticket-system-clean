@@ -7374,37 +7374,37 @@ app.get("/management-hub", (req, res) => {
       cursor:pointer;
     }
 
-    /* MAIN BUTTON GRID */
+    /* MAIN BUTTON GRID (smaller tiles) */
     .button-grid {
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-      gap:12px;
-      margin-bottom:16px;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:10px;
+      margin-bottom:14px;
     }
     .action-button {
-      padding:14px 14px;
-      border-radius:16px;
+      padding:10px 12px;             /* smaller */
+      border-radius:14px;
       border:none;
       cursor:pointer;
       font-weight:700;
       letter-spacing:0.08em;
       text-transform:uppercase;
-      font-size:0.8rem;
+      font-size:0.78rem;              /* smaller text */
       text-align:left;
       display:flex;
       flex-direction:column;
       justify-content:space-between;
-      gap:4px;
-      box-shadow:0 12px 28px rgba(0,0,0,0.8);
+      gap:3px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.75);  /* softer */
       color:#fff;
-      min-height:110px;
+      min-height:90px;                 /* shorter box */
     }
     .action-button span.label {
-      font-size:0.8rem;
+      font-size:0.78rem;
       font-weight:700;
     }
     .action-button span.desc {
-      font-size:0.78rem;
+      font-size:0.74rem;
       opacity:0.85;
     }
 
@@ -7423,7 +7423,7 @@ app.get("/management-hub", (req, res) => {
       grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
       gap:12px;
       margin-top:6px;
-      margin-bottom:18px;
+      margin-bottom:16px;
     }
     .tool-card {
       display:block;
@@ -7451,36 +7451,36 @@ app.get("/management-hub", (req, res) => {
       box-shadow:0 16px 30px rgba(0,0,0,0.9);
     }
 
-    /* ADMIN TOOLS (smaller tiles) */
+    /* ADMIN TOOLS (smaller coloured boxes) */
     .admin-section-title {
-      margin-top:10px;
+      margin-top:8px;
       font-size:0.78rem;
       letter-spacing:0.18em;
       text-transform:uppercase;
       color:#ffbce5;
     }
     .admin-msg {
-      margin-top:6px;
-      font-size:0.78rem;
+      margin-top:4px;
+      font-size:0.76rem;
       color:#ffffff;
     }
     .admin-tools-grid {
       margin-top:8px;
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
       gap:8px;
     }
     .admin-tile {
-      padding:8px 10px;
-      border-radius:14px;
+      padding:7px 10px;                 /* smaller padding */
+      border-radius:12px;               /* slightly smaller radius */
       background:radial-gradient(circle at top,#1c0022,#050008 70%);
       border:1px solid rgba(255,255,255,0.14);
-      box-shadow:0 8px 18px rgba(0,0,0,0.85);
+      box-shadow:0 7px 16px rgba(0,0,0,0.85);  /* smaller shadow */
       cursor:pointer;
       display:flex;
       flex-direction:column;
       justify-content:space-between;
-      min-height:68px;
+      min-height:60px;                  /* shorter */
     }
     .admin-tile.warning {
       background:linear-gradient(135deg,#ffb300,#ff9800);
@@ -7491,17 +7491,17 @@ app.get("/management-hub", (req, res) => {
     }
     .admin-label {
       font-weight:700;
-      font-size:0.78rem;
+      font-size:0.76rem;
       margin-bottom:2px;
     }
     .admin-sub {
-      font-size:0.74rem;
+      font-size:0.72rem;
       opacity:0.9;
     }
 
     /* CANCEL BLOCK */
     .cancel-section {
-      margin-top:18px;
+      margin-top:16px;
       font-size:0.8rem;
     }
     .cancel-label {
@@ -7537,7 +7537,7 @@ app.get("/management-hub", (req, res) => {
       cursor:pointer;
     }
 
-    /* SMALL BACK BUTTON – now under cancel section & smaller */
+    /* SMALL BACK BUTTON – under cancel section */
     .bottom-left-link {
       display:inline-flex;
       align-items:center;
@@ -7551,7 +7551,7 @@ app.get("/management-hub", (req, res) => {
       color:#fff;
       background:rgba(255,255,255,0.04);
       text-decoration:none;
-      margin-top:14px;  /* sits below cancel row */
+      margin-top:14px;
     }
     .bottom-left-link:hover {
       background:rgba(255,255,255,0.08);
@@ -7686,7 +7686,7 @@ app.get("/management-hub", (req, res) => {
         </div>
       </div>
 
-      <!-- SMALL BACK BUTTON – now under cancel section -->
+      <!-- SMALL BACK BUTTON – under cancel section -->
       <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" class="bottom-left-link">
         ← Back to Staff Home
       </a>
@@ -8567,55 +8567,62 @@ app.get("/cancelled-tickets-log", (req, res) => {
 </html>`);
 });
 
+// ------------------------------------------------------
 // MANAGEMENT: cancel a ticket (backend route)
+// ------------------------------------------------------
 app.post("/admin/cancel-ticket", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
     return res.status(403).json({ ok: false, error: "Unauthorized" });
   }
 
-  const { code } = req.body || {};
-  const clean = String(code || "").trim();
-  if (!clean) return res.status(400).json({ ok: false, error: "Missing code" });
+  // Accept either ticketId (what the frontend sends) or code, just in case
+  const { ticketId, code } = req.body || {};
+  const raw = String(ticketId || code || "").trim();
 
-  // Allow both "HEART-001" and "HEART-001.png"
-  const ticketId = clean.replace(/\.png$/i, "");
+  if (!raw) {
+    return res.status(400).json({ ok: false, error: "Missing ticket id" });
+  }
+
+  // Allow "EB-010" or "EB-010.png"
+  const cleanId = raw.replace(/\.png$/i, "");
 
   let foundToken = null;
   let record = null;
 
   for (const [token, rec] of tickets.entries()) {
-    if (rec.id === ticketId) {
+    if (rec.id === cleanId) {
       foundToken = token;
       record = rec;
       break;
     }
   }
 
-  if (!foundToken) {
+  if (!foundToken || !record) {
     return res.status(404).json({ ok: false, error: "Ticket not found" });
   }
 
+  // Mark as cancelled & save
   record.status = "cancelled";
   tickets.set(foundToken, record);
   saveTickets();
 
-  return res.json({ ok: true, ticketId });
+  // Log to cancelledTicketsLog (for the Cancelled Tickets page)
+  const cookies = parseCookies(req);
+  const cancelledBy = cookies.mgmtName || "management";
 
-  record.status = "cancelled";
+  pushWithLimit(
+    cancelledTicketsLog,
+    {
+      ticketId: cleanId,
+      token: foundToken,
+      cancelledBy,
+      source: "admin-cancel",
+      timestamp: Date.now(),
+    },
+    1000
+  );
 
-const cookies = parseCookies(req);
-const cancelledBy = cookies.mgmtName || "management";
-
-pushWithLimit(cancelledTicketsLog, {
-  ticketId,
-  token: foundToken,
-  cancelledBy,
-  source: "admin-cancel",
-  timestamp: Date.now(),
-}, 1000);
-
-// ... existing response code
-
+  return res.json({ ok: true, ticketId: cleanId });
 });
 
 // ------------------------------------------------------
