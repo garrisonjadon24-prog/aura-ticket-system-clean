@@ -2846,7 +2846,9 @@ if (staff !== "1") {
   const ticketId    = "${record.id}";
   const IG_URL      = "${INSTAGRAM_URL}";
 
-  // 🔊 Welcome audio (autoplay + mobile fallback)
+  /* ============================================================
+     🔊 WELCOME AUDIO — AUTOPLAY + TAP TO PLAY BUTTON + FALLBACK
+     ============================================================ */
   const welcomeAudio = new Audio('/aura-welcome.mp3');
   welcomeAudio.volume = 0.9;
 
@@ -2855,15 +2857,20 @@ if (staff !== "1") {
   function startWelcomeAudio() {
     if (audioStarted) return;
     audioStarted = true;
+
     welcomeAudio.play().catch(err => {
-      console.warn("Audio play failed:", err);
+      console.warn("Audio blocked:", err);
     });
+
+    // Hide the play button once audio starts
+    const playBtn = document.getElementById("playAudioBtn");
+    if (playBtn) playBtn.style.display = "none";
   }
 
-  // Try autoplay (desktop will usually allow this)
+  // Try automatic playback
   startWelcomeAudio();
 
-  // Mobile fallback: start audio on first tap / click anywhere
+  // Mobile fallback — first tap anywhere
   ['click', 'touchstart'].forEach(evt => {
     document.addEventListener(evt, startWelcomeAudio, {
       once: true,
@@ -2871,7 +2878,33 @@ if (staff !== "1") {
     });
   });
 
-  // 🎁 PRIZE ENTRY + IG REDIRECT
+  /* Add Tap-to-Play button under header */
+  document.addEventListener("DOMContentLoaded", () => {
+    const card = document.querySelector(".card");
+    if (!card) return;
+
+    const btn = document.createElement("button");
+    btn.id = "playAudioBtn";
+    btn.innerText = "Tap to Play Audio 🔊";
+    btn.style.marginTop = "10px";
+    btn.style.padding = "10px 16px";
+    btn.style.borderRadius = "10px";
+    btn.style.border = "none";
+    btn.style.cursor = "pointer";
+    btn.style.fontWeight = "700";
+    btn.style.fontSize = "0.9rem";
+    btn.style.background = "linear-gradient(135deg, #ff4081, #ff1744)";
+    btn.style.color = "#fff";
+    btn.style.boxShadow = "0 0 12px rgba(255,64,129,0.5)";
+    btn.style.width = "100%";
+
+    btn.addEventListener("click", startWelcomeAudio);
+    card.insertBefore(btn, card.children[1]); // Insert after heart animation
+  });
+
+  /* ============================================================
+     🎁 PRIZE ENTRY + IG REDIRECT
+     ============================================================ */
   const nameInput   = document.getElementById('guestNameInput');
   const emailInput  = document.getElementById('guestEmailInput');
   const phoneInput  = document.getElementById('guestPhoneInput');
@@ -2879,7 +2912,7 @@ if (staff !== "1") {
   const successMsg  = document.getElementById('successMsg');
   const visitIgBtn  = document.getElementById('visitIgBtn');
 
-  // Small IG button under prize section
+  // IG button (small)
   if (visitIgBtn) {
     visitIgBtn.addEventListener('click', () => {
       goToIG();
@@ -2921,14 +2954,12 @@ if (staff !== "1") {
         const data = await response.json();
 
         if (data.success) {
-          // Lock the fields + show success
           nameInput.disabled  = true;
           emailInput.disabled = true;
           phoneInput.disabled = true;
           submitBtn.disabled  = true;
           successMsg.style.display = 'block';
 
-          // Short pause, then send them to Instagram
           setTimeout(() => {
             goToIG();
           }, 2000);
@@ -2942,17 +2973,11 @@ if (staff !== "1") {
     });
   }
 
-  // Used by both IG buttons (big and small)
   function goToIG() {
     window.location.href = IG_URL;
   }
 </script>
 
-
-</body>
-</html>
-  `);
-});
 
 // NEW ENDPOINT: Guest Name Entry for Prize Draw
 app.post("/api/guest-name-entry", (req, res) => {
