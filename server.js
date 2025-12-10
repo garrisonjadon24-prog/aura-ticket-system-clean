@@ -2846,12 +2846,32 @@ if (staff !== "1") {
   const ticketId    = "${record.id}";
   const IG_URL      = "${INSTAGRAM_URL}";
 
-  /* 🔊 Autoplay welcome audio */
-  const audio = new Audio('/aura-welcome.mp3');
-  audio.volume = 0.9;
-  audio.play().catch(err => console.warn("Autoplay blocked:", err));
+  // 🔊 Welcome audio (autoplay + mobile fallback)
+  const welcomeAudio = new Audio('/aura-welcome.mp3');
+  welcomeAudio.volume = 0.9;
 
-  /* BUTTONS + PRIZE ENTRY */
+  let audioStarted = false;
+
+  function startWelcomeAudio() {
+    if (audioStarted) return;
+    audioStarted = true;
+    welcomeAudio.play().catch(err => {
+      console.warn("Audio play failed:", err);
+    });
+  }
+
+  // Try autoplay (desktop will usually allow this)
+  startWelcomeAudio();
+
+  // Mobile fallback: start audio on first tap / click anywhere
+  ['click', 'touchstart'].forEach(evt => {
+    document.addEventListener(evt, startWelcomeAudio, {
+      once: true,
+      passive: true
+    });
+  });
+
+  // 🎁 PRIZE ENTRY + IG REDIRECT
   const nameInput   = document.getElementById('guestNameInput');
   const emailInput  = document.getElementById('guestEmailInput');
   const phoneInput  = document.getElementById('guestPhoneInput');
@@ -2859,44 +2879,75 @@ if (staff !== "1") {
   const successMsg  = document.getElementById('successMsg');
   const visitIgBtn  = document.getElementById('visitIgBtn');
 
-  visitIgBtn.addEventListener('click', () => goToIG());
-
-  submitBtn.addEventListener('click', async () => {
-    const guestName  = nameInput.value.trim();
-    const guestEmail = emailInput.value.trim();
-    const guestPhone = phoneInput.value.trim();
-    const subscribe  = document.getElementById('subscribeOptIn').checked;
-
-    if (!guestName || !guestEmail || !guestPhone) {
-      alert("Please fill out all fields");
-      return;
-    }
-
-    const res = await fetch('/api/guest-name-entry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ticketId, token: ticketToken, guestName, guestEmail, guestPhone, subscribe })
+  // Small IG button under prize section
+  if (visitIgBtn) {
+    visitIgBtn.addEventListener('click', () => {
+      goToIG();
     });
+  }
 
-    const data = await res.json();
+  // Submit prize entry
+  if (submitBtn) {
+    submitBtn.addEventListener('click', async () => {
+      const guestName  = nameInput.value.trim();
+      const guestEmail = emailInput.value.trim();
+      const guestPhone = phoneInput.value.trim();
+      const subscribeOptIn =
+        !!document.getElementById('subscribeOptIn')?.checked;
 
-    if (data.success) {
-      nameInput.disabled = true;
-      emailInput.disabled = true;
-      phoneInput.disabled = true;
-      submitBtn.disabled = true;
-      successMsg.style.display = "block";
+      if (!guestName) {
+        alert('Please enter your name');
+        return;
+      }
+      if (!guestEmail || !guestPhone) {
+        alert('Please enter your email and cell number');
+        return;
+      }
 
-      setTimeout(() => goToIG(), 2000);
-    } else {
-      alert(data.error || "Submission error");
-    }
-  });
+      try {
+        const response = await fetch('/api/guest-name-entry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ticketId: ticketId,
+            token: ticketToken,
+            guestName,
+            guestEmail,
+            guestPhone,
+            subscribe: subscribeOptIn
+          })
+        });
 
+        const data = await response.json();
+
+        if (data.success) {
+          // Lock the fields + show success
+          nameInput.disabled  = true;
+          emailInput.disabled = true;
+          phoneInput.disabled = true;
+          submitBtn.disabled  = true;
+          successMsg.style.display = 'block';
+
+          // Short pause, then send them to Instagram
+          setTimeout(() => {
+            goToIG();
+          }, 2000);
+        } else {
+          alert(data.error || 'Error submitting entry');
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Failed to submit entry');
+      }
+    });
+  }
+
+  // Used by both IG buttons (big and small)
   function goToIG() {
     window.location.href = IG_URL;
   }
 </script>
+
 
 </body>
 </html>
