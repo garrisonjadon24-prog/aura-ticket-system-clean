@@ -10,6 +10,13 @@ const QRCode = require("qrcode");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Parse JSON and form bodies
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from the project root (for aura-logo.png, pop-logo.png, etc.)
+app.use(express.static(path.join(__dirname, "public")));
+
 // AURA STAFF LOGIN HOMEPAGE
 app.get("/", (req, res) => {
   res.send(`
