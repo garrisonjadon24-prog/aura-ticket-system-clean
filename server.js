@@ -200,6 +200,31 @@ function pushWithLimit(arr, item, limit) {
   if (arr.length > limit) arr.shift();
 }
 
+// Helper: get client IP in a safe way
+function getClientIP(req) {
+  try {
+    const fwd = (req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+    if (fwd) return fwd;
+
+    if (req.connection && req.connection.remoteAddress) {
+      return req.connection.remoteAddress;
+    }
+    if (req.socket && req.socket.remoteAddress) {
+      return req.socket.remoteAddress;
+    }
+    if (
+      req.connection &&
+      req.connection.socket &&
+      req.connection.socket.remoteAddress
+    ) {
+      return req.connection.socket.remoteAddress;
+    }
+    return "unknown";
+  } catch (e) {
+    return "unknown";
+  }
+}
+
 // Helper: check management authorization (query key OR cookie)
 function isMgmtAuthorizedReq(req) {
   try {
@@ -539,56 +564,6 @@ app.post("/admin/clear-qr-files", (req, res) => {
   }
 });
 
-// ------------------------------------------------------
-// API: Full allocation log (per ticket, joined with guest info)
-// Management only
-// ------------------------------------------------------
-app.get("/api/allocations-detail", (req, res) => {
-  if (!isMgmtAuthorizedReq(req)) {
-    return res.status(403).json({ ok: false, error: "Unauthorized" });
-  }
-
-  const items = [];
-
-  // Loop through all allocations
-  for (const [ticketId, alloc] of ticketAllocations.entries()) {
-    // Find the ticket record (status/type)
-    let ticketRec = null;
-    for (const [_token, rec] of tickets.entries()) {
-      if (rec.id === ticketId) {
-        ticketRec = rec;
-        break;
-      }
-    }
-
-    // Find the most recent guest entry (if any) for this ticket
-    let guest = null;
-    for (let i = guestNameEntries.length - 1; i >= 0; i--) {
-      const e = guestNameEntries[i];
-      if (e.ticketId === ticketId) {
-        guest = e;
-        break;
-      }
-    }
-
-    items.push({
-      ticketId,
-      // seller / allocation info
-      sellerName: alloc.sellerName || "",
-      sellerPhone: alloc.sellerPhone || "",
-      sellerEmail: alloc.sellerEmail || "",
-      sold: !!alloc.sold,
-
-      // ticket technical info
-      ticketStatus: ticketRec ? ticketRec.status : "missing",
-      ticketType: ticketRec ? ticketRec.type : null,
-
-      // buyer / guest info captured by scanner
-      guestName: guest ? guest.guestName : null,
-      guestEmail: guest ? guest.guestEmail : null,
-      guestPhone: guest ? guest.guestPhone : null,
-      lastGuestEntryAt: guest ? guest.timestamp : null
-    });
   }
 
   res.json({ ok: true, allocations: items });
@@ -939,29 +914,6 @@ function loadTicketAllocations() {
   }
 }
 
-// LOAD TICKET ALLOCATIONS
-function loadTicketAllocations() {
-  try {
-    const file = path.join(__dirname, "ticket-allocations.json");
-    if (!fs.existsSync(file)) return;
-
-    const arr = JSON.parse(fs.readFileSync(file, "utf8"));
-    ticketAllocations.clear();
-
-    arr.forEach(a => {
-      ticketAllocations.set(a.ticketId, {
-        sellerName: a.sellerName,
-        sellerPhone: a.sellerPhone,
-        sellerEmail: a.sellerEmail,
-        sold: a.sold || false
-      });
-    });
-
-    console.log(`[ALLOC] Loaded ${arr.length} allocations.`);
-  } catch (err) {
-    console.error("Error loading allocations:", err);
-  }
-}
 
 loadTickets();
 loadTicketAllocations();   // ✅ ADD THIS EXACT LINE HERE
@@ -2175,60 +2127,6 @@ app.get("/staff/generate", (req, res) => {
       </script>
     </body>
     </html>`);
-});
-
-// ------------------------------------------------------
-// QR FILES VIEWER (Management only)
-// ------------------------------------------------------
-app.get("/qr-files", (req, res) => {
-  if (!isMgmtAuthorizedReq(req)) return res.redirect("/");
-
-  const fs = require("fs");
-  const path = require("path");
-  const qrDir = path.join(__dirname, "generated_qr");
-
-  let files = [];
-  try {
-    files = fs.readdirSync(qrDir).filter(f => f.endsWith(".png"));
-  } catch (e) {}
-
-  const list = files.map(f => `
-      <li><a href="/generated_qr/${f}" download>${f}</a></li>
-  `).join("");
-
-  res.send(`
-    <html>
-    <head>
-      <title>QR PNG Files</title>
-      <style>
-        body { background:#0b0012; color:#fff; font-family:system-ui; padding:20px; }
-        h1 { color:#ff4a8d; }
-        a { color:#ffd86b; }
-        ul { line-height:1.8; }
-        .btn { display:inline-block; padding:10px 16px; background:#ff4a8d; color:#fff; border-radius:8px; margin-top:20px; text-decoration:none; }
-      </style>
-    </head>
-    <body>
-      <h1>Generated QR PNG Files</h1>
-      <p>Total files: ${files.length}</p>
-
-      <ul>${list || "<em>No PNG files found.</em>"}</ul>
-
-      <a class="btn" href="#" onclick="clearPngs()">Clear QR PNGs</a>
-      <script>
-        function clearPngs() {
-          fetch("/admin/clear-qr-files", { method:"POST" })
-            .then(r=>r.json())
-            .then(() => location.reload())
-            .catch(()=>alert("Error clearing PNGs"));
-        }
-      </script>
-
-      <br><br>
-      <a href="/management-hub">← Back</a>
-    </body>
-    </html>
-  `);
 });
 
 
@@ -8959,6 +8857,31 @@ app.post("/admin/cancel-ticket", (req, res) => {
 
   return res.json({ ok: true, ticketId: cleanId });
 });
+// Helper: get client IP (for logs / security)
+function getClientIP(req) {
+  try {
+    // Respect proxy headers first (Render, ngrok, etc.)
+    const xff = req.headers["x-forwarded-for"];
+    if (xff && typeof xff === "string") {
+      const ip = xff.split(",")[0].trim();
+      if (ip) return ip;
+    }
+
+    // Fallbacks
+    if (req.ip) return req.ip;
+    if (req.connection && req.connection.remoteAddress) {
+      return req.connection.remoteAddress;
+    }
+    if (req.socket && req.socket.remoteAddress) {
+      return req.socket.remoteAddress;
+    }
+
+    return "unknown";
+  } catch (e) {
+    return "unknown";
+  }
+}
+
 
 // ------------------------------------------------------
 // QR FILES VIEWER PAGE
