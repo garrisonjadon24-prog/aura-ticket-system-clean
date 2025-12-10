@@ -7762,6 +7762,12 @@ app.get("/management-hub", (req, res) => {
         </div>
       </div>
 
+      <div class="admin-tile warning" onclick="adminClearQRFiles()">
+  <div class="admin-label">🧹 Clear ALL QR PNG Files</div>
+  <div class="admin-sub">Deletes every QR PNG + removes entries from QR log.</div>
+</div>
+
+
       <!-- CANCEL TICKET / QR -->
       <div class="cancel-section">
         <label for="cancelCode" class="cancel-label">
@@ -7999,6 +8005,37 @@ app.get("/management-hub", (req, res) => {
         setAdminMsg("Scan log clear error: " + err.message, true);
       }
     }
+
+async function adminClearQRFiles() {
+  if (!confirm("Clear ALL QR PNG files? This will delete every QR image and reset the QR Files page.")) {
+    return;
+  }
+
+  try {
+    const res = await fetch(
+      "/admin/clear-qr-files?key=" + encodeURIComponent(MGMT_KEY),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}"
+      }
+    );
+
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || "Failed to clear QR PNG files");
+    }
+
+    setAdminMsg("All QR PNG files were cleared successfully.");
+
+    // OPTIONAL: refresh dashboard if QR count is displayed
+    // OPTIONAL: refresh QR Files page if open
+
+  } catch (err) {
+    console.error(err);
+    setAdminMsg("QR clear error: " + err.message, true);
+  }
+}
 
     // CLEAR SECURITY LOG ONLY
     async function adminClearSecurityLog() {
