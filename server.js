@@ -910,29 +910,6 @@ function saveTicketAllocations() {
   }
 }
 
-function loadTicketAllocations() {
-  try {
-    const file = path.join(__dirname, "ticket-allocations.json");
-    if (!fs.existsSync(file)) return;
-
-    const arr = JSON.parse(fs.readFileSync(file, "utf8"));
-    ticketAllocations.clear();
-
-    arr.forEach(a => {
-      ticketAllocations.set(a.ticketId, {
-        sellerName: a.sellerName,
-        sellerPhone: a.sellerPhone,
-        sellerEmail: a.sellerEmail,
-        sold: a.sold || false
-      });
-    });
-
-    console.log(`[ALLOC] Loaded ${arr.length} allocations.`);
-  } catch (err) {
-    console.error("Error loading allocations:", err);
-  }
-}
-
 // LOAD TICKET ALLOCATIONS
 function loadTicketAllocations() {
   try {
