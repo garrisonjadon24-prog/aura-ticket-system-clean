@@ -7,6 +7,58 @@ const fs = require("fs");
 const crypto = require("crypto");
 const QRCode = require("qrcode");
 
+// ======================================================
+// 🔥 GLOBAL IN-MEMORY DATA STORES (MUST BE AT TOP)
+// ======================================================
+
+// Tickets store: token → { id, type, status }
+const tickets = new Map();
+
+// Guest name entries for prize draw form
+const guestNameEntries = []; // { ticketId, token, guestName, guestEmail, guestPhone, ip, timestamp }
+
+// Staff activity log
+const staffActivityLog = []; // { name, action, ip, timestamp }
+
+// Guest scan log (valid scans)
+const guestScanLog = []; // { ticketId, token, ip, timestamp }
+
+// Track invalid + duplicate scan attempts
+const scanEvents = {
+  invalid: [],
+  duplicates: [],
+};
+
+// Payment events (box office / card / cash)
+const paymentEvents = {
+  transactions: [], // { ticketId, method, amount, currency, notes, timestamp }
+};
+
+// Box office sales log
+const boxOfficeSales = {
+  prefix: "BOX-",
+  nextNumber: 1,
+  sales: [], // { ticketId, qrPath, timestamp, soldTo, amount }
+};
+
+// Giveaway / prize draw results
+const giveawayEvents = {
+  draws: [], // { prizeId, winnerTicketId, timestamp, prizeDescription }
+};
+
+// Security IP monitoring
+const ipLogging = {
+  events: [],          // all scans {ip, token, ticketId, timestamp, status}
+  suspicious: new Map() // ip → [events]
+};
+
+// Ticket allocations (seller assigned tickets)
+const ticketAllocations = new Map();
+// ticketId → { sellerName, sellerPhone, sellerEmail, sold }
+
+// Cancelled tickets log
+const cancelledTicketsLog = []; 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
