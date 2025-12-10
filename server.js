@@ -7273,760 +7273,727 @@ app.get("/management-hub", (req, res) => {
 
   // Determine manager name to display: prefer query, then cookie
   const cookies = parseCookies(req);
-  const managerName = (req.query && req.query.name) ? req.query.name : (cookies.mgmtName || '');
+  const managerName = (req.query && req.query.name)
+    ? req.query.name
+    : (cookies.mgmtName || "");
 
   res.send(`<!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>Management Hub</title>
-      <style>
-        ${themeCSSRoot()}
-        body {
-          margin:0;
-          padding:18px;
-          font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-          background:#050007;
-          color:#f5f5f5;
-          display:flex;
-          justify-content:center;
-          min-height:100vh;
-        }
-        .card {
-          width:100%;
-          max-width:700px;
-          background:radial-gradient(circle at top,#220018,#070008 60%);
-          border-radius:24px;
-          padding:24px 22px 20px;
-          box-shadow:
-            0 0 0 1px rgba(255,64,129,0.35),
-            0 20px 50px rgba(0,0,0,0.95);
-          position:relative;
-          overflow:hidden;
-        }
-        .card::before {
-          content:"";
-          position:absolute;
-          inset:-40%;
-          background:
-            radial-gradient(circle at 0% 0%,rgba(255,255,255,0.06),transparent 40%),
-            radial-gradient(circle at 100% 100%,rgba(255,64,129,0.18),transparent 50%);
-          opacity:0.7;
-          pointer-events:none;
-        }
-        .card-inner { position:relative; z-index:1; }
-        .header-row {
-          display:flex;
-          justify-content:space-between;
-          align-items:center;
-          gap:12px;
-          margin-bottom:12px;
-        }
-        .logo-row {
-          display:flex;
-          align-items:center;
-          gap:10px;
-        }
-        .logo-img {
-          height:32px;
-          border-radius:8px;
-          box-shadow:0 0 12px rgba(255,64,129,0.55);
-        }
-        .title-main {
-          font-size:1.4rem;
-          font-weight:650;
-        }
-        .title-main span {
-          background:linear-gradient(120deg,#ffb300,#ff4081,#ff1744);
-          -webkit-background-clip:text;
-          color:transparent;
-        }
-        .badge {
-          padding:5px 10px;
-          border-radius:999px;
-          border:1px solid rgba(255,64,129,0.6);
-          font-size:0.7rem;
-          letter-spacing:0.12em;
-          text-transform:uppercase;
-          color:#ccc;
-        }
-        .subtitle {
-          font-size:0.9rem;
-          color:#aaa;
-          margin-bottom:16px;
-        }
-        .button-grid {
-          display:grid;
-          grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-          gap:12px;
-        }
-        .action-button {
-          padding:14px 14px;
-          border-radius:16px;
-          border:none;
-          cursor:pointer;
-          font-weight:700;
-          letter-spacing:0.08em;
-          text-transform:uppercase;
-          font-size:0.8rem;
-          text-align:left;
-          display:flex;
-          flex-direction:column;
-          gap:4px;
-          box-shadow:0 12px 28px rgba(0,0,0,0.8);
-          color:#fff;
-        }
-        .action-button span.label {
-          font-size:0.8rem;
-          font-weight:700;
-        }
-        .action-button span.desc {
-          font-size:0.78rem;
-          opacity:0.85;
-        }
-        .btn-dashboard { background:linear-gradient(135deg,#ffc107,#ff9800); color:#000; }
-        .btn-analytics { background:linear-gradient(135deg,#4caf50,#388e3c); }
-        .btn-alloc { background:linear-gradient(135deg,#9c27b0,#6a1b9a); }
-        .btn-giveaway { background:linear-gradient(135deg,#e91e63,#ad1457); }
-        .btn-prizeentries { background:linear-gradient(135deg,#00bcd4,#0097a7); }
-        .btn-stafflog { background:linear-gradient(135deg,#03a9f4,#0288d1); }
-        .btn-guestlog { background:linear-gradient(135deg,#ff5722,#e64a19); }
-        .btn-mailing {
-          background: linear-gradient(135deg,#8e24aa,#ff6ec4);
-          border: 1px solid rgba(255,255,255,0.18);
-        }
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Management Hub</title>
+  <style>
+    ${themeCSSRoot()}
 
-        .btn-qrfiles {
-          background: linear-gradient(135deg, #ff1744, #ff4081);
-          border: 1px solid rgba(255, 23, 68, 0.6);
-          color: #fff;
-        }
+    body {
+      margin:0;
+      padding:18px;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      background:#050007;
+      color:#f5f5f5;
+      display:flex;
+      justify-content:center;
+      min-height:100vh;
+    }
+    .card {
+      width:100%;
+      max-width:700px;
+      background:radial-gradient(circle at top,#220018,#070008 60%);
+      border-radius:24px;
+      padding:24px 22px 20px;
+      box-shadow:
+        0 0 0 1px rgba(255,64,129,0.35),
+        0 20px 50px rgba(0,0,0,0.95);
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before {
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background:
+        radial-gradient(circle at 0% 0%,rgba(255,255,255,0.06),transparent 40%),
+        radial-gradient(circle at 100% 100%,rgba(255,64,129,0.18),transparent 50%);
+      opacity:0.7;
+      pointer-events:none;
+    }
+    .card-inner { position:relative; z-index:1; }
 
-        .btn-generate {
-          background: linear-gradient(135deg, #7b1fa2, #9c27b0);
-          border: 1px solid rgba(155, 89, 182, 0.5);
-          color: #fff !important;
-        }
+    .header-row {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .logo-row {
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .logo-img {
+      height:32px;
+      border-radius:8px;
+      box-shadow:0 0 12px rgba(255,64,129,0.55);
+    }
+    .title-main {
+      font-size:1.4rem;
+      font-weight:650;
+    }
+    .title-main span {
+      background:linear-gradient(120deg,#ffb300,#ff4081,#ff1744);
+      -webkit-background-clip:text;
+      color:transparent;
+    }
+    .badge {
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,64,129,0.6);
+      font-size:0.7rem;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      color:#ccc;
+    }
+    .subtitle {
+      font-size:0.9rem;
+      color:#aaa;
+      margin-bottom:16px;
+    }
+    .staff-name {
+      font-size:0.85rem;
+      color:#ccc;
+    }
+    .theme-toggle {
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.25);
+      background:rgba(0,0,0,0.3);
+      color:#fff;
+      font-size:0.75rem;
+      cursor:pointer;
+    }
 
-        .hub-row {
-          display:grid;
-          grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
-          gap:12px;
-          margin-top:18px;
-        }
-        .tool-card {
-          display:block;
-          padding:12px 14px;
-          border-radius:16px;
-          text-decoration:none;
-          background:radial-gradient(circle at top,#1c0022,#050008 70%);
-          border:1px solid rgba(255,255,255,0.14);
-          color:#f7ecff;
-          box-shadow:0 10px 26px rgba(0,0,0,0.8);
-          transition:transform 0.18s ease,box-shadow 0.18s ease,border-color 0.18s ease;
-        }
-        .tool-card .tool-title {
-          font-weight:700;
-          font-size:0.86rem;
-          margin-bottom:4px;
-        }
-        .tool-card .tool-sub {
-          font-size:0.78rem;
-          opacity:0.9;
-        }
-        .tool-card:hover {
-          transform:translateY(-2px);
-          border-color:rgba(255,64,129,0.7);
-          box-shadow:0 16px 30px rgba(0,0,0,0.9);
-        }
+    /* MAIN BUTTON GRID */
+    .button-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .action-button {
+      padding:14px 14px;
+      border-radius:16px;
+      border:none;
+      cursor:pointer;
+      font-weight:700;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      font-size:0.8rem;
+      text-align:left;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:4px;
+      box-shadow:0 12px 28px rgba(0,0,0,0.8);
+      color:#fff;
+      min-height:110px;
+    }
+    .action-button span.label {
+      font-size:0.8rem;
+      font-weight:700;
+    }
+    .action-button span.desc {
+      font-size:0.78rem;
+      opacity:0.85;
+    }
 
-        .mini-link {
-          margin-top:6px;
-          font-size:0.75rem;
-        }
-        .mini-link a {
-          color:#e0f7fa;
-          text-decoration:none;
-        }
-        .mini-link a span {
-          display:block;
-          font-size:0.72rem;
-          opacity:0.9;
-        }
-        .mini-link a:hover {
-          text-decoration:underline;
-        }
+    .btn-dashboard { background:linear-gradient(135deg,#ffc107,#ff9800); color:#000; }
+    .btn-generate  { background:linear-gradient(135deg,#7b1fa2,#9c27b0); }
+    .btn-analytics { background:linear-gradient(135deg,#4caf50,#388e3c); }
+    .btn-qrfiles   {
+      background: linear-gradient(135deg,#ff1744,#ff4081);
+      border: 1px solid rgba(255,23,68,0.6);
+      color:#fff;
+    }
 
-        .admin-section-title {
-          margin-top:22px;
-          font-size:0.78rem;
-          letter-spacing:0.18em;
-          text-transform:uppercase;
-          color:#ffbce5;
-        }
-        .admin-msg {
-          margin-top:6px;
-          font-size:0.78rem;
-          color:#ffffff;
-        }
-        .admin-tools-grid {
-          margin-top:10px;
-          display:grid;
-          grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-          gap:12px;
-        }
-        .admin-tile {
-          padding:10px 12px;
-          border-radius:16px;
-          background:radial-gradient(circle at top,#1c0022,#050008 70%);
-          border:1px solid rgba(255,255,255,0.14);
-          box-shadow:0 12px 24px rgba(0,0,0,0.85);
-          cursor:pointer;
-        }
-        .admin-tile.warning {
-          background:linear-gradient(135deg,#ffb300,#ff9800);
-          color:#1b0500;
-        }
-        .admin-tile.danger {
-          background:linear-gradient(135deg,#ff1744,#d50000);
-        }
-        .admin-label {
-          font-weight:700;
-          font-size:0.82rem;
-          margin-bottom:2px;
-        }
-        .admin-sub {
-          font-size:0.76rem;
-          opacity:0.9;
-        }
+    /* HUB ROW */
+    .hub-row {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+      gap:12px;
+      margin-top:6px;
+      margin-bottom:18px;
+    }
+    .tool-card {
+      display:block;
+      padding:12px 14px;
+      border-radius:16px;
+      text-decoration:none;
+      background:radial-gradient(circle at top,#1c0022,#050008 70%);
+      border:1px solid rgba(255,255,255,0.14);
+      color:#f7ecff;
+      box-shadow:0 10px 26px rgba(0,0,0,0.8);
+      transition:transform 0.18s ease,box-shadow 0.18s ease,border-color 0.18s ease;
+    }
+    .tool-title {
+      font-weight:700;
+      font-size:0.86rem;
+      margin-bottom:4px;
+    }
+    .tool-sub {
+      font-size:0.78rem;
+      opacity:0.9;
+    }
+    .tool-card:hover {
+      transform:translateY(-2px);
+      border-color:rgba(255,64,129,0.7);
+      box-shadow:0 16px 30px rgba(0,0,0,0.9);
+    }
 
+    /* ADMIN TOOLS */
+    .admin-section-title {
+      margin-top:10px;
+      font-size:0.78rem;
+      letter-spacing:0.18em;
+      text-transform:uppercase;
+      color:#ffbce5;
+    }
+    .admin-msg {
+      margin-top:6px;
+      font-size:0.78rem;
+      color:#ffffff;
+    }
+    .admin-tools-grid {
+      margin-top:8px;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:10px;
+    }
+    .admin-tile {
+      padding:10px 12px;
+      border-radius:16px;
+      background:radial-gradient(circle at top,#1c0022,#050008 70%);
+      border:1px solid rgba(255,255,255,0.14);
+      box-shadow:0 12px 24px rgba(0,0,0,0.85);
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      min-height:82px;
+    }
+    .admin-tile.warning {
+      background:linear-gradient(135deg,#ffb300,#ff9800);
+      color:#1b0500;
+    }
+    .admin-tile.danger {
+      background:linear-gradient(135deg,#ff1744,#d50000);
+    }
+    .admin-label {
+      font-weight:700;
+      font-size:0.82rem;
+      margin-bottom:2px;
+    }
+    .admin-sub {
+      font-size:0.76rem;
+      opacity:0.9;
+    }
 
-        .theme-toggle {
-          padding:6px 10px;
-          border-radius:999px;
-          border:1px solid rgba(255,255,255,0.25);
-          background:rgba(0,0,0,0.3);
-          color:#fff;
-          font-size:0.75rem;
-          cursor:pointer;
-        }
-        .staff-name {
-          font-size:0.85rem;
-          color:#ccc;
-        }
-a.back-link {
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  margin-top:18px;
-  padding:8px 14px;
-  border-radius:999px;
-  background:rgba(0,0,0,0.55);
-  border:1px solid rgba(255,255,255,0.24);
-  font-size:0.78rem;
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-  text-decoration:none;
-  color:#f5f5f5;
-}
-a.back-link:hover {
-  background:rgba(255,255,255,0.08);
-}
+    /* CANCEL BLOCK */
+    .cancel-section {
+      margin-top:18px;
+      font-size:0.8rem;
+    }
+    .cancel-label {
+      font-size:0.8rem;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      color:#bbb;
+      display:block;
+      margin-bottom:4px;
+    }
+    .cancel-row {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .cancel-input {
+      flex:1 1 180px;
+      min-width:0;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.2);
+      padding:8px 12px;
+      background:#140019;
+      color:#fff;
+    }
+    .cancel-btn {
+      border-radius:999px;
+      border:none;
+      padding:8px 16px;
+      background:#ff5252;
+      color:#fff;
+      font-weight:600;
+      cursor:pointer;
+    }
 
-.bottom-left-link {
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:7px 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,0.25);
-  font-size:0.78rem;
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-  color:#fff;
-  background:rgba(255,255,255,0.04);
-  text-decoration:none;
-  position:absolute;
-  bottom:18px;
-  left:22px;
-}
+    /* SMALL BACK BUTTON (BOTTOM LEFT) */
+    .bottom-left-link {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:7px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.25);
+      font-size:0.78rem;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      color:#fff;
+      background:rgba(255,255,255,0.04);
+      text-decoration:none;
+      position:absolute;
+      bottom:18px;
+      left:22px;
+    }
+    .bottom-left-link:hover {
+      background:rgba(255,255,255,0.08);
+    }
 
-.bottom-left-link:hover {
-  background:rgba(255,255,255,0.08);
-}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-inner">
 
-
-      </style>
-    </head>
-    <body>
-      <div class="card">
-        <div class="card-inner">
-          <div class="header-row">
-            <div class="logo-row">
-              <img src="/aura-logo.png" class="logo-img" alt="AURA"/>
-              <img src="/pop-logo.png" class="logo-img" alt="POP"/>
-              <div>
-                <div class="title-main"><span>AURA</span> Management Hub</div>
-                <div class="staff-name">Manager: <span id="managerName">Unknown</span></div>
-              </div>
-            </div>
-            <div>
-              <div class="badge">MGMT PIN • POP!</div>
-              <button class="theme-toggle" onclick="AURA_THEME.toggle()">☀ Light / Dark</button>
-            </div>
+      <div class="header-row">
+        <div class="logo-row">
+          <img src="/aura-logo.png" class="logo-img" alt="AURA"/>
+          <img src="/pop-logo.png" class="logo-img" alt="POP"/>
+          <div>
+            <div class="title-main"><span>AURA</span> Management Hub</div>
+            <div class="staff-name">Manager: <span id="managerName">Unknown</span></div>
           </div>
+        </div>
+        <div>
+          <div class="badge">MGMT PIN • POP!</div>
+          <button class="theme-toggle" onclick="AURA_THEME.toggle()">☀ Light / Dark</button>
+        </div>
+      </div>
 
-<div class="button-grid">
-  <!-- Dashboard -->
-  <button class="action-button btn-dashboard" onclick="go('/dashboard')">
-    <span class="label">📊 Dashboard</span>
-    <span class="desc">Quick snapshot of total tickets and arrivals.</span>
-  </button>
+      <!-- PRIMARY ACTIONS -->
+      <div class="button-grid">
+        <button class="action-button btn-dashboard" onclick="go('/dashboard')">
+          <span class="label">📊 Dashboard</span>
+          <span class="desc">Quick snapshot of total tickets and arrivals.</span>
+        </button>
 
-  <!-- Generate tickets / QRs -->
-  <button class="action-button btn-generate" onclick="go('/staff/generate')">
-    <span class="label">🧾 Generate Tickets / QRCodes</span>
-    <span class="desc">Create ticket batches and QR PNGs.</span>
-  </button>
+        <button class="action-button btn-analytics" onclick="go('/live-analytics')">
+          <span class="label">📈 Live Analytics</span>
+          <span class="desc">Real-time check-in stats and last scans.</span>
+        </button>
 
-  <!-- Live analytics -->
-  <button class="action-button btn-analytics" onclick="go('/live-analytics')">
-    <span class="label">📈 Live Analytics</span>
-    <span class="desc">Real-time check-in stats and last scans.</span>
-  </button>
+        <button class="action-button btn-generate" onclick="go('/staff/generate')">
+          <span class="label">🧾 Generate Tickets / QRCodes</span>
+          <span class="desc">Create ticket batches and QR PNGs.</span>
+        </button>
 
-  <!-- NEW: QR Files own tile -->
-  <button class="action-button btn-qrfiles" onclick="go('/qr-files')">
-    <span class="label">📁 QR Files</span>
-    <span class="desc">View / download generated QR PNGs.</span>
-  </button>
-</div>
+        <button class="action-button btn-qrfiles" onclick="go('/qr-files')">
+          <span class="label">📁 QR Files</span>
+          <span class="desc">View / download generated QR PNGs.</span>
+        </button>
+      </div>
 
+      <!-- HUB CARDS -->
+      <div class="hub-row">
+        <a href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
+          <div class="tool-title">🎫 Allocation Hub</div>
+          <div class="tool-sub">Allocations, scanner, and allocation log.</div>
+        </a>
 
+        <a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
+          <div class="tool-title">📘 Log Hub</div>
+          <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
+        </a>
 
-           <!-- ROW 2: HUB CARDS -->
-          <div class="hub-row">
-            <a href="/allocation-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
-              <div class="tool-title">🎫 Allocation Hub</div>
-              <div class="tool-sub">Allocations, scanner, and allocation log.</div>
-            </a>
+        <a href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
+          <div class="tool-title">🎁 Prize Hub</div>
+          <div class="tool-sub">Prize draws and guest entries.</div>
+        </a>
+      </div>
 
-            <a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
-              <div class="tool-title">📘 Log Hub</div>
-              <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
-            </a>
+      <!-- ADMIN TOOLS -->
+      <div class="admin-section-title">Admin tools</div>
+      <div id="adminMsg" class="admin-msg"></div>
 
-            <a href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
-              <div class="tool-title">🎁 Prize Hub</div>
-              <div class="tool-sub">Prize draws and guest entries.</div>
-            </a>
-          </div>
+      <div class="admin-tools-grid">
+        <div class="admin-tile" onclick="adminExport()">
+          <div class="admin-label">⬇ Export Data</div>
+          <div class="admin-sub">Download full backup JSON.</div>
+        </div>
 
-  <div style="margin-top:16px;">
-    <label
-      for="cancelCode"
+        <label class="admin-tile">
+          <input id="adminImportFile"
+                 type="file"
+                 accept="application/json"
+                 style="display:none"
+                 onchange="adminImportFile(event)" />
+          <div class="admin-label">⬆ Import Backup</div>
+          <div class="admin-sub">Restore from a saved JSON file.</div>
+        </label>
 
-          <div class="admin-section-title">Admin tools</div>
-          <div id="adminMsg" class="admin-msg"></div>
+        <div class="admin-tile" onclick="adminClearScanLog()">
+          <div class="admin-label">📋 Clear Scan Log</div>
+          <div class="admin-sub">Reset guest scan history only.</div>
+        </div>
 
-<div class="admin-tools-grid">
-  <div class="admin-tile" onclick="adminExport()">
-    <div class="admin-label">⬇ Export Data</div>
-    <div class="admin-sub">Download full backup JSON.</div>
-  </div>
+        <div class="admin-tile" onclick="adminClearSecurityLog()">
+          <div class="admin-label">🛡 Clear Security Log</div>
+          <div class="admin-sub">Reset IP monitor + invalid/duplicate stats.</div>
+        </div>
 
-  <label class="admin-tile">
-    <input id="adminImportFile"
-           type="file"
-           accept="application/json"
-           style="display:none"
-           onchange="adminImportFile(event)" />
-    <div class="admin-label">⬆ Import Backup</div>
-    <div class="admin-sub">Restore from a saved JSON file.</div>
-  </label>
+        <div class="admin-tile warning" onclick="adminClearAllocationLog()">
+          <div class="admin-label">🧾 Clear Allocation Log</div>
+          <div class="admin-sub">Clears seller ↔ ticket allocation history only.</div>
+        </div>
 
-  <div class="admin-tile warning" onclick="adminClearAllocationLog()">
-    <div class="admin-label">🧾 Clear Allocation Log</div>
-    <div class="admin-sub">Clears seller ↔ ticket allocation history only.</div>
-  </div>
+        <div class="admin-tile warning" onclick="adminClearTestTickets()">
+          <div class="admin-label">🧹 Clear Test Tickets / QR PNGs</div>
+          <div class="admin-sub">Remove TEST tickets and TEST-*.png files.</div>
+        </div>
 
-  <div class="admin-tile danger" onclick="adminClearData()">
-    <div class="admin-label">🧨 Clear ALL Data</div>
-    <div class="admin-sub">Wipes tickets, logs and allocations.</div>
-  </div>
+        <div class="admin-tile danger" onclick="adminClearData()">
+          <div class="admin-label">🧨 Clear ALL Data</div>
+          <div class="admin-sub">Wipes tickets, logs and allocations.</div>
+        </div>
+      </div>
 
-  <!-- NEW: clear guest scan log only -->
-  <div class="admin-tile" onclick="adminClearScanLog()">
-    <div class="admin-label">📋 Clear Scan Log</div>
-    <div class="admin-sub">Reset guest scan history only.</div>
-  </div>
+      <!-- CANCEL TICKET / QR -->
+      <div class="cancel-section">
+        <label for="cancelCode" class="cancel-label">
+          Cancel Ticket / QR Code:
+        </label>
+        <div class="cancel-row">
+          <input
+            id="cancelCode"
+            class="cancel-input"
+            placeholder="e.g. FRESH-001 or FRESH-001.png"
+          />
+          <button
+            type="button"
+            class="cancel-btn"
+            onclick="adminCancelTicket()"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
 
-  <!-- NEW: small security clear button -->
-  <div class="admin-tile" onclick="adminClearSecurityLog()">
-    <div class="admin-label">🛡 Clear Security Log</div>
-    <div class="admin-sub">Reset IP monitor + invalid/duplicate stats.</div>
-  </div>
+      <!-- SMALL BACK BUTTON -->
+      <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" class="bottom-left-link">
+        ← Back to Staff Home
+      </a>
 
-  <div class="admin-tile warning" onclick="adminClearTestTickets()">
-    <div class="admin-label">🧹 Clear Test Tickets / QR PNGs</div>
-    <div class="admin-sub">Remove TEST tickets and TEST-*.png files.</div>
-  </div>
-</div>
+    </div> <!-- card-inner -->
+  </div>   <!-- card -->
 
+  ${themeScript()}
+  <script>
+    // Use URL key if present, otherwise fall back to server-side MANAGEMENT_PIN
+    const params   = new URLSearchParams(window.location.search);
+    const MGMT_KEY = params.get("key") || "${MANAGEMENT_PIN}";
+    const ALLOWED_MANAGERS = ["RAY","SHAWN","NIQUE","CHE"];
 
+    function go(path) {
+      window.location.href = path + "?key=" + encodeURIComponent(MGMT_KEY);
+    }
 
-  <!-- keep your adminMsg + cancel section exactly as you have it -->
-  <div id="adminMsg"
-       style="margin-left:8px;margin-top:8px;color:#fff;font-size:0.9rem;opacity:0.85;">
-  </div>
+    function isManagerName(name) {
+      if (!name) return false;
+      return ALLOWED_MANAGERS.includes(name.trim().toUpperCase());
+    }
 
-  <!-- (your Cancel Ticket / QR Code block stays below this, unchanged) -->
+    function setAdminMsg(text, isError) {
+      const el = document.getElementById("adminMsg");
+      if (!el) return;
+      el.textContent = text;
+      el.style.color = isError ? "#ff8a80" : "#ffffff";
+    }
 
-</div>
+    // EXPORT
+    async function adminExport() {
+      try {
+        const res = await fetch(
+          "/admin/export?key=" + encodeURIComponent(MGMT_KEY)
+        );
+        if (!res.ok) throw new Error("Export failed (" + res.status + ")");
+        const data = await res.json();
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download =
+          "aura-backup-" +
+          new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") +
+          ".json";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        setAdminMsg("Exported current data.");
+      } catch (err) {
+        console.error(err);
+        setAdminMsg("Export error: " + err.message, true);
+      }
+    }
 
+    // IMPORT
+    async function adminImportFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
 
-  <div id="adminMsg"
-       style="margin-left:8px;margin-top:8px;color:#fff;font-size:0.9rem;opacity:0.85;">
-  </div>
+      if (
+        !confirm(
+          'Import data from "' +
+            file.name +
+            '"? This will overwrite current in-memory data.'
+        )
+      ) {
+        event.target.value = "";
+        return;
+      }
 
-  <div style="margin-top:16px;">
-    <label
-      for="cancelCode"
-      style="font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;
-             color:#bbb;display:block;margin-bottom:4px;"
-    >
-      Cancel Ticket / QR Code:
-    </label>
+      try {
+        const text = await file.text();
+        const payload = JSON.parse(text);
 
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-      <input
-        id="cancelCode"
-        placeholder="e.g. FRESH-001 or FRESH-001.png"
-        style="flex:1 1 180px;min-width:0;border-radius:999px;border:1px solid rgba(255,255,255,0.2);
-               padding:8px 12px;background:#140019;color:#fff;"
-      />
-      <button
-        type="button"
-        onclick="adminCancelTicket()"
-        style="border-radius:999px;border:none;padding:8px 16px;background:#ff5252;
-               color:#fff;font-weight:600;cursor:pointer;"
-      >
-        Cancel
-      </button>
-    </div>
-  </div>
+        const res = await fetch(
+          "/admin/import?key=" + encodeURIComponent(MGMT_KEY),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Import failed");
+        }
+        setAdminMsg("Import complete. Refresh the page to see updates.");
+      } catch (err) {
+        console.error(err);
+        setAdminMsg("Import error: " + err.message, true);
+      } finally {
+        event.target.value = "";
+      }
+    }
 
-          <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" class="bottom-left-link">
-            ← Back to Staff Home
-          </a>
-        </div> <!-- card-inner -->
-      </div>   <!-- card -->
+    // CLEAR ALL DATA
+    async function adminClearData() {
+      if (
+        !confirm(
+          "This will CLEAR ALL tickets, logs and allocations from memory. Continue?"
+        )
+      ) {
+        return;
+      }
 
-      ${themeScript()}
-      <script>
+      try {
+        const res = await fetch(
+          "/admin/clear?key=" + encodeURIComponent(MGMT_KEY),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ what: "all" }),
+          }
+        );
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Clear failed");
+        }
+        setAdminMsg("All tickets + logs cleared. Clean system ready.");
+      } catch (err) {
+        console.error(err);
+        setAdminMsg("Clear error: " + err.message, true);
+      }
+    }
 
-        // Pull management key from URL (fallback to hard-coded pin)
-        const params   = new URLSearchParams(window.location.search);
-        const MGMT_KEY = params.get("key") || "${MANAGEMENT_PIN}";
-        const ALLOWED_MANAGERS = ["RAY","SHAWN","NIQUE","CHE"];
+    // CLEAR ONLY TEST TICKETS / TEST-*.PNG
+    async function adminClearTestTickets() {
+      if (
+        !confirm(
+          "Clear ONLY TEST tickets, their TEST-*.png QRs and related logs?"
+        )
+      ) {
+        return;
+      }
 
-        function go(path) {
-          window.location.href = path + "?key=" + encodeURIComponent(MGMT_KEY);
+      try {
+        const res = await fetch(
+          "/admin/clear?key=" + encodeURIComponent(MGMT_KEY),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ what: "testTickets" }),
+          }
+        );
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Clear failed");
+        }
+        setAdminMsg("Test tickets / QR codes cleared.");
+      } catch (err) {
+        console.error(err);
+        setAdminMsg("Clear test error: " + err.message, true);
+      }
+    }
+
+    // CLEAR ALLOCATION LOG ONLY
+    async function adminClearAllocationLog() {
+      if (!confirm("Clear ALL allocation log entries? Tickets stay – only the log is wiped.")) {
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          "/admin/clear-allocation-log?key=" + encodeURIComponent(MGMT_KEY),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({})
+          }
+        );
+
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Unable to clear allocation log");
         }
 
-        function isManagerName(name) {
-          if (!name) return false;
-          return ALLOWED_MANAGERS.includes(name.trim().toUpperCase());
+        setAdminMsg("Allocation log cleared.");
+      } catch (err) {
+        console.error(err);
+        setAdminMsg("Error clearing allocation log: " + err.message, true);
+      }
+    }
+
+    // CLEAR GUEST SCAN LOG ONLY
+    async function adminClearScanLog() {
+      if (!confirm("Clear the Guest Scan Log? This only clears the scan history, tickets stay the same.")) {
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          "/admin/clear-scan-log?key=" + encodeURIComponent(MGMT_KEY),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({})
+          }
+        );
+
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Unable to clear guest scan log");
         }
 
-        function setAdminMsg(text, isError) {
-          const el = document.getElementById("adminMsg");
-          if (!el) return;
-          el.textContent = text;
-          el.style.color = isError ? "#ff8a80" : "#ffffff";
+        setAdminMsg("Guest scan log cleared.");
+      } catch (err) {
+        console.error(err);
+        setAdminMsg("Scan log clear error: " + err.message, true);
+      }
+    }
+
+    // CLEAR SECURITY LOG ONLY
+    async function adminClearSecurityLog() {
+      if (!confirm("Clear SECURITY log (IP + invalid/duplicate stats)?")) {
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          "/admin/clear-security-log?key=" + encodeURIComponent(MGMT_KEY),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({})
+          }
+        );
+
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Unable to clear security log");
         }
 
-        // ⬇ EXPORT BACKUP
-        async function adminExport() {
-          try {
-            const res = await fetch(
-              "/admin/export?key=" + encodeURIComponent(MGMT_KEY)
-            );
-            if (!res.ok) throw new Error("Export failed (" + res.status + ")");
-            const data = await res.json();
+        setAdminMsg(
+          "Security log cleared. The AURA Security Monitor will now show fresh stats."
+        );
+      } catch (err) {
+        console.error(err);
+        setAdminMsg("Security clear error: " + err.message, true);
+      }
+    }
 
-            const blob = new Blob([JSON.stringify(data, null, 2)], {
-              type: "application/json",
-            });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download =
-              "aura-backup-" +
-              new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") +
-              ".json";
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-            setAdminMsg("Exported current data.");
-          } catch (err) {
-            console.error(err);
-            setAdminMsg("Export error: " + err.message, true);
+    // CANCEL SINGLE TICKET
+    async function adminCancelTicket() {
+      const input = document.getElementById("cancelCode");
+      if (!input) return;
+
+      const raw = input.value.trim();
+      if (!raw) {
+        setAdminMsg("Enter a ticket ID or QR filename to cancel.", true);
+        return;
+      }
+
+      const ticketId = raw.toUpperCase().endsWith(".PNG")
+        ? raw.slice(0, -4)
+        : raw;
+
+      try {
+        const res = await fetch(
+          "/admin/cancel-ticket?key=" + encodeURIComponent(MGMT_KEY),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ticketId }),
           }
+        );
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Cancel failed");
         }
+        setAdminMsg("Ticket " + ticketId + " cancelled.");
+        input.value = "";
+      } catch (err) {
+        console.error(err);
+        setAdminMsg("Cancel error: " + err.message, true);
+      }
+    }
 
-        // ⬆ IMPORT BACKUP
-        async function adminImportFile(event) {
-          const file = event.target.files && event.target.files[0];
-          if (!file) return;
+    // INITIALIZE MANAGER NAME
+    (function initManager() {
+      const serverName = ${JSON.stringify(managerName || "")};
+      const qs = new URLSearchParams(window.location.search);
+      const providedName =
+        qs.get("name") ||
+        serverName ||
+        sessionStorage.getItem("staffName") ||
+        "";
+      const managerSpan = document.getElementById("managerName");
+      if (providedName) {
+        managerSpan.textContent = providedName;
+        sessionStorage.setItem("staffName", providedName);
+      } else {
+        managerSpan.textContent = "Restricted";
+      }
+    })();
+  </script>
 
-          if (
-            !confirm(
-              'Import data from "' +
-                file.name +
-                '"? This will overwrite current in-memory data.'
-            )
-          ) {
-            event.target.value = "";
-            return;
-          }
-
-          try {
-            const text = await file.text();
-            const payload = JSON.parse(text);
-
-            const res = await fetch(
-              "/admin/import?key=" + encodeURIComponent(MGMT_KEY),
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-              }
-            );
-            const data = await res.json();
-            if (!res.ok || !data.ok) {
-              throw new Error(data.error || "Import failed");
-            }
-            setAdminMsg("Import complete. Refresh the page to see updates.");
-          } catch (err) {
-            console.error(err);
-            setAdminMsg("Import error: " + err.message, true);
-          } finally {
-            event.target.value = "";
-          }
-        }
-
-        // 🔴 CLEAR **ALL** DATA
-        async function adminClearData() {
-          if (
-            !confirm(
-              "This will CLEAR ALL tickets, logs and allocations from memory. Continue?"
-            )
-          ) {
-            return;
-          }
-
-          try {
-            const res = await fetch(
-              "/admin/clear?key=" + encodeURIComponent(MGMT_KEY),
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ what: "all" }),
-              }
-            );
-            const data = await res.json();
-            if (!res.ok || !data.ok) {
-              throw new Error(data.error || "Clear failed");
-            }
-            setAdminMsg("All tickets + logs cleared. Clean system ready.");
-          } catch (err) {
-            console.error(err);
-            setAdminMsg("Clear error: " + err.message, true);
-          }
-        }
-
-        // 🧹 CLEAR ONLY TEST TICKETS / TEST-*.PNG
-        async function adminClearTestTickets() {
-          if (
-            !confirm(
-              "Clear ONLY TEST tickets, their TEST-*.png QRs and related logs?"
-            )
-          ) {
-            return;
-          }
-
-          try {
-            const res = await fetch(
-              "/admin/clear?key=" + encodeURIComponent(MGMT_KEY),
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ what: "testTickets" }),
-              }
-            );
-            const data = await res.json();
-            if (!res.ok || !data.ok) {
-              throw new Error(data.error || "Clear failed");
-            }
-            setAdminMsg("Test tickets / QR codes cleared.");
-          } catch (err) {
-            console.error(err);
-            setAdminMsg("Clear test error: " + err.message, true);
-          }
-        }
-
-        // 🧾 CLEAR ALLOCATION LOG ONLY
-        async function adminClearAllocationLog() {
-          if (!confirm("Clear ALL allocation log entries? Tickets stay – only the log is wiped.")) {
-            return;
-          }
-
-          try {
-            const res = await fetch(
-              "/admin/clear-allocation-log?key=" + encodeURIComponent(MGMT_KEY),
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({})
-              }
-            );
-
-            const data = await res.json();
-            if (!res.ok || !data.ok) {
-              throw new Error(data.error || "Unable to clear allocation log");
-            }
-
-            setAdminMsg("Allocation log cleared.");
-          } catch (err) {
-            console.error(err);
-            setAdminMsg("Error clearing allocation log: " + err.message, true);
-          }
-        }
-
-        // 📋 CLEAR GUEST SCAN LOG ONLY
-        async function adminClearScanLog() {
-          if (!confirm("Clear the Guest Scan Log? This only clears the scan history, tickets stay the same.")) {
-            return;
-          }
-
-          try {
-            const res = await fetch(
-              "/admin/clear-scan-log?key=" + encodeURIComponent(MGMT_KEY),
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({})
-              }
-            );
-
-            const data = await res.json();
-            if (!res.ok || !data.ok) {
-              throw new Error(data.error || "Unable to clear guest scan log");
-            }
-
-            setAdminMsg("Guest scan log cleared.");
-          } catch (err) {
-            console.error(err);
-            setAdminMsg("Scan log clear error: " + err.message, true);
-          }
-        }
-
-        // 🛡 CLEAR SECURITY LOG ONLY
-        async function adminClearSecurityLog() {
-          if (!confirm("Clear SECURITY log (IP + invalid/duplicate stats)?")) {
-            return;
-          }
-
-          try {
-            const res = await fetch(
-              "/admin/clear-security-log?key=" + encodeURIComponent(MGMT_KEY),
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({})
-              }
-            );
-
-            const data = await res.json();
-            if (!res.ok || !data.ok) {
-              throw new Error(data.error || "Unable to clear security log");
-            }
-
-            setAdminMsg(
-              "Security log cleared. The AURA Security Monitor will now show fresh stats."
-            );
-          } catch (err) {
-            console.error(err);
-            setAdminMsg("Security clear error: " + err.message, true);
-          }
-        }
-
-        // ❌ CANCEL A SINGLE TICKET
-        async function adminCancelTicket() {
-          const input = document.getElementById("cancelCode");
-          if (!input) return;
-
-          const raw = input.value.trim();
-          if (!raw) {
-            setAdminMsg(
-              "Enter a ticket ID or QR filename to cancel.",
-              true
-            );
-            return;
-          }
-
-          // Accept "FRESH-001" or "FRESH-001.png"
-          const ticketId = raw.toUpperCase().endsWith(".PNG")
-            ? raw.slice(0, -4)
-            : raw;
-
-          try {
-            const res = await fetch(
-              "/admin/cancel-ticket?key=" + encodeURIComponent(MGMT_KEY),
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ticketId }),
-              }
-            );
-            const data = await res.json();
-            if (!res.ok || !data.ok) {
-              throw new Error(data.error || "Cancel failed");
-            }
-            setAdminMsg("Ticket " + ticketId + " cancelled.");
-            input.value = "";
-          } catch (err) {
-            console.error(err);
-            setAdminMsg("Cancel error: " + err.message, true);
-          }
-        }
-
-        // 🌟 INITIALIZE MANAGER NAME DISPLAY
-        (function initManager() {
-          const serverName = ${JSON.stringify(managerName || "")};
-          const qs = new URLSearchParams(window.location.search);
-          const providedName =
-            qs.get("name") ||
-            serverName ||
-            sessionStorage.getItem("staffName") ||
-            "";
-          const managerSpan = document.getElementById("managerName");
-          if (providedName) {
-            managerSpan.textContent = providedName;
-            sessionStorage.setItem("staffName", providedName);
-          } else {
-            managerSpan.textContent = "Restricted";
-          }
-        })();
-
-      </script>
-
-    </body>
-    </html>`);
+</body>
+</html>`);
 });
+
 
 app.get("/allocation-hub", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
