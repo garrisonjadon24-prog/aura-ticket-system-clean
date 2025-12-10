@@ -210,193 +210,303 @@ const QR_DIR = path.join(__dirname, "generated_qr");
 app.use("/generated_qr", express.static(QR_DIR));
 
 // ------------------------------------------------------
-// PAGE: List & Download All General QR Codes
+// PAGE: General QR Codes (styled table + back to Management Hub)
 // ------------------------------------------------------
 app.get("/qr-files", (req, res) => {
-  // Management/staff must be logged in
+  // Allow management (mgmt PIN / cookie) or staff PIN from link
   if (!isMgmtAuthorizedReq(req) && req.query.key !== STAFF_PIN) {
     return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
   }
 
-  const files = fs.readdirSync(QR_DIR).filter(f => f.toLowerCase().endsWith(".png"));
-
-  const list = files
-    .map(f => {
-      return `
-        <li style="margin:6px 0;">
-          <a href="/generated_qr/${f}" download style="
-            color:#ffb347;
-            font-weight:600;
-            text-decoration:none;
-          ">
-            ${f}
-          </a>
-        </li>`;
-    })
-    .join("");
-
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>General QR Codes</title>
-      <style>
-        body {
-          background:#050007;
-          color:#fff;
-          font-family:system-ui;
-          padding:20px;
-        }
-        h1 {
-          font-size:1.4rem;
-          margin-bottom:12px;
-          background:linear-gradient(135deg,#ffb347,#ff4b9a);
-          -webkit-background-clip:text;
-          color:transparent;
-        }
-        ul { list-style:none; padding:0; }
-      </style>
-    </head>
-    <body>
-      <h1>General QR Codes</h1>
-      <ul>${list}</ul>
-      <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" style="
-        display:inline-block;
-        margin-top:20px;
-        color:#fff;
-        text-decoration:none;
-      ">← Back</a>
-    </body>
-    </html>
-  `);
-});
-
-// In-memory ticket store: token -> { id, type, status }
-const tickets = new Map();
-
-// Track invalid and duplicate scan attempts
-const scanEvents = {
-  invalid: [],   // tokens that don't exist in tickets map
-  duplicates: [] // tokens scanned multiple times
-};
-
-// Track payment transactions (no currency conversion any more)
-const paymentEvents = {
-  transactions: [] // { ticketId, method, amount, currency, notes, timestamp }
-};
-
-// Track box office sales
-const boxOfficeSales = {
-  prefix: "BOX-",
-  nextNumber: 1,
-  sales: [] // { ticketId, qrPath, timestamp, soldTo, amount }
-};
-
-// Track giveaways / prize draws
-const giveawayEvents = {
-  draws: [] // { prizeId, winnerTicketId, timestamp, prizeDescription }
-};
-
-// Track IP activity and suspicious behavior
-const ipLogging = {
-  events: [], // { ip, token, ticketId, timestamp, status }
-  suspicious: new Map() // { ip: [event1, event2, ...] for IPs with >3 scans/min }
-};
-
-// NEW: Staff activity log (logins, etc.)
-const staffActivityLog = []; // { name, action, ip, timestamp }
-
-// NEW: Guest scan log (for all non-staff scans)
-const guestScanLog = []; // { ticketId, token, ip, timestamp }
-
-// NEW: Guest name entries for prize draw (ONE attempt per ticket)
-const guestNameEntries = []; // { ticketId, token, guestName, guestEmail, guestPhone, ip, timestamp }
-
-// NEW: ticket allocations (which seller has which ticket)
-const ticketAllocations = new Map();
-// ticketId -> { sellerName, sellerPhone, sellerEmail }
-
-// NEW: helper to find a display name for a ticket ID
-function getNameForTicketId(ticketId) {
-  if (!ticketId) return null;
-
-  // NEW: helper to get latest guest info (for logs, mailing list, etc.)
-function getGuestInfoForTicket(ticketId) {
-  if (!ticketId) return null;
-
-  // Walk backwards so we get the most recent entry
-  for (let i = guestNameEntries.length - 1; i >= 0; i--) {
-    const e = guestNameEntries[i];
-    if (e.ticketId === ticketId) {
-      return {
-        name: (e.guestName || "").trim(),
-        email: (e.guestEmail || "").trim(),
-        phone: (e.guestPhone || "").trim(),
-        subscribed: !!e.subscribe,
-        timestamp: e.timestamp || null,
-      };
-    }
-  }
-  return null;
-}
-
-  // 1) Prefer guest prize-draw entries (they typed their name there)
-  for (let i = guestNameEntries.length - 1; i >= 0; i--) {
-    const entry = guestNameEntries[i];
-    if (entry.ticketId === ticketId && entry.guestName && entry.guestName.trim()) {
-      return entry.guestName.trim();
-    }
+  // Collect PNG files with mtime
+  let qrFiles = [];
+  try {
+    const files = fs.readdirSync(QR_DIR).filter(f =>
+      f.toLowerCase().endsWith(".png")
+    );
+    qrFiles = files
+      .map((f) => {
+        const full = path.join(QR_DIR, f);
+        let mtime = null;
+        try {
+          const st = fs.statSync(full);
+          mtime = st.mtimeMs;
+        } catch (e) {}
+        return {
+          name: f,
+          url: "/generated_qr/" + encodeURIComponent(f),
+          mtime,
+        };
+      })
+      .sort((a, b) => (b.mtime || 0) - (a.mtime || 0)); // newest first
+  } catch (err) {
+    console.error("Error reading QR_DIR:", err);
   }
 
-  // 2) Fall back to box office sales "soldTo" name
-  if (boxOfficeSales && Array.isArray(boxOfficeSales.sales)) {
-    for (let i = boxOfficeSales.sales.length - 1; i >= 0; i--) {
-      const sale = boxOfficeSales.sales[i];
-      if (sale.ticketId === ticketId && sale.soldTo && sale.soldTo.trim()) {
-        return sale.soldTo.trim();
+  const key = req.query.key || "";
+
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>General QR Codes — AURA</title>
+  <style>
+    ${themeCSSRoot()}
+
+    body {
+      margin:0;
+      padding:16px;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      background:#050007;
+      color:#f5f5f5;
+    }
+
+    .page {
+      max-width:1100px;
+      margin:0 auto;
+    }
+
+    h1 {
+      margin:0 0 4px;
+      font-size:20px;
+      background:linear-gradient(120deg,#ff9800,#ffb74d);
+      -webkit-background-clip:text;
+      color:transparent;
+    }
+
+    .subtitle {
+      margin:0 0 16px;
+      font-size:12px;
+      color:#aaa;
+    }
+
+    .top-links {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-bottom:14px;
+    }
+
+    .pill-link, .pill-btn {
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:11px;
+      border:1px solid rgba(255,152,0,0.7);
+      cursor:pointer;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:0.09em;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      background:rgba(0,0,0,0.55);
+      color:#f5f5f5;
+    }
+    .pill-link:hover, .pill-btn:hover {
+      background:rgba(255,255,255,0.08);
+    }
+
+    .pill-btn.danger {
+      border-color:rgba(244,67,54,0.9);
+      color:#ffcdd2;
+    }
+
+    .card {
+      margin-top:4px;
+      border-radius:18px;
+      background:rgba(10,0,20,0.95);
+      border:1px solid rgba(255,255,255,0.06);
+      padding:12px;
+      box-shadow:0 18px 40px rgba(0,0,0,0.9);
+    }
+
+    .table-wrap {
+      overflow-x:auto;
+    }
+
+    table {
+      width:100%;
+      border-collapse:collapse;
+      font-size:11px;
+    }
+
+    th, td {
+      padding:7px 6px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      text-align:left;
+      vertical-align:middle;
+    }
+
+    th {
+      font-size:10px;
+      text-transform:uppercase;
+      letter-spacing:0.09em;
+      color:#ffe0b2;
+    }
+
+    .thumb {
+      width:52px;
+      height:52px;
+      object-fit:contain;
+      border-radius:10px;
+      background:#000;
+      border:1px solid rgba(255,255,255,0.08);
+    }
+
+    .filename {
+      font-family:Menlo,Consolas,monospace;
+      font-size:11px;
+    }
+
+    .badge-small {
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:9px;
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+      background:rgba(255,152,0,0.15);
+      border:1px solid rgba(255,152,0,0.6);
+      color:#ffcc80;
+    }
+
+    #emptyMsg {
+      margin:8px 0 0;
+      font-size:11px;
+      color:#bbb;
+      display:none;
+    }
+
+    @media (max-width:720px) {
+      table { font-size:10px; }
+      th,td { padding:5px 4px; }
+      .thumb { width:44px; height:44px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>General QR Codes</h1>
+    <p class="subtitle">
+      All generated QR PNGs for AURA tickets. Tap a row to open the image or use it for printing.
+    </p>
+
+    <div class="top-links">
+      <!-- 🔙 Styled back to Management Hub -->
+      <a class="pill-link" href="/management-hub?key=${encodeURIComponent(key)}">
+        ← Back to Management Hub
+      </a>
+
+      <!-- Optional: Staff home link -->
+      <a class="pill-link" href="/staff?key=${encodeURIComponent(STAFF_PIN)}">
+        🧾 Staff Home
+      </a>
+
+      <!-- Small admin clear button (uses existing /admin/clear-qr-files route) -->
+      <button type="button" class="pill-btn danger" onclick="clearQrPngs()">
+        🧹 Clear All QR PNG Files
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table id="qrTable">
+          <thead>
+            <tr>
+              <th>Preview</th>
+              <th>Ticket ID</th>
+              <th>File Name</th>
+              <th>Last Modified</th>
+              <th>Open</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p id="emptyMsg">
+        No QR PNG files found in the QR folder yet.
+      </p>
+    </div>
+  </div>
+
+  ${themeScript()}
+
+  <script>
+    const files = ${JSON.stringify(qrFiles)};
+    const MGMT_KEY = new URLSearchParams(window.location.search).get("key") || "${MANAGEMENT_PIN}";
+
+    function renderTable() {
+      const tbody = document.querySelector("#qrTable tbody");
+      const emptyMsg = document.getElementById("emptyMsg");
+
+      if (!files || !files.length) {
+        emptyMsg.style.display = "block";
+        return;
+      }
+
+      files.forEach((f) => {
+        const tr = document.createElement("tr");
+
+        const ticketId = f.name.toUpperCase().endsWith(".PNG")
+          ? f.name.slice(0, -4)
+          : f.name;
+
+        const when = f.mtime
+          ? new Date(f.mtime).toLocaleString()
+          : "";
+
+        tr.innerHTML = \`
+          <td><img class="thumb" src="\${f.url}" alt="QR"></td>
+          <td><span class="badge-small">\${ticketId}</span></td>
+          <td class="filename">\${f.name}</td>
+          <td>\${when}</td>
+          <td>
+            <a href="\${f.url}" target="_blank" style="font-size:11px;color:#ffcc80;text-decoration:none;">
+              Open ↗
+            </a>
+          </td>
+        \`;
+
+        // clicking the row (not the "Open" link) also opens the PNG
+        tr.addEventListener("click", (ev) => {
+          if (ev.target.tagName.toLowerCase() === "a") return;
+          window.open(f.url, "_blank");
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function clearQrPngs() {
+      if (!confirm("Clear ALL QR PNG image files from the QR folder?")) return;
+
+      try {
+        const res = await fetch(
+          "/admin/clear-qr-files?key=" + encodeURIComponent(MGMT_KEY),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}),
+          }
+        );
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          throw new Error(data.error || "Unable to clear QR files");
+        }
+        alert("QR PNG files cleared. Refresh to see an empty list.");
+        location.reload();
+      } catch (err) {
+        console.error(err);
+        alert("Error clearing QR files: " + err.message);
       }
     }
-  }
 
-  // Nothing found
-  return null;
-}
-
-
-// Helper function to extract client IP
-function getClientIP(req) {
-  return (
-    req.headers["x-forwarded-for"]?.split(",")[0].trim() ||
-    req.headers["x-real-ip"] ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    "unknown"
-  );
-}
-
-// Helper function to check for suspicious activity (>3 scans per minute from same IP)
-function checkSuspiciousActivity(ip) {
-  const now = Date.now();
-  const oneMinuteAgo = now - 60000; // 1 minute in ms
-
-  // Count scans from this IP in the last minute
-  const recentScans = ipLogging.events.filter(
-    (e) => e.ip === ip && e.timestamp > oneMinuteAgo
-  );
-
-  return recentScans.length > 3; // Suspicious if more than 3 scans/minute
-}
-
-// Ensure QR directory exists
-if (!fs.existsSync(QR_DIR)) {
-  fs.mkdirSync(QR_DIR, { recursive: true });
-}
-
-// Serve anything in /public if we add files later (icons, manifest, audio, etc.)
-app.use(express.static(path.join(__dirname, "public")));
-app.use(express.json()); // Parse JSON request bodies for POST endpoints
+    renderTable();
+  </script>
+</body>
+</html>`);
+});
 
 // ------------------------------------------------------
 // ADMIN: Clear generated QR PNG files
@@ -7561,12 +7671,12 @@ app.get("/management-hub", (req, res) => {
       font-size:0.76rem;
       color:#ffffff;
     }
-    .admin-tools-grid {
-      margin-top:8px;
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-      gap:8px;
-    }
+   .admin-tools-grid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;   /* increased spacing */
+}
     .admin-tile {
       padding:7px 10px;                 /* smaller padding */
       border-radius:12px;               /* slightly smaller radius */
