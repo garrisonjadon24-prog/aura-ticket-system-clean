@@ -6,7 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const QRCode = require("qrcode");
-
+ 
 // ======================================================
 // 🔥 GLOBAL IN-MEMORY DATA STORES (MUST BE AT TOP)
 // ======================================================
