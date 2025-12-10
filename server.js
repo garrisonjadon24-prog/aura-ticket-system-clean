@@ -2846,6 +2846,14 @@ if (staff !== "1") {
       const ticketId = "${record.id}";
       const IG_URL = "${INSTAGRAM_URL}";
 
+// Grab elements
+const nameInput   = document.getElementById('guestNameInput');
+const emailInput  = document.getElementById('guestEmailInput');
+const phoneInput  = document.getElementById('guestPhoneInput');
+const submitBtn   = document.getElementById('submitNameBtn');
+const successMsg  = document.getElementById('successMsg');
+const visitIgBtn  = document.getElementById('visitIgBtn');
+
       const audio = document.createElement('audio');
       audio.id = 'bgAudio';
       audio.src = '/aura-welcome.mp3';
