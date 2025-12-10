@@ -2619,348 +2619,287 @@ if (staff !== "1") {
   const statusColor = record.status === "used" ? "#ff9500" : "#34c759";
 
   return res.send(`
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Welcome to A.U.R.A</title>
-    <style>
-      :root {
-        --pink: #ff4081;
-        --red: #ff1744;
-        --gold: #ffb300;
-        --bg: #050007;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-        background: radial-gradient(circle at top left, rgba(255,64,129,0.25), transparent 55%),
-                    radial-gradient(circle at bottom right, rgba(255,23,68,0.35), transparent 55%),
-                    var(--bg);
-        color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        text-align: center;
-      }
-      .card {
-        background: rgba(10,0,14,0.75);
-        backdrop-filter: blur(12px);
-        padding: 28px 24px;
-        max-width: 360px;
-        border-radius: 20px;
-        box-shadow: 0 0 25px rgba(255,64,129,0.3);
-        animation: fadeIn 1.2s ease-out;
-        margin: 0 auto;
-      }
-      .status-alert {
-        background: linear-gradient(135deg, ${statusColor}30, ${statusColor}10);
-        border: 2px solid ${statusColor};
-        padding: 16px 12px;
-        border-radius: 12px;
-        margin-bottom: 16px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        color: ${statusColor};
-        letter-spacing: 0.05em;
-      }
-      h1 {
-        font-size: 1.6rem;
-        background: linear-gradient(120deg, var(--gold), var(--pink), var(--red));
-        -webkit-background-clip: text;
-        color: transparent;
-        margin-bottom: 10px;
-      }
-      p {
-        font-size: 1rem;
-        color: #eee;
-        line-height: 1.5rem;
-        margin-bottom: 16px;
-      }
-      .heart {
-        font-size: 2.2rem;
-        animation: pulse 1.4s infinite;
-      }
-      @keyframes pulse {
-        0% { transform: scale(1); opacity: 0.8; }
-        50% { transform: scale(1.3); opacity: 1; }
-        100% { transform: scale(1); opacity: 0.8; }
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to   { opacity: 1; transform: translateY(0); }
-      }
-      .note {
-        margin-top: 14px;
-        font-size: 0.8rem;
-        color: #bbb;
-      }
-      .prize-section {
-        margin-top: 20px;
-        padding-top: 16px;
-        border-top: 1px solid rgba(255,64,129,0.3);
-      }
-      .prize-title {
-        font-size: 0.95rem;
-        font-weight: 700;
-        color: #ffb300;
-        margin-bottom: 10px;
-      }
-      #guestNameInput,
-      #guestEmailInput,
-      #guestPhoneInput {
-        width: 100%;
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid rgba(255,64,129,0.5);
-        background: rgba(0,0,0,0.3);
-        color: #fff;
-        font-size: 0.95rem;
-        outline: none;
-        margin-bottom: 6px;
-      }
-      #guestNameInput:focus,
-      #guestEmailInput:focus,
-      #guestPhoneInput:focus {
-        border-color: #ffb300;
-        box-shadow: 0 0 12px rgba(255,179,0,0.4);
-      }
-      #submitNameBtn {
-        margin-top: 8px;
-        width: 100%;
-        padding: 10px;
-        border-radius: 8px;
-        border: none;
-        background: linear-gradient(135deg, #ffb300, #ff9800);
-        color: #000;
-        font-weight: 700;
-        font-size: 0.9rem;
-        cursor: pointer;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-      #submitNameBtn:hover {
-        filter: brightness(1.1);
-      }
-      #submitNameBtn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      .entry-success {
-        display: none;
-        margin-top: 8px;
-        padding: 10px;
-        background: rgba(76,175,80,0.2);
-        border: 1px solid #4caf50;
-        border-radius: 8px;
-        color: #4caf50;
-        font-size: 0.9rem;
-        text-align: center;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <div class="heart">❤️ ♠️</div>
-      <div class="status-alert">${statusEmoji} TICKET ${ticketStatus}</div>
-      <h1>Welcome to ✨ A.U.R.A By PoP ✨</h1>
-      <div class="content">
-        <p>🎉 You're officially on deck! A night of euphoria awaits as Hearts rise and Spades take control.</p>
-        <p>You are now part of A.U.R.A — Alluring. Unforgettable. Romantic. Affair.</p>
-        <p>Thank you for choosing to spend your night with us. Your presence adds to the magic — and we can't wait to make this moment unforgettable.</p>
-        <p style="font-weight:700; margin-top:6px;">Feb 13 — See You There!</p>
-      </div>
-      <button id="visitIGBtn" 
-        onclick="goToIG()" 
-        style="
-          margin-top:20px;
-          padding:14px 22px;
-          background:#ff1f6d;
-          border:none;
-          border-radius:12px;
-          color:white;
-          font-size:1rem;
-          font-weight:700;
-          cursor:pointer;
-          width:100%;
-          max-width:260px;
-          box-shadow:0 4px 12px rgba(0,0,0,0.3);
-        ">
-  Visit IG Page ❤️🖤
-</button>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Welcome to A.U.R.A</title>
 
+  <style>
+    :root {
+      --pink: #ff4081;
+      --red: #ff1744;
+      --gold: #ffb300;
+      --bg: #050007;
+    }
 
-<div class="prize-section">
-  <div class="prize-title">🎁 Mystery Prize Entry</div>
-  <p style="font-size:0.85rem; color:#ccc; margin:0 0 8px;">
-    Enter your details for a chance to win an exclusive mystery prize! (One entry per ticket)
-  </p>
-  <input type="text" id="guestNameInput" placeholder="Enter your name" maxlength="50" />
-  <input type="email" id="guestEmailInput" placeholder="Enter your email" maxlength="80" />
-  <input type="tel" id="guestPhoneInput" placeholder="Enter your cell number" maxlength="20" />
-  <button id="submitNameBtn">Submit for Prize Draw</button>
-  <div class="field checkbox-field">
-  <label style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;line-height:1.3;">
-    <input type="checkbox"
-           id="subscribeOptIn"
-           style="margin-top:3px;">
-    <span>
-      I’d like to join the A.U.R.A / POP mailing list and receive updates
-      about future events and special offers.
-    </span>
-  </label>
-</div>
+    * { box-sizing: border-box; }
 
-  <div class="entry-success" id="successMsg" style="display:none;">
-    ✅ You're entered! Good luck!
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top left, rgba(255,64,129,0.25), transparent 55%),
+                  radial-gradient(circle at bottom right, rgba(255,23,68,0.35), transparent 55%),
+                  var(--bg);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    .card {
+      background: rgba(10,0,14,0.75);
+      backdrop-filter: blur(12px);
+      padding: 24px 20px 28px;
+      width: 100%;
+      max-width: 380px;
+      border-radius: 20px;
+      box-shadow: 0 0 25px rgba(255,64,129,0.3);
+      animation: fadeIn 1.2s ease-out;
+      margin-top: 16px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ❤️♠️ Animated heart + spade */
+    .heart {
+      font-size: 2.6rem;
+      margin-bottom: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top, rgba(255,64,129,0.25), transparent 60%);
+      box-shadow:
+        0 0 18px rgba(255,64,129,0.8),
+        0 0 30px rgba(0,0,0,0.8);
+      animation: pulse 1.4s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%   { transform: scale(1); opacity: 0.9; }
+      40%  { transform: scale(1.15); opacity: 1; }
+      70%  { transform: scale(0.97); opacity: 0.96; }
+      100% { transform: scale(1); opacity: 0.9; }
+    }
+
+    .status-alert {
+      background: linear-gradient(135deg, ${statusColor}30, ${statusColor}10);
+      border: 2px solid ${statusColor};
+      padding: 16px 12px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: ${statusColor};
+      letter-spacing: 0.05em;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      background: linear-gradient(120deg, var(--gold), var(--pink), var(--red));
+      -webkit-background-clip: text;
+      color: transparent;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1rem;
+      color: #eee;
+      line-height: 1.5rem;
+      margin-bottom: 16px;
+    }
+
+    /* Prize section */
+    .prize-section {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,64,129,0.3);
+    }
+
+    .prize-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #ffb300;
+      margin-bottom: 10px;
+    }
+
+    /* Input fields */
+    #guestNameInput,
+    #guestEmailInput,
+    #guestPhoneInput {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,64,129,0.5);
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      margin-bottom: 6px;
+    }
+
+    #guestNameInput:focus,
+    #guestEmailInput:focus,
+    #guestPhoneInput:focus {
+      border-color: #ffb300;
+      box-shadow: 0 0 12px rgba(255,179,0,0.4);
+    }
+
+    /* Submit button */
+    #submitNameBtn {
+      margin-top: 8px;
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(135deg, #ffb300, #ff9800);
+      color: #000;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    #submitNameBtn:hover {
+      filter: brightness(1.1);
+    }
+
+    #submitNameBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .entry-success {
+      display: none;
+      margin-top: 8px;
+      padding: 10px;
+      background: rgba(76,175,80,0.2);
+      border: 1px solid #4caf50;
+      border-radius: 8px;
+      color: #4caf50;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="card">
+
+    <div class="heart">❤️ ♠️</div>
+
+    <div class="status-alert">${statusEmoji} TICKET ${ticketStatus}</div>
+
+    <h1>Welcome to ✨ A.U.R.A By PoP ✨</h1>
+
+    <p>🎉 You're officially on deck! A night of euphoria awaits as Hearts rise and Spades take control.</p>
+    <p>You are now part of A.U.R.A — Alluring. Unforgettable. Romantic. Affair.</p>
+    <p>Thank you for choosing to spend your night with us. Your presence adds to the magic — and we can't wait to make this moment unforgettable.</p>
+
+    <p style="font-weight:700; margin-top:6px;">Feb 13 — See You There!</p>
+
+    <!-- PRIZE SECTION -->
+    <div class="prize-section">
+      <div class="prize-title">🎁 Mystery Prize Entry</div>
+
+      <p style="font-size:0.85rem; color:#ccc; margin:0 0 8px;">
+        Enter your details for a chance to win an exclusive mystery prize! (One entry per ticket)
+      </p>
+
+      <input type="text" id="guestNameInput" placeholder="Enter your name" maxlength="50" />
+      <input type="email" id="guestEmailInput" placeholder="Enter your email" maxlength="80" />
+      <input type="tel" id="guestPhoneInput" placeholder="Enter your cell number" maxlength="20" />
+
+      <button id="submitNameBtn">Submit for Prize Draw</button>
+
+      <label style="display:flex;align-items:flex-start;gap:8px;font-size:0.8rem;line-height:1.3;margin-top:8px;">
+        <input type="checkbox" id="subscribeOptIn" style="margin-top:3px;">
+        <span>I’d like to join the A.U.R.A / POP mailing list and receive updates about future events.</span>
+      </label>
+
+      <div class="entry-success" id="successMsg">✅ You're entered! Good luck!</div>
+
+      <button
+        id="visitIgBtn"
+        type="button"
+        style="margin-top:12px;padding:8px 14px;border-radius:6px;background:#ff2e6a;color:white;font-size:0.85rem;border:none;cursor:pointer;"
+      >
+        Visit Our Instagram ❤️🖤
+      </button>
+    </div>
+
   </div>
 
-  <!-- Small Instagram button under the success message -->
-  <button
-    id="visitIgBtn"
-    type="button"
-    style="
-      margin-top:12px;
-      padding:8px 14px;
-      border-radius:6px;
-      background:#ff2e6a;
-      color:white;
-      font-size:0.85rem;
-      border:none;
-      cursor:pointer;
-    "
-  >
-    Visit Our Instagram ❤️🖤
-  </button>
-</div>
-
-
 <script>
-      const ticketToken = "${token}";
-      const ticketId = "${record.id}";
-      const IG_URL = "${INSTAGRAM_URL}";
+  const ticketToken = "${token}";
+  const ticketId    = "${record.id}";
+  const IG_URL      = "${INSTAGRAM_URL}";
 
-      const audio = document.createElement('audio');
-      audio.id = 'bgAudio';
-      audio.src = '/aura-welcome.mp3';
-      audio.preload = 'auto';
-      audio.loop = false;
-      audio.autoplay = true;
-      audio.playsInline = true;
-      audio.setAttribute('playsinline', '');
-      audio.setAttribute('webkit-playsinline', '');
-      audio.volume = 0.9;
-      document.body.appendChild(audio);
+  /* 🔊 Autoplay welcome audio */
+  const audio = new Audio('/aura-welcome.mp3');
+  audio.volume = 0.9;
+  audio.play().catch(err => console.warn("Autoplay blocked:", err));
 
-      const overlay = document.createElement('div');
-      overlay.id = 'playOverlay';
-      overlay.style = 'position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:9999; pointer-events:auto; background: rgba(0,0,0,0.18);';
+  /* BUTTONS + PRIZE ENTRY */
+  const nameInput   = document.getElementById('guestNameInput');
+  const emailInput  = document.getElementById('guestEmailInput');
+  const phoneInput  = document.getElementById('guestPhoneInput');
+  const submitBtn   = document.getElementById('submitNameBtn');
+  const successMsg  = document.getElementById('successMsg');
+  const visitIgBtn  = document.getElementById('visitIgBtn');
 
-      const playBtn = document.createElement('button');
-      playBtn.textContent = 'Tap to play audio';
-      playBtn.style = 'pointer-events:auto; padding:12px 18px; border-radius:12px; border:none; background:linear-gradient(120deg,#ff4081,#ff1744); color:#fff; font-weight:700; font-size:1rem; box-shadow:0 8px 20px rgba(0,0,0,0.6);';
-      playBtn.addEventListener('click', async () => {
-        try {
-          audio.muted = false;
-          await audio.play();
-          playBtn.style.display = 'none';
-          overlay.style.display = 'none';
-        } catch (err) { console.warn('Playback failed on user play:', err); }
-      });
+  visitIgBtn.addEventListener('click', () => goToIG());
 
-      overlay.appendChild(playBtn);
-      document.body.appendChild(overlay);
+  submitBtn.addEventListener('click', async () => {
+    const guestName  = nameInput.value.trim();
+    const guestEmail = emailInput.value.trim();
+    const guestPhone = phoneInput.value.trim();
+    const subscribe  = document.getElementById('subscribeOptIn').checked;
 
-      audio.muted = true;
-      audio.play().then(() => {
-        audio.muted = false;
-        audio.play().catch(() => {});
-      }).catch(() => {});
+    if (!guestName || !guestEmail || !guestPhone) {
+      alert("Please fill out all fields");
+      return;
+    }
 
-      // PRIZE ENTRY SUBMISSION
-      const nameInput   = document.getElementById('guestNameInput');
-      const emailInput  = document.getElementById('guestEmailInput');
-      const phoneInput  = document.getElementById('guestPhoneInput');
-      const submitBtn   = document.getElementById('submitNameBtn');
-      const successMsg  = document.getElementById('successMsg');
-      const visitIgBtn  = document.getElementById('visitIgBtn');
-
-      // Click on the IG button at any time
-      visitIgBtn.addEventListener('click', () => {
-        window.location.href = IG_URL;
-      });
-
-      submitBtn.addEventListener('click', async () => {
-  const guestName  = nameInput.value.trim();
-  const guestEmail = emailInput.value.trim();
-  const guestPhone = phoneInput.value.trim();
-  const subscribeOptIn = !!document.getElementById('subscribeOptIn')?.checked;  // 👈 NEW
-
-  if (!guestName) {
-    alert('Please enter your name');
-    return;
-  }
-  if (!guestEmail || !guestPhone) {
-    alert('Please enter your email and cell number');
-    return;
-  }
-
-  try {
-    const response = await fetch('/api/guest-name-entry', {
+    const res = await fetch('/api/guest-name-entry', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ticketId: ticketId,
-        token: ticketToken,
-        guestName,
-        guestEmail,
-        guestPhone,
-        subscribe: subscribeOptIn                               // 👈 NEW
-      })
+      body: JSON.stringify({ ticketId, token: ticketToken, guestName, guestEmail, guestPhone, subscribe })
     });
 
-    const data = await response.json();
-    ...
+    const data = await res.json();
 
+    if (data.success) {
+      nameInput.disabled = true;
+      emailInput.disabled = true;
+      phoneInput.disabled = true;
+      submitBtn.disabled = true;
+      successMsg.style.display = "block";
 
-          if (data.success) {
-            // Lock the fields + show success
-            nameInput.disabled   = true;
-            emailInput.disabled  = true;
-            phoneInput.disabled  = true;
-            submitBtn.disabled   = true;
-            successMsg.style.display = 'block';
-
-// SUCCESS: Show welcome screen + hide form
-document.getElementById("scanFormContainer").style.display = "none";
-document.getElementById("welcomeContainer").style.display = "block";
-document.getElementById("mysteryPrizeSuccess").style.display = "block";
-
-// NOW redirect immediately because the guest pressed SUBMIT
-window.location.href = IG_URL;
-
-
-          } else {
-            alert(data.error || 'Error submitting entry');
-          }
-      } catch (err) {
-        console.error('Error:', err);
-        alert('Failed to submit entry');
-      }
-    });
-
-    // ⭐⭐ ROOT-LEVEL FUNCTION — Correct Spot ⭐⭐
-    function goToIG() {
-      window.location.href = IG_URL;
+      setTimeout(() => goToIG(), 2000);
+    } else {
+      alert(data.error || "Submission error");
     }
-  </script>
+  });
 
-  </body>
-  </html>
+  function goToIG() {
+    window.location.href = IG_URL;
+  }
+</script>
+
+</body>
+</html>
   `);
 });
 
