@@ -4261,8 +4261,6 @@ app.get("/live-analytics", (req, res) => {
 
 
 
-
-
         .status {
           padding:2px 8px;
           border-radius:999px;
@@ -4280,6 +4278,16 @@ app.get("/live-analytics", (req, res) => {
           background:rgba(255,193,7,0.2);
           color:#ffc107;
         }
+
+           /* Prevent scan table from expanding too wide */
+#scanTable {
+  max-width: 420px;
+}
+
+/* Keep the two tables visually balanced */
+.card {
+  overflow-x: auto;
+}
       </style>
     </head>
     <body>
@@ -4359,15 +4367,6 @@ app.get("/live-analytics", (req, res) => {
           <div class="refresh-hint">Updates every 3 seconds</div>
         </div>
 
-        /* Prevent scan table from expanding too wide */
-#scanTable {
-  max-width: 420px;
-}
-
-/* Keep the two tables visually balanced */
-.card {
-  overflow-x: auto;
-}
 
 <div class="footer-row">
   <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-small">
