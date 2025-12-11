@@ -420,7 +420,7 @@ app.get("/qr-files", (req, res) => {
 </head>
 <body>
   <div class="page">
-    <h1>General QR Codes</h1>
+    <h1>QR Code Files</h1>
     <p class="subtitle">
       All generated QR PNGs for AURA tickets. Tap a row to open the image or use it for printing.
     </p>
@@ -7873,7 +7873,7 @@ app.get("/management-hub", (req, res) => {
 
         <a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
           <div class="tool-title">📘 Log Hub</div>
-          <div class="tool-sub">Staff log, scan log, mailing list, cancelled tickets.</div>
+          <div class="tool-sub">Staff log, guest scan log, mailing list, cancelled tickets.</div>
         </a>
 
         <a href="/prize-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="tool-card">
@@ -9873,12 +9873,281 @@ app.get("/subscriber-log", (req, res) => {
   </html>`);
 });
 
-// Alias so /mailing-list from Log Hub goes to the Subscriber Log page
+
+// MAILING LIST LOG (All guest entries used for prize draws & outreach)
 app.get("/mailing-list", (req, res) => {
-  const key = req.query.key || "";
-  const redirectUrl =
-    "/subscriber-log" + (key ? ("?key=" + encodeURIComponent(key)) : "");
-  return res.redirect(redirectUrl);
+  if (!isMgmtAuthorizedReq(req)) {
+    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
+  }
+
+  res.send(`<!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mailing List Log – AURA</title>
+    <style>
+      ${themeCSSRoot()}
+
+      body {
+        margin:0;
+        padding:16px;
+        font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+        background:#050007;
+        color:#f5f5f5;
+        display:flex;
+        justify-content:center;
+        min-height:100vh;
+      }
+
+      .wrap {
+        width:100%;
+        max-width:860px;
+      }
+
+      h1 {
+        margin:0 0 4px;
+        font-size:1.4rem;
+        background:linear-gradient(120deg,#ffb300,#ff4081,#ff1744);
+        -webkit-background-clip:text;
+        color:transparent;
+      }
+
+      .subtitle {
+        font-size:0.86rem;
+        color:#bbb;
+        margin-bottom:12px;
+      }
+
+      .stats-row {
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-bottom:10px;
+      }
+
+      .stat-card {
+        flex:1 1 140px;
+        padding:8px 10px;
+        border-radius:14px;
+        background:radial-gradient(circle at top,#260020,#050007 70%);
+        border:1px solid rgba(255,255,255,0.15);
+        font-size:0.8rem;
+      }
+
+      .stat-label {
+        text-transform:uppercase;
+        letter-spacing:0.09em;
+        font-size:0.7rem;
+        color:#aaa;
+        margin-bottom:3px;
+      }
+
+      .stat-value {
+        font-size:1.3rem;
+        font-weight:700;
+        color:#ffb300;
+      }
+
+      .stat-note {
+        font-size:0.75rem;
+        color:#ccc;
+        margin-top:2px;
+      }
+
+      .card {
+        margin-top:4px;
+        border-radius:18px;
+        padding:14px 12px 16px;
+        background:radial-gradient(circle at top,#260020,#050007 70%);
+        box-shadow:
+          0 0 0 1px rgba(255,64,129,0.25),
+          0 18px 45px rgba(0,0,0,0.9);
+      }
+
+      table {
+        width:100%;
+        border-collapse:collapse;
+        font-size:0.8rem;
+      }
+
+      th, td {
+        padding:7px 6px;
+        border-bottom:1px solid rgba(255,255,255,0.08);
+        text-align:left;
+      }
+
+      th {
+        text-transform:uppercase;
+        letter-spacing:0.08em;
+        font-size:0.72rem;
+        color:#bbb;
+      }
+
+      .empty {
+        text-align:center;
+        padding:10px 0;
+        color:#888;
+        font-size:0.82rem;
+      }
+
+      .back-row {
+        margin-top:14px;
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+      }
+
+      .btn-back {
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:7px 14px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,0.25);
+        text-decoration:none;
+        font-size:0.78rem;
+        letter-spacing:0.08em;
+        text-transform:uppercase;
+        color:#fff;
+        background:rgba(0,0,0,0.4);
+      }
+
+      .btn-back:hover {
+        background:rgba(255,255,255,0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Mailing List Log</h1>
+      <div class="subtitle">
+        All guest entries used for prize draws & outreach
+        (subscribed + not subscribed).
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total Entries</div>
+          <div class="stat-value" id="statTotalEntries">0</div>
+          <div class="stat-note">Total prize-draw / guest form submissions.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Unique Tickets</div>
+          <div class="stat-value" id="statUniqueTickets">0</div>
+          <div class="stat-note">Tickets with at least one entry.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Subscribers</div>
+          <div class="stat-value" id="statSubscribers">0</div>
+          <div class="stat-note">Entries where subscribe was ticked.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Ticket</th>
+              <th>Subscribed</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="mlBody">
+            <tr><td colspan="6" class="empty">Loading mailing list…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="back-row">
+        <a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+          ← Back to Log Hub
+        </a>
+        <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+          ← Back to Management Hub
+        </a>
+      </div>
+    </div>
+
+    ${themeScript()}
+    <script>
+      const MANAGEMENT_PIN = "${MANAGEMENT_PIN}";
+
+      function formatDate(ts) {
+        if (!ts) return "--";
+        try {
+          return new Date(ts).toLocaleString();
+        } catch (e) {
+          return ts;
+        }
+      }
+
+      async function loadMailingList() {
+        const bodyEl      = document.getElementById("mlBody");
+        const totalEl     = document.getElementById("statTotalEntries");
+        const uniqueEl    = document.getElementById("statUniqueTickets");
+        const subsEl      = document.getElementById("statSubscribers");
+
+        try {
+          const res = await fetch("/api/guest-prize-entries?key=" + encodeURIComponent(MANAGEMENT_PIN));
+          const data = await res.json();
+
+          let entries = (data && data.entries) || [];
+
+          // Sort newest first (if timestamp present)
+          entries = entries.slice().sort((a,b) => {
+            const ta = a.timestamp || 0;
+            const tb = b.timestamp || 0;
+            return (tb || 0) - (ta || 0);
+          });
+
+          const totalEntries = entries.length;
+          const ticketSet = new Set();
+          let subscriberCount = 0;
+
+          entries.forEach(e => {
+            if (e.ticketId) ticketSet.add(e.ticketId);
+            if (e.subscribe) subscriberCount++;
+          });
+
+          if (totalEl)  totalEl.textContent  = totalEntries;
+          if (uniqueEl) uniqueEl.textContent = ticketSet.size;
+          if (subsEl)   subsEl.textContent   = subscriberCount;
+
+          if (!entries.length) {
+            bodyEl.innerHTML =
+              '<tr><td colspan="6" class="empty">No guest entries yet.</td></tr>';
+            return;
+          }
+
+          bodyEl.innerHTML = entries.map(e => {
+            const subscribedText = e.subscribe ? "yes" : "no";
+            return (
+              "<tr>" +
+                "<td>" + (e.guestName  || "") + "</td>" +
+                "<td>" + (e.guestEmail || "") + "</td>" +
+                "<td>" + (e.gestPhone || e.guestPhone || "") + "</td>" +
+                "<td>" + (e.ticketId   || "") + "</td>" +
+                "<td>" + subscribedText + "</td>" +
+                "<td style=\\"font-size:0.78rem;\\">" + formatDate(e.timestamp) + "</td>" +
+              "</tr>"
+            );
+          }).join("");
+        } catch (err) {
+          console.error(err);
+          bodyEl.innerHTML =
+            '<tr><td colspan="6" class="empty">Error loading mailing list: ' +
+            (err.message || "Unknown error") + '</td></tr>';
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", loadMailingList);
+    </script>
+  </body>
+  </html>`);
 });
 
 
