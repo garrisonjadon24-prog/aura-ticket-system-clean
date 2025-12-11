@@ -4317,6 +4317,15 @@ app.get("/live-analytics", (req, res) => {
     </div>
   </div>
 
+/* Prevent scan table from expanding too wide */
+#scanTable {
+  max-width: 420px;
+}
+
+/* Keep the two tables visually balanced */
+.card {
+  overflow-x: auto;
+}
 
         <div class="card">
           <h2 style="margin-top:0;font-size:1.1rem;">Breakdown by Ticket Type</h2>
@@ -4350,10 +4359,22 @@ app.get("/live-analytics", (req, res) => {
           <div class="refresh-hint">Updates every 3 seconds</div>
         </div>
 
-        <a href="/management-hub?key=${encodeURIComponent(
-          MANAGEMENT_PIN
-        )}" class="back-btn">← Back to Management Hub</a>
-      </div>
+        /* Prevent scan table from expanding too wide */
+#scanTable {
+  max-width: 420px;
+}
+
+/* Keep the two tables visually balanced */
+.card {
+  overflow-x: auto;
+}
+
+<div class="footer-row">
+  <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-small">
+    ← Back to Management Hub
+  </a>
+</div>
+
 
       ${themeScript()}
       <script>
