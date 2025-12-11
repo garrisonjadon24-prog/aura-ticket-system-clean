@@ -3470,8 +3470,10 @@ app.get("/api/guest-prize-entries", (req, res) => {
     ticketId:   e.ticketId   || "",
     token:      e.token      || "",
     ip:         e.ip         || "",
+    subscribe:  !!e.subscribe,
     timestamp:  e.timestamp  || ""
   }));
+
 
   const totalEntries = entries.length;
   const uniqueTickets = new Set(
@@ -4224,18 +4226,24 @@ app.get("/live-analytics", (req, res) => {
           font-size:0.8rem;
           color:#888;
         }
-        .back-btn {
-          display:inline-block;
-          margin-top:18px;
-          padding:8px 16px;
+               .back-btn {
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+          padding:7px 14px;
           border-radius:999px;
-          border:1px solid rgba(255,255,255,0.2);
+          border:1px solid rgba(255,255,255,0.22);
           text-decoration:none;
-          color:#fff;
-          font-size:0.85rem;
+          font-size:0.8rem;
           letter-spacing:0.08em;
           text-transform:uppercase;
+          color:#f5f5f5;
+          background:rgba(0,0,0,0.45);
         }
+        .back-btn:hover {
+          background:rgba(255,255,255,0.08);
+        }
+
         .status {
           padding:2px 8px;
           border-radius:999px;
@@ -6718,6 +6726,26 @@ app.get("/security", (req, res) => {
         color:#ffb300;
       }
 
+              .back-staff-btn {
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+          padding:6px 12px;
+          border-radius:999px;
+          border:1px solid rgba(255,255,255,0.25);
+          font-size:0.75rem;
+          letter-spacing:0.08em;
+          text-transform:uppercase;
+          color:#fff;
+          background:rgba(255,255,255,0.04);
+          text-decoration:none;
+          margin-top:16px;
+        }
+        .back-staff-btn:hover {
+          background:rgba(255,255,255,0.08);
+        }
+
+
       .back-link span {
         text-decoration:underline;
       }
@@ -6788,7 +6816,7 @@ app.get("/security", (req, res) => {
         </div>
 
         <div class="section-title" style="margin-top:14px;">Recent Scans (Last 50)</div>
-        <div class="table-wrap">
+                <div class="table-wrap">
           <table>
             <thead>
               <tr>
@@ -6803,6 +6831,11 @@ app.get("/security", (req, res) => {
             </tbody>
           </table>
         </div>
+
+        <!-- NEW: Back to Staff Home button -->
+        <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" class="back-staff-btn">
+          ← Back to Staff Home
+        </a>
       </div>
     </div>
 
@@ -6810,6 +6843,7 @@ app.get("/security", (req, res) => {
   </body>
   </html>`);
 });
+
 
 app.get("/staff-scanner", (req, res) => {
   const { key } = req.query;
@@ -7742,13 +7776,32 @@ app.get("/management-hub", (req, res) => {
 
 /* Fix Admin Tool Buttons */
 .admin-tool-box {
-  width: 100%;
-  max-width: 420px;     /* both boxes become same width */
-  padding: 16px;
-  border-radius: 16px;
-  margin-bottom: 18px;  /* spacing between buttons */
-  box-sizing: border-box;
+  /* Make these boxes match the size/vibe of .admin-tile */
+  padding: 7px 10px;
+  border-radius: 12px;
+  background: radial-gradient(circle at top,#1c0022,#050008 70%);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 7px 16px rgba(0,0,0,0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 60px;
+  margin-bottom: 10px;
 }
+
+/* Make the text inside look like other admin tiles */
+.admin-tool-box strong {
+  display: block;
+  font-size: 0.76rem;
+  margin-bottom: 2px;
+}
+
+.admin-tool-box p {
+  margin: 0;
+  font-size: 0.72rem;
+  opacity: 0.9;
+}
+
 
 /* Red "Clear ALL Data" Button */
 .admin-danger {
@@ -8296,172 +8349,150 @@ app.get("/allocation-hub", (req, res) => {
 </html>`);
 });
 
-// ------------------------------------------------------
-// LOGS HUB  (Staff log, scan log, mailing list, cancelled)
-// ------------------------------------------------------
+// LOGS HUB – Staff / Guest logs overview
 app.get("/logs-hub", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
-    return res.redirect("/?error=mgmt");
+    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
   }
 
-  const { key } = req.query;
-
   res.send(`<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Log Hub — AURA</title>
-  <style>
-    ${themeCSSRoot()}
+  <html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Log Hub</title>
+    <style>
+      ${themeCSSRoot()}
 
-    * { box-sizing: border-box; }
+      body {
+        margin:0;
+        padding:18px;
+        font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+        background:#050007;
+        color:#f5f5f5;
+        display:flex;
+        justify-content:center;
+        min-height:100vh;
+      }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(33,150,243,0.35), transparent 55%),
-        radial-gradient(circle at bottom right, rgba(156,39,176,0.35), transparent 55%),
-        var(--bg-dark);
-      color: var(--text-main);
-    }
+      .shell {
+        width:100%;
+        max-width:760px;
+      }
 
-    .card {
-      width: 100%;
-      max-width: 720px;
-      background: radial-gradient(circle at top, #120020, #050007 60%);
-      border-radius: 24px;
-      padding: 22px 22px 20px;
-      box-shadow:
-        0 0 0 1px rgba(100,181,246,0.5),
-        0 20px 50px rgba(0,0,0,0.9);
-    }
+      h1 {
+        margin:0 0 4px;
+        font-size:1.5rem;
+        background:linear-gradient(120deg,#ffb300,#ff4081,#ff1744);
+        -webkit-background-clip:text;
+        color:transparent;
+      }
 
-    h1 {
-      margin: 0 0 4px;
-      font-size: 1.35rem;
-      background: linear-gradient(120deg,#64b5f6,#ba68c8);
-      -webkit-background-clip: text;
-      color: transparent;
-    }
+      .subtitle {
+        font-size:0.9rem;
+        color:#aaa;
+        margin-bottom:16px;
+      }
 
-    .subtitle {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      margin-bottom: 18px;
-    }
+      .grid {
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+        gap:12px;
+      }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
-      gap: 12px;
-    }
+      .log-tile {
+        display:block;
+        padding:12px 14px;
+        border-radius:16px;
+        text-decoration:none;
+        background:radial-gradient(circle at top,#1c0022,#050008 70%);
+        border:1px solid rgba(255,255,255,0.16);
+        color:#f7ecff;
+        box-shadow:0 10px 26px rgba(0,0,0,0.85);
+        transition:transform 0.18s ease,box-shadow 0.18s ease,border-color 0.18s ease;
+      }
 
-    .tile {
-      padding: 14px 14px 12px;
-      border-radius: 18px;
-      background: rgba(0,0,0,0.55);
-      border: 1px solid rgba(100,181,246,0.35);
-      cursor: pointer;
-      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
-    }
+      .log-tile:hover {
+        transform:translateY(-2px);
+        box-shadow:0 16px 32px rgba(0,0,0,0.95);
+        border-color:rgba(255,64,129,0.65);
+      }
 
-    .tile:hover {
-      transform: translateY(-1px);
-      border-color: rgba(186,104,200,0.75);
-      box-shadow: 0 14px 30px rgba(0,0,0,0.7);
-    }
+      .log-title {
+        font-size:0.9rem;
+        font-weight:700;
+        margin-bottom:4px;
+      }
 
-    .tile-label {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
+      .log-sub {
+        font-size:0.78rem;
+        color:#ddd;
+      }
 
-    .tile-sub {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
+      .back-btn {
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        margin-top:16px;
+        padding:7px 14px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,0.25);
+        font-size:0.8rem;
+        letter-spacing:0.08em;
+        text-transform:uppercase;
+        text-decoration:none;
+        color:#fff;
+        background:rgba(0,0,0,0.4);
+      }
 
-    .bottom-links {
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      margin-top:16px;
-    }
-
-    .btn-back {
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:7px 14px;
-      border-radius:999px;
-      border:1px solid rgba(100,181,246,0.7);
-      text-decoration:none;
-      font-size:0.8rem;
-      letter-spacing:0.08em;
-      text-transform:uppercase;
-      color:#f5f5f5;
-      background:rgba(0,0,0,0.55);
-    }
-    .btn-back:hover {
-      background:rgba(255,255,255,0.08);
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>📘 Log Hub</h1>
-    <div class="subtitle">
-      Staff activity, guest scan history, mailing list, and cancelled tickets in one place.
-    </div>
-
-    <div class="grid">
-      <div class="tile" onclick="go('/staff-log')">
-        <div class="tile-label">👥 Staff Activity Log</div>
-        <div class="tile-sub">Logins and management actions.</div>
+      .back-btn:hover {
+        background:rgba(255,255,255,0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <h1>Log Hub</h1>
+      <div class="subtitle">
+        Quick access to staff, scan, mailing list, subscriber and cancellation logs.
       </div>
 
-      <div class="tile" onclick="go('/guest-scan-log')">
-        <div class="tile-label">📋 Guest Scan Log</div>
-        <div class="tile-sub">Timeline of all non-staff scans.</div>
+      <div class="grid">
+        <a href="/staff-log?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="log-tile">
+          <div class="log-title">👤 Staff Activity Log</div>
+          <div class="log-sub">See management / staff actions and sign-ins.</div>
+        </a>
+
+        <a href="/scan-log?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="log-tile">
+          <div class="log-title">🎟 Scan Log</div>
+          <div class="log-sub">Door scans of tickets (valid/invalid/duplicate).</div>
+        </a>
+
+        <a href="/mailing-list?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="log-tile">
+          <div class="log-title">📧 Mailing List Log</div>
+          <div class="log-sub">All guest entries used for prize draws & outreach.</div>
+        </a>
+
+        <!-- 🔹 NEW: Subscriber Log button (same size/style) -->
+        <a href="/subscriber-log?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="log-tile">
+          <div class="log-title">⭐ Subscriber Log</div>
+          <div class="log-sub">Guests who ticked “subscribe” + summary stats.</div>
+        </a>
+
+        <a href="/cancelled-tickets?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="log-tile">
+          <div class="log-title">🚫 Cancelled Tickets</div>
+          <div class="log-sub">Tickets cancelled by management + timestamps.</div>
+        </a>
       </div>
 
-      <div class="tile" onclick="go('/subscriber-log')">
-        <div class="tile-label">📧 Mailing List</div>
-        <div class="tile-sub">Guests who opted into email / SMS.</div>
-      </div>
-
-      <div class="tile" onclick="go('/cancelled-tickets-log')">
-        <div class="tile-label">⛔ Cancelled Tickets</div>
-        <div class="tile-sub">Tickets cancelled via admin tools.</div>
-      </div>
-    </div>
-
-    <div class="bottom-links">
-      <a class="btn-back" href="/management-hub?key=${encodeURIComponent(key || "")}">
+      <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-btn">
         ← Back to Management Hub
       </a>
     </div>
-  </div>
 
-  ${themeScript()}
-  <script>
-    const params   = new URLSearchParams(window.location.search);
-    const MGMT_KEY = params.get("key") || "";
-
-    function go(path) {
-      const url = path + '?key=' + encodeURIComponent(MGMT_KEY);
-      window.location.href = url;
-    }
-  </script>
-</body>
-</html>`);
+    ${themeScript()}
+  </body>
+  </html>`);
 });
 
 
@@ -9568,176 +9599,273 @@ function getGuestInfoForTicket(ticketId) {
   return null;
 }
 
-// ------------------------------------------------------
-// SUBSCRIBER LOG (Mailing list)
-// ------------------------------------------------------
+// SUBSCRIBER LOG (Mailing list) — AURA
 app.get("/subscriber-log", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
-    return res.status(403).send("Unauthorized");
+    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
   }
 
-  const { key } = req.query;
-
   res.send(`<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mailing List — AURA</title>
-  <style>
-    ${themeCSSRoot()}
-    body {
-      margin:0;
-      padding:16px;
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
-      background:#050007;
-      color:#f5f5f5;
-    }
-    .page {
-      max-width:1100px;
-      margin:0 auto;
-    }
-    h1 {
-      margin:0 0 4px;
-      font-size:20px;
-      background: linear-gradient(120deg,#64b5f6,#ba68c8);
-      -webkit-background-clip:text;
-      color:transparent;
-    }
-    .subtitle {
-      margin:0 0 16px;
-      font-size:12px;
-      color:#aaa;
-    }
-    .top-links {
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-bottom:14px;
-    }
-    .pill-link, .pill-btn {
-      border-radius:999px;
-      padding:6px 12px;
-      font-size:11px;
-      border:none;
-      cursor:pointer;
-      text-decoration:none;
-      text-transform:uppercase;
-      letter-spacing:0.09em;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-    }
-    .pill-link {
-      background:rgba(0,0,0,0.55);
-      border:1px solid rgba(100,181,246,0.7);
-      color:#f5f5f5;
-    }
-    .pill-link:hover {
-      background:rgba(255,255,255,0.08);
-    }
-    .pill-btn {
-      background:linear-gradient(135deg,#64b5f6,#ba68c8);
-      color:#050007;
-    }
+  <html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Subscriber Log – AURA</title>
+    <style>
+      ${themeCSSRoot()}
 
-    .section {
-      margin-top:18px;
-      border-radius:14px;
-      background:rgba(10,0,20,0.9);
-      border:1px solid rgba(255,255,255,0.05);
-      padding:12px;
-    }
-    table {
-      width:100%;
-      border-collapse:collapse;
-      font-size:11px;
-    }
-    th, td {
-      padding:6px 5px;
-      border-bottom:1px solid rgba(255,255,255,0.06);
-      text-align:left;
-    }
-    th {
-      font-size:10px;
-      text-transform:uppercase;
-      letter-spacing:0.09em;
-      color:#bbdefb;
-    }
-    @media (max-width:720px) {
-      table { font-size:10px; }
-      th,td { padding:4px 3px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <h1>📧 Mailing List / Opt-ins</h1>
-    <p class="subtitle">
-      Guests who submitted their details via prize entry. Use the button below to download a CSV.
-    </p>
-
-    <div class="top-links">
-      <a class="pill-link" href="/logs-hub?key=${encodeURIComponent(key || "")}">⬅ Back to Log Hub</a>
-      <a class="pill-link" href="/management-hub?key=${encodeURIComponent(key || "")}">🏠 Management Hub</a>
-      <a class="pill-btn" href="/admin/export-mailing-list?key=${encodeURIComponent(key || "")}">
-        ⬇ Export Mailing List CSV
-      </a>
-    </div>
-
-    <div class="section">
-      <table id="subsTable">
-        <thead>
-          <tr>
-            <th>Ticket ID</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Subscribed</th>
-            <th>Captured At</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-
-  ${themeScript()}
-  <script>
-    const MGMT_KEY = ${JSON.stringify(req.query.key || "")};
-
-    async function loadSubs() {
-      try {
-        // if you already have an API, switch URL here
-        const res = await fetch("/api/guest-entries?key=" + encodeURIComponent(MGMT_KEY));
-        const data = await res.json();
-        if (!data.ok || !Array.isArray(data.entries)) return;
-
-        const tbody = document.querySelector("#subsTable tbody");
-        tbody.innerHTML = "";
-
-        data.entries.forEach(e => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = \`
-            <td>\${e.ticketId || ""}</td>
-            <td>\${e.guestName || ""}</td>
-            <td>\${e.guestEmail || ""}</td>
-            <td>\${e.guestPhone || ""}</td>
-            <td>\${e.subscribe ? "yes" : "no"}</td>
-            <td>\${e.timestamp ? new Date(e.timestamp).toLocaleString() : ""}</td>
-          \`;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error("Failed to load mailing list:", err);
+      body {
+        margin:0;
+        padding:16px;
+        font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+        background:#050007;
+        color:#f5f5f5;
+        display:flex;
+        justify-content:center;
+        min-height:100vh;
       }
-    }
 
-    loadSubs();
-  </script>
-</body>
-</html>`);
+      .wrap {
+        width:100%;
+        max-width:720px;
+      }
+
+      h1 {
+        margin:0 0 4px;
+        font-size:1.4rem;
+        background:linear-gradient(120deg,#ffb300,#ff4081,#ff1744);
+        -webkit-background-clip:text;
+        color:transparent;
+      }
+
+      .subtitle {
+        font-size:0.86rem;
+        color:#bbb;
+        margin-bottom:12px;
+      }
+
+      .stats-row {
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-bottom:10px;
+      }
+
+      .stat-card {
+        flex:1 1 140px;
+        padding:8px 10px;
+        border-radius:14px;
+        background:radial-gradient(circle at top,#260020,#050007 70%);
+        border:1px solid rgba(255,255,255,0.15);
+        font-size:0.8rem;
+      }
+
+      .stat-label {
+        text-transform:uppercase;
+        letter-spacing:0.09em;
+        font-size:0.7rem;
+        color:#aaa;
+        margin-bottom:3px;
+      }
+
+      .stat-value {
+        font-size:1.3rem;
+        font-weight:700;
+        color:#ffb300;
+      }
+
+      .stat-note {
+        font-size:0.75rem;
+        color:#ccc;
+        margin-top:2px;
+      }
+
+      .card {
+        margin-top:4px;
+        border-radius:18px;
+        padding:14px 12px 16px;
+        background:radial-gradient(circle at top,#260020,#050007 70%);
+        box-shadow:
+          0 0 0 1px rgba(255,64,129,0.25),
+          0 18px 45px rgba(0,0,0,0.9);
+      }
+
+      table {
+        width:100%;
+        border-collapse:collapse;
+        font-size:0.8rem;
+      }
+
+      th, td {
+        padding:7px 6px;
+        border-bottom:1px solid rgba(255,255,255,0.08);
+        text-align:left;
+      }
+
+      th {
+        text-transform:uppercase;
+        letter-spacing:0.08em;
+        font-size:0.72rem;
+        color:#bbb;
+      }
+
+      .empty {
+        text-align:center;
+        padding:10px 0;
+        color:#888;
+        font-size:0.82rem;
+      }
+
+      .back-row {
+        margin-top:14px;
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+      }
+
+      .btn-back {
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        padding:7px 14px;
+        border-radius:999px;
+        border:1px solid rgba(255,255,255,0.25);
+        text-decoration:none;
+        font-size:0.78rem;
+        letter-spacing:0.08em;
+        text-transform:uppercase;
+        color:#fff;
+        background:rgba(0,0,0,0.4);
+      }
+
+      .btn-back:hover {
+        background:rgba(255,255,255,0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Subscriber Log</h1>
+      <div class="subtitle">
+        Guests who ticked the <strong>subscribe</strong> box on the mystery-prize form.
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Total Subscribers</div>
+          <div class="stat-value" id="statSubscribed">0</div>
+          <div class="stat-note">Unique tickets with mailing-list opt-in.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Tickets Not Subscribed</div>
+          <div class="stat-value" id="statNotSubscribed">0</div>
+          <div class="stat-note">Tickets with entries but no subscribe.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Ticket</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="subBody">
+            <tr><td colspan="5" class="empty">Loading subscribers…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="back-row">
+        <a href="/logs-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+          ← Back to Log Hub
+        </a>
+        <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="btn-back">
+          ← Back to Management Hub
+        </a>
+      </div>
+    </div>
+
+    ${themeScript()}
+    <script>
+      const MANAGEMENT_PIN = "${MANAGEMENT_PIN}";
+
+      function formatDate(ts) {
+        if (!ts) return "--";
+        try {
+          return new Date(ts).toLocaleString();
+        } catch (e) {
+          return ts;
+        }
+      }
+
+      async function loadSubscribers() {
+        const body = document.getElementById("subBody");
+        const subEl = document.getElementById("statSubscribed");
+        const notSubEl = document.getElementById("statNotSubscribed");
+
+        try {
+          const res = await fetch("/api/guest-prize-entries?key=" + encodeURIComponent(MANAGEMENT_PIN));
+          const data = await res.json();
+
+          const entries = (data && data.entries) || [];
+
+          const allTicketIds = new Set();
+          const subscribedTicketIds = new Set();
+          const subs = [];
+
+          entries.forEach(e => {
+            if (e.ticketId) {
+              allTicketIds.add(e.ticketId);
+            }
+            if (e.subscribe) {
+              subs.push(e);
+              if (e.ticketId) {
+                subscribedTicketIds.add(e.ticketId);
+              }
+            }
+          });
+
+          const subscribedCount = subscribedTicketIds.size;
+          const nonSubscribedCount = Math.max(allTicketIds.size - subscribedCount, 0);
+
+          if (subEl) subEl.textContent = subscribedCount;
+          if (notSubEl) notSubEl.textContent = nonSubscribedCount;
+
+          if (!subs.length) {
+            body.innerHTML = '<tr><td colspan="5" class="empty">No subscribers yet.</td></tr>';
+            return;
+          }
+
+          body.innerHTML = subs.map(e => {
+            return (
+              "<tr>" +
+                "<td>" + (e.guestName  || "") + "</td>" +
+                "<td>" + (e.guestEmail || "") + "</td>" +
+                "<td>" + (e.guestPhone || "") + "</td>" +
+                "<td>" + (e.ticketId   || "") + "</td>" +
+                "<td style=\\"font-size:0.78rem;\\">" + formatDate(e.timestamp) + "</td>" +
+              "</tr>"
+            );
+          }).join("");
+        } catch (err) {
+          console.error(err);
+          body.innerHTML =
+            '<tr><td colspan="5" class="empty">Error loading subscribers: ' +
+            (err.message || "Unknown error") + '</td></tr>';
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", loadSubscribers);
+    </script>
+  </body>
+  </html>`);
 });
+
 
 
 // ------------------------------------------------------
