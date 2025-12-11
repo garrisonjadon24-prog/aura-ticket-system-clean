@@ -4235,25 +4235,30 @@ app.get("/live-analytics", (req, res) => {
           justify-content:flex-start;
         }
 
-                .back-btn {
-          display:inline-flex;
-          align-items:center;
-          gap:6px;
-          margin-top:16px;
-          padding:7px 14px;
-          border-radius:999px;
-          border:1px solid rgba(255,255,255,0.25);
-          text-decoration:none;
-          font-size:0.78rem;
-          letter-spacing:0.08em;
-          text-transform:uppercase;
-          color:#fff;
-          background:rgba(255,255,255,0.04);
-        }
+          .back-small {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.22);
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  font-size:0.75rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  text-decoration:none;
+  box-shadow:0 0 12px rgba(0,0,0,0.35) inset,
+             0 4px 12px rgba(0,0,0,0.35);
+  transition:background 0.15s ease, box-shadow 0.15s ease;
+}
 
-        .back-btn:hover {
-          background:rgba(255,255,255,0.08);
-        }
+.back-small:hover {
+  background:rgba(255,255,255,0.12);
+  box-shadow:0 0 14px rgba(0,0,0,0.45) inset,
+             0 5px 14px rgba(0,0,0,0.45);
+}
+
 
 
 
@@ -4859,7 +4864,7 @@ app.get("/dashboard", (req, res) => {
 
         <div class="footer-row">
   <!-- any “last updated” text here -->
-  <a class="back-btn" href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}">
+<a class="back-small" href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}">
     ← Back to Management Hub
   </a>
 </div>
@@ -5903,25 +5908,30 @@ app.get("/box-office", (req, res) => {
           text-transform:uppercase;
           letter-spacing:0.08em;
           color:#bbb;
-                .back-btn {
-          display:inline-flex;
-          align-items:center;
-          gap:6px;
-          margin-top:16px;
-          padding:7px 14px;
-          border-radius:999px;
-          border:1px solid rgba(255,255,255,0.25);
-          text-decoration:none;
-          font-size:0.78rem;
-          letter-spacing:0.08em;
-          text-transform:uppercase;
-          color:#fff;
-          background:rgba(255,255,255,0.04);
-        }
+           .back-small {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.22);
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  font-size:0.75rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  text-decoration:none;
+  box-shadow:0 0 12px rgba(0,0,0,0.35) inset,
+             0 4px 12px rgba(0,0,0,0.35);
+  transition:background 0.15s ease, box-shadow 0.15s ease;
+}
 
-        .back-btn:hover {
-          background:rgba(255,255,255,0.08);
-        }
+.back-small:hover {
+  background:rgba(255,255,255,0.12);
+  box-shadow:0 0 14px rgba(0,0,0,0.45) inset,
+             0 5px 14px rgba(0,0,0,0.45);
+}
+
 
         .toast {
           position:fixed;
@@ -6851,7 +6861,8 @@ app.get("/security", (req, res) => {
           </table>
         </div>
 
-<a class="back-btn" href="/staff?key=${encodeURIComponent(STAFF_PIN)}">
+<a class="back-small" href="/staff?key=${encodeURIComponent(STAFF_PIN)}">
+
   ← Back to Staff Home
 </a>
 
@@ -7771,25 +7782,30 @@ app.get("/management-hub", (req, res) => {
       cursor:pointer;
     }
 
-    /* SMALL BACK BUTTON – under cancel section */
-    .bottom-left-link {
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:6px 12px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,0.25);
-      font-size:0.75rem;
-      letter-spacing:0.08em;
-      text-transform:uppercase;
-      color:#fff;
-      background:rgba(255,255,255,0.04);
-      text-decoration:none;
-      margin-top:14px;
-    }
-    .bottom-left-link:hover {
-      background:rgba(255,255,255,0.08);
-    }
+.back-small {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.22);
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  font-size:0.75rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  text-decoration:none;
+  box-shadow:0 0 12px rgba(0,0,0,0.35) inset,
+             0 4px 12px rgba(0,0,0,0.35);
+  transition:background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.back-small:hover {
+  background:rgba(255,255,255,0.12);
+  box-shadow:0 0 14px rgba(0,0,0,0.45) inset,
+             0 5px 14px rgba(0,0,0,0.45);
+}
+
 
 /* Fix Admin Tool Buttons */
 .admin-tool-box {
@@ -7963,7 +7979,7 @@ app.get("/management-hub", (req, res) => {
       </div>
 
       <!-- SMALL BACK BUTTON – under cancel section -->
-      <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" class="bottom-left-link">
+      <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" class="back-small">
         ← Back to Staff Home
       </a>
 
