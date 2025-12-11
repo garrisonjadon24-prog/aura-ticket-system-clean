@@ -4236,23 +4236,23 @@ app.get("/live-analytics", (req, res) => {
         }
 
         .back-btn {
-          display:inline-flex;
-          align-items:center;
-          gap:6px;
-          padding:7px 14px;
-          border-radius:999px;
-          border:1px solid rgba(255,193,7,0.7);
-          text-decoration:none;
-          font-size:0.8rem;
-          letter-spacing:0.08em;
-          text-transform:uppercase;
-          color:#f5f5f5;
-          background:rgba(0,0,0,0.55);
-        }
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:5px 10px;              /* smaller */
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,0.25);
+  font-size:0.72rem;             /* smaller text */
+  letter-spacing:0.07em;
+  text-decoration:none;
+  text-transform:uppercase;
+  background:rgba(255,255,255,0.05);
+  color:#fff;
+}
+.back-btn:hover {
+  background:rgba(255,255,255,0.12);
+}
 
-        .back-btn:hover {
-          background:rgba(255,255,255,0.08);
-        }
 
 
         .status {
@@ -4854,11 +4854,12 @@ app.get("/dashboard", (req, res) => {
           </div>
         </div>
 
-        <div class="footer-row">
-          <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-btn">
-            ← Back to Management Hub
-          </a>
-        </div>
+        <div class="footer-row" style="margin-top:20px; display:flex; justify-content:center;">
+  <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-btn">
+    ← Back to Management Hub
+  </a>
+</div>
+
 
         ${themeScript()}
       </body>
@@ -6838,12 +6839,10 @@ app.get("/security", (req, res) => {
           </table>
         </div>
 
-        <!-- NEW: Back to Staff Home button -->
-        <a href="/staff?key=${encodeURIComponent(STAFF_PIN)}" class="back-staff-btn">
-          ← Back to Staff Home
-        </a>
-      </div>
-    </div>
+<a class="back-btn" href="/staff?key=${encodeURIComponent(STAFF_PIN)}">
+  ← Back to Staff Home
+</a>
+
 
     ${themeScript()}
   </body>
