@@ -242,7 +242,6 @@ function isMgmtAuthorizedReq(req) {
 // Folder where QR images are saved
 const QR_DIR = path.join(__dirname, "generated_qr");
 app.use("/generated_qr", express.static(QR_DIR));
-
 // ------------------------------------------------------
 // PAGE: General QR Codes (styled table + back to Management Hub)
 // ------------------------------------------------------
@@ -562,11 +561,6 @@ app.post("/admin/clear-qr-files", (req, res) => {
     console.error("Error clearing QR files:", err);
     return res.status(500).json({ ok: false, error: "Server error" });
   }
-});
-
-  }
-
-  res.json({ ok: true, allocations: items });
 });
 
 // ------------------------------------------------------
@@ -9939,116 +9933,6 @@ app.get("/guest-scan-log", (req, res) => {
   ${themeScript()}
 </body>
 </html>`);
-});
-
-
-// ------------------------------------------------------
-// ROUTE: QR FILES PAGE (VIEW + DOWNLOAD ALL PNG QR CODES)
-// ------------------------------------------------------
-app.get("/qr-files", (req, res) => {
-  if (!isMgmtAuthorizedReq(req)) {
-    return res.redirect("/staff?key=" + encodeURIComponent(STAFF_PIN));
-  }
-
-  let files = [];
-  try {
-    files = fs.readdirSync(QR_DIR)
-      .filter(f => f.toLowerCase().endsWith(".png"))
-      .sort();
-  } catch (err) {
-    console.error("QR-FILES ERROR:", err);
-  }
-
-  const listHTML = files
-    .map(f => `
-      <tr>
-        <td>${f}</td>
-        <td>
-          <a href="/generated_qr/${f}" download class="dl-btn">
-            ⬇ Download
-          </a>
-        </td>
-      </tr>
-    `)
-    .join("");
-
-  res.send(`<!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>QR Files</title>
-    <style>
-      ${themeCSSRoot()}
-      body {
-        margin:0;
-        padding:16px;
-        background:#050007;
-        color:#fff;
-        font-family:system-ui;
-      }
-      .card {
-        max-width:900px;
-        margin:auto;
-        padding:20px;
-        background:radial-gradient(circle at top,#260020,#050007 65%);
-        border-radius:20px;
-        box-shadow:0 0 0 1px rgba(255,64,129,0.35),0 20px 60px rgba(0,0,0,0.85);
-      }
-      table {
-        width:100%;
-        border-collapse:collapse;
-      }
-      th, td {
-        padding:8px;
-        border-bottom:1px solid rgba(255,255,255,0.15);
-      }
-      th {
-        color:#ffb347;
-        text-transform:uppercase;
-        font-size:0.75rem;
-        letter-spacing:0.1em;
-      }
-      .dl-btn {
-        color:#ffb347;
-        text-decoration:none;
-        font-weight:600;
-      }
-      .back-btn {
-        display:inline-block;
-        margin-top:16px;
-        padding:8px 14px;
-        border-radius:999px;
-        border:1px solid rgba(255,255,255,0.3);
-        text-decoration:none;
-        text-transform:uppercase;
-        letter-spacing:0.1em;
-        color:#fff;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <h1>📁 QR Files</h1>
-      <p>Download all generated QR PNGs.</p>
-
-      <table>
-        <thead>
-          <tr>
-            <th>File</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${listHTML}
-        </tbody>
-      </table>
-
-      <a class="back-btn" href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}">
-        ← Back to Management Hub
-      </a>
-    </div>
-  </body>
-  </html>`);
 });
 
 // ------------------------------------------------------
