@@ -4226,23 +4226,34 @@ app.get("/live-analytics", (req, res) => {
           font-size:0.8rem;
           color:#888;
         }
-               .back-btn {
+                 .footer-row {
+          margin-top:18px;
+          display:flex;
+          flex-wrap:wrap;
+          gap:10px;
+          align-items:center;
+          justify-content:flex-start;
+        }
+
+        .back-btn {
           display:inline-flex;
           align-items:center;
           gap:6px;
           padding:7px 14px;
           border-radius:999px;
-          border:1px solid rgba(255,255,255,0.22);
+          border:1px solid rgba(255,193,7,0.7);
           text-decoration:none;
           font-size:0.8rem;
           letter-spacing:0.08em;
           text-transform:uppercase;
           color:#f5f5f5;
-          background:rgba(0,0,0,0.45);
+          background:rgba(0,0,0,0.55);
         }
+
         .back-btn:hover {
           background:rgba(255,255,255,0.08);
         }
+
 
         .status {
           padding:2px 8px;
@@ -4847,17 +4858,12 @@ app.get("/dashboard", (req, res) => {
           <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-btn">
             ← Back to Management Hub
           </a>
-          <div class="link-row">
-            Also see:
-            <a href="/live-analytics?key=${encodeURIComponent(MANAGEMENT_PIN)}">Live Analytics</a>
-
         </div>
-      </div>
 
-      ${themeScript()}
-    </body>
-    </html>`);
-});
+        ${themeScript()}
+      </body>
+      </html>`);
+  });
 
 // ------------------------------------------------------
 // ALLOCATIONS + APIs (kept same logic, no style changes)
@@ -7917,17 +7923,11 @@ app.get("/management-hub", (req, res) => {
           <div class="admin-sub">Remove TEST tickets and TEST-*.png files.</div>
         </div>
 
-<div class="admin-tool-box admin-danger">
-  <strong>🧨  Clear ALL Data</strong>
-  <p>Wipes tickets, logs and allocations.</p>
+<div class="tool-card tool-red" onclick="adminClearData()">
+  <div class="tool-title">🧨 Clear ALL Data</div>
+  <div class="tool-desc">Wipes tickets, logs and allocations.</div>
 </div>
 
-<div class="admin-tool-box admin-warning">
-  <strong>🧹 Clear ALL QR PNG Files</strong>
-  <p>Deletes every QR PNG + removes entries from QR log.</p>
-</div>
-
-    
 
 
       <!-- CANCEL TICKET / QR -->
@@ -8655,7 +8655,7 @@ app.get("/prize-hub", (req, res) => {
 });
 
 
-
+// CANCELLED TICKETS LOG PAGE
 app.get("/cancelled-tickets-log", (req, res) => {
   if (!isMgmtAuthorizedReq(req)) {
     return res.status(403).send("Unauthorized");
@@ -8839,6 +8839,14 @@ app.get("/cancelled-tickets-log", (req, res) => {
   </script>
 </body>
 </html>`);
+});
+
+// Alias so /cancelled-tickets from Log Hub goes to the log page
+app.get("/cancelled-tickets", (req, res) => {
+  const key = req.query.key || "";
+  const redirectUrl =
+    "/cancelled-tickets-log" + (key ? ("?key=" + encodeURIComponent(key)) : "");
+  return res.redirect(redirectUrl);
 });
 
 // ------------------------------------------------------
@@ -9866,6 +9874,14 @@ app.get("/subscriber-log", (req, res) => {
   </html>`);
 });
 
+// Alias so /mailing-list from Log Hub goes to the Subscriber Log page
+app.get("/mailing-list", (req, res) => {
+  const key = req.query.key || "";
+  const redirectUrl =
+    "/subscriber-log" + (key ? ("?key=" + encodeURIComponent(key)) : "");
+  return res.redirect(redirectUrl);
+});
+
 
 
 // ------------------------------------------------------
@@ -10102,6 +10118,15 @@ app.get("/guest-scan-log", (req, res) => {
 </body>
 </html>`);
 });
+
+// Alias so /scan-log from Log Hub also works
+app.get("/scan-log", (req, res) => {
+  const key = req.query.key || "";
+  const redirectUrl =
+    "/guest-scan-log" + (key ? ("?key=" + encodeURIComponent(key)) : "");
+  return res.redirect(redirectUrl);
+});
+
 
 // ------------------------------------------------------
 // START SERVER
