@@ -4235,23 +4235,26 @@ app.get("/live-analytics", (req, res) => {
           justify-content:flex-start;
         }
 
-        .back-btn {
-  display:inline-flex;
-  align-items:center;
-  gap:4px;
-  padding:5px 10px;              /* smaller */
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,0.25);
-  font-size:0.72rem;             /* smaller text */
-  letter-spacing:0.07em;
-  text-decoration:none;
-  text-transform:uppercase;
-  background:rgba(255,255,255,0.05);
-  color:#fff;
-}
-.back-btn:hover {
-  background:rgba(255,255,255,0.12);
-}
+                .back-btn {
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+          margin-top:16px;
+          padding:7px 14px;
+          border-radius:999px;
+          border:1px solid rgba(255,255,255,0.25);
+          text-decoration:none;
+          font-size:0.78rem;
+          letter-spacing:0.08em;
+          text-transform:uppercase;
+          color:#fff;
+          background:rgba(255,255,255,0.04);
+        }
+
+        .back-btn:hover {
+          background:rgba(255,255,255,0.08);
+        }
+
 
 
 
@@ -4854,11 +4857,13 @@ app.get("/dashboard", (req, res) => {
           </div>
         </div>
 
-        <div class="footer-row" style="margin-top:20px; display:flex; justify-content:center;">
-  <a href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}" class="back-btn">
+        <div class="footer-row">
+  <!-- any “last updated” text here -->
+  <a class="back-btn" href="/management-hub?key=${encodeURIComponent(MANAGEMENT_PIN)}">
     ← Back to Management Hub
   </a>
 </div>
+
 
 
         ${themeScript()}
@@ -5898,19 +5903,26 @@ app.get("/box-office", (req, res) => {
           text-transform:uppercase;
           letter-spacing:0.08em;
           color:#bbb;
-        }
-        .back-btn {
-          display:inline-block;
-          margin-top:12px;
-          padding:8px 16px;
+                .back-btn {
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+          margin-top:16px;
+          padding:7px 14px;
           border-radius:999px;
-          border:1px solid rgba(255,255,255,0.2);
+          border:1px solid rgba(255,255,255,0.25);
           text-decoration:none;
-          color:#fff;
-          font-size:0.85rem;
+          font-size:0.78rem;
           letter-spacing:0.08em;
           text-transform:uppercase;
+          color:#fff;
+          background:rgba(255,255,255,0.04);
         }
+
+        .back-btn:hover {
+          background:rgba(255,255,255,0.08);
+        }
+
         .toast {
           position:fixed;
           bottom:20px;
@@ -7903,7 +7915,7 @@ app.get("/management-hub", (req, res) => {
         </label>
 
         <div class="admin-tile" onclick="adminClearScanLog()">
-          <div class="admin-label">📋 Clear Scan Log</div>
+          <div class="admin-label">📋 Clear Guest Scan Log</div>
           <div class="admin-sub">Reset guest scan history only.</div>
         </div>
 
