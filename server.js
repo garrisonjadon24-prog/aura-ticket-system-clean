@@ -4290,13 +4290,6 @@ app.get("/live-analytics", (req, res) => {
     </div>
   </div>
 
-  <!-- (Optional) Box office – stays for future use, will just show 0 for now -->
-  <div class="card stat">
-    <div class="stat-label">Box Office Sales</div>
-    <div class="stat-value" id="boxOfficeCount">0</div>
-  </div>
-</div>
-
 
         <div class="card">
           <h2 style="margin-top:0;font-size:1.1rem;">Breakdown by Ticket Type</h2>
@@ -7747,6 +7740,28 @@ app.get("/management-hub", (req, res) => {
       background:rgba(255,255,255,0.08);
     }
 
+/* Fix Admin Tool Buttons */
+.admin-tool-box {
+  width: 100%;
+  max-width: 420px;     /* both boxes become same width */
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 18px;  /* spacing between buttons */
+  box-sizing: border-box;
+}
+
+/* Red "Clear ALL Data" Button */
+.admin-danger {
+  background: linear-gradient(135deg, #d50000, #ff5252);
+  color: #fff;
+}
+
+/* Orange "Clear ALL QR PNG Files" Button */
+.admin-warning {
+  background: linear-gradient(135deg, #ff9800, #ffa726);
+  color: #3b1a00;
+}
+
   </style>
 </head>
 <body>
@@ -7849,16 +7864,17 @@ app.get("/management-hub", (req, res) => {
           <div class="admin-sub">Remove TEST tickets and TEST-*.png files.</div>
         </div>
 
-        <div class="admin-tile danger" onclick="adminClearData()">
-          <div class="admin-label">🧨 Clear ALL Data</div>
-          <div class="admin-sub">Wipes tickets, logs and allocations.</div>
-        </div>
-      </div>
-
-      <div class="admin-tile warning" onclick="adminClearQRFiles()">
-  <div class="admin-label">🧹 Clear ALL QR PNG Files</div>
-  <div class="admin-sub">Deletes every QR PNG + removes entries from QR log.</div>
+<div class="admin-tool-box admin-danger">
+  <strong>🧨  Clear ALL Data</strong>
+  <p>Wipes tickets, logs and allocations.</p>
 </div>
+
+<div class="admin-tool-box admin-warning">
+  <strong>🧹 Clear ALL QR PNG Files</strong>
+  <p>Deletes every QR PNG + removes entries from QR log.</p>
+</div>
+
+    
 
 
       <!-- CANCEL TICKET / QR -->
@@ -9117,6 +9133,30 @@ app.get("/allocation-scanner", (req, res) => {
         background:rgba(255,255,255,0.02);
         color:#ddd;
         border:1px solid rgba(255,255,255,0.18);
+      }
+      .bottom-links {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .btn-back {
+        flex: 1 1 160px;
+        text-align: center;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 0.78rem;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        text-decoration: none;
+        border: 1px solid rgba(255,255,255,0.25);
+        background: rgba(255,255,255,0.04);
+        color: #f5f5f5;
+      }
+
+      .btn-back:hover {
+        background: rgba(255,255,255,0.10);
       }
 
       @media (max-width:480px) {
