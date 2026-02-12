@@ -1,4 +1,4 @@
-// server.js (updated with requested changes)
+// server.js
 
 // CORE SETUP ----------------------------------------------------
 
@@ -12,6 +12,16 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ------------------------------------------------------
+// RENDER PERSISTENT STORAGE (MUST COME FIRST)
+// ------------------------------------------------------
+
+const DATA_DIR = "/data";
+
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+// ------------------------------------------------------
 // LOG PERSISTENCE FILES
 // ------------------------------------------------------
 
@@ -22,6 +32,9 @@ const GUESTS_FILE     = path.join(DATA_DIR, "guest-entries.json");
 const SECURITY_FILE   = path.join(DATA_DIR, "security-log.json");
 const SCANLOG_FILE    = path.join(DATA_DIR, "scan-log.json");
 const STAFFLOG_FILE   = path.join(DATA_DIR, "staff-log.json");
+
+// Main ticket data
+const DATA_FILE = path.join(DATA_DIR, "tickets.json");
 
 // 🔹 Parse JSON and form data for all POST requests
 app.use(express.json());
@@ -188,17 +201,6 @@ const MANAGEMENT_PIN = "POP!";
 // HMAC secret key for QR signature verification (prevents forged QR codes)
 // IMPORTANT: Must be fixed/persistent so QR signatures remain valid across server restarts
 const HMAC_SECRET = Buffer.from('aura_event_hmac_secret_key_2026_fixed_persistent_12345', 'utf-8').slice(0, 32);
-
-// -----------------------------
-// RENDER PERSISTENT STORAGE
-// -----------------------------
-const DATA_DIR = "/data";
-
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-const DATA_FILE = path.join(DATA_DIR, "tickets.json");
 
 
 // Helper: parse cookies from request
