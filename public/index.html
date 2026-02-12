@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+</head>
+<body>
+  <h1>Scan Ticket</h1>
+  <div id="qr-reader" style="width: 300px; margin: 20px auto;"></div>
+  <p id="scan-result"></p>
+
+  <script>
+    // Function to handle QR code scan success
+    function onScanSuccess(decodedText) {
+      // Normalizing the token string (handle OCR errors like O vs 0)
+      const normalizedToken = decodedText.toUpperCase().replace(/O/g, '0').replace(/I/g, '1').replace(/L/g, '1');
+
+      // Display the scanned token
+      document.getElementById('scan-result').innerText = `Scanned: ${normalizedToken}`;
+
+      // Send token to the back-end for verification
+      fetch('/api/verify-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: normalizedToken })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          alert(`Ticket Verified ✅: ${data.ticketId}`);
+        } else {
+          alert('Invalid Ticket ❌');
+        }
+      })
+      .catch(console.error);
+    }
+
+    // Function to handle scan failure
+    function onScanFailure(error) {
+      console.error('Scan failed:', error);
+    }
+
+    // Initialize the QR scanner
+    const qrScanner = new Html5Qrcode("qr-reader");
+    qrScanner.start(
+      { facingMode: "environment" }, // Use the back camera
+      {
+        fps: 10,
+        qrbox: 180,
+        aspectRatio: 1.0
+      },
+      onScanSuccess,
+      onScanFailure
+    );
+  </script>
+</body>
+</html>
