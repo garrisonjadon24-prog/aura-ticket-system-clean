@@ -1083,7 +1083,7 @@ function saveScanLog() {
 
 // === AUTO-BACKUP SYSTEM (periodic JSON saves) ===
 
-const BACKUP_FILE = path.join(DATA_DIR, "aura-backup.json");
+const BACKUP_FILE = path.join(__dirname, "data", "backup.json");
 const BACKUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 function createBackup() {
@@ -1124,19 +1124,18 @@ function createBackup() {
 function restoreBackup() {
   try {
     if (!fs.existsSync(BACKUP_FILE)) {
-      console.log("[BACKUP] No backup file found, starting fresh.");
+      console.log("[BACKUP] No backup.json found, starting fresh.");
       return;
     }
 
     const backup = JSON.parse(fs.readFileSync(BACKUP_FILE, "utf8"));
 
-    // restore logs/events
+    // Restore logs/events
     guestNameEntries.length = 0;
     guestNameEntries.push(...(backup.guestNameEntries || []));
 
     staffActivityLog.length = 0;
     staffActivityLog.push(...(backup.staffActivityLog || []));
-saveStaffLog();
 
     guestScanLog.length = 0;
     guestScanLog.push(...(backup.guestScanLog || []));
@@ -1147,26 +1146,26 @@ saveStaffLog();
     Object.assign(giveawayEvents, backup.giveawayEvents || {});
     Object.assign(ipLogging, backup.ipLogging || {});
 
-    // restore cancelled tickets (if present)
+    // Restore cancelled tickets
     if (backup.cancelledTicketsLog) {
       cancelledTicketsLog.length = 0;
       cancelledTicketsLog.push(...backup.cancelledTicketsLog);
     }
 
-    // restore allocations
+    // Restore allocations
     ticketAllocations.clear();
     (backup.ticketAllocations || []).forEach(([ticketId, alloc]) => {
       ticketAllocations.set(ticketId, alloc);
     });
 
-    // restore tickets
+    // Restore tickets
     tickets.clear();
     (backup.tickets || []).forEach((t) => {
       tickets.set(t.token, { id: t.id, type: t.type, status: t.status });
     });
 
     console.log(
-      `[BACKUP] Restored ${backup.tickets?.length || 0} tickets and logs from ${backup.timestamp}`
+      `[BACKUP] Restored ${backup.tickets?.length || 0} tickets and logs from backup.json`
     );
   } catch (e) {
     console.error("[BACKUP] Restore error:", e);
