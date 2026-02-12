@@ -1,0 +1,1684 @@
+{
+  "exportedAt": "2026-02-11T15:39:22.432Z",
+  "tickets": [
+    {
+      "token": "2233e070be248cd98ed65634446c852e",
+      "id": "EB-001",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "8b911e0bb6055040b36f3e8ef7e94a71",
+      "id": "EB-002",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "854ec69fe7a2b54f7179602732517aff",
+      "id": "EB-003",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "2aa8d86df12a21f8732da855b6640bc2",
+      "id": "EB-004",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "2fcb2f3f11983e4ecd8152aff868c420",
+      "id": "EB-005",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "0a96eff9e28a19233aec0bc4ecd38599",
+      "id": "EB-006",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "6fc023fa8d0d92e597e1666343adc802",
+      "id": "EB-007",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "be501e6e740739f7ace838d7c9cb2e12",
+      "id": "EB-008",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "e5aac5cb12164d53efc9b3ee56204b66",
+      "id": "EB-009",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "5400d54e190fb3d5c80d936ec0c0c0b2",
+      "id": "EB-010",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "44269f0b2f2016c48e4977a21a6a6e88",
+      "id": "EB-011",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "62bc21430201b75b5b742f1e99297df1",
+      "id": "EB-012",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "b4a98f52bd685982a0da54566b2a45e9",
+      "id": "EB-013",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "df4a4f1f06af3904b00369fac389569a",
+      "id": "EB-014",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "a7e9e3be990c8bf0f0ebe7c02b9eba1f",
+      "id": "EB-015",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "4efc18f836f72a0760d37d2b20f175c1",
+      "id": "EB-016",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "cb3bc887b1396368068760fc2397633f",
+      "id": "EB-017",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "de4ad2cbd9c447f86d40affb5b2344c2",
+      "id": "EB-018",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "59d4070c837dbd3d61a5f4493be44edc",
+      "id": "EB-019",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "f4959b117a25a91e5ff57bb09e6920e0",
+      "id": "EB-020",
+      "type": "earlybird",
+      "status": "unused"
+    },
+    {
+      "token": "852b9ef5cc36bdaf6caea7ee17e295a8",
+      "id": "GEN-001",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "9c3b24acdf217d70c00a6a1d5ea7b64e",
+      "id": "GEN-002",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "412c08017a51186e2dbf0019cc81c8cd",
+      "id": "GEN-003",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "0b8bca34bee139d8b119bf5d5f821e2c",
+      "id": "GEN-004",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "efbf10297f7d8ca3d1683fceecae69a9",
+      "id": "GEN-005",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "0453011638138be75547da721dc83e39",
+      "id": "GEN-006",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "7181f2e2b84ff31e68486f2937e56343",
+      "id": "GEN-007",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "dca9a57eb57f89f97aa66caf15bbb7d6",
+      "id": "GEN-008",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "8acc6965dab2c405e4ed2c2145abc18e",
+      "id": "GEN-009",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "444a1f79cd7bbf804a7f62eee18ec704",
+      "id": "GEN-010",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "926fab9871dcf57acad3577335353bb4",
+      "id": "GEN-011",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "2bb5df2280e41da6b6e0d94f9b57885a",
+      "id": "GEN-012",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "be7386d39a39f0e7700d193aace13c78",
+      "id": "GEN-013",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "f99227839f8070c86a5b87d6829e6aea",
+      "id": "GEN-014",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "0227e460c1fa1128283b6c2f393b56eb",
+      "id": "GEN-015",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "eab520f85ec5489f546835e1b5a28c5a",
+      "id": "GEN-016",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "db7e2144c2836c7e9a3d188b6f2aac1c",
+      "id": "GEN-017",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "a03038621d35d4199e04612a4f13debd",
+      "id": "GEN-018",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "46edfad87d6f6239973ac135bfbbdce5",
+      "id": "GEN-019",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "aeedc2c8d6c6b43a4b946f167cb18742",
+      "id": "GEN-020",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "8a8ca163a396bc18b9f6684a0f943b19",
+      "id": "COMP-001",
+      "type": "comp",
+      "status": "unused"
+    },
+    {
+      "token": "fe338556e2bbede820f4859d9dbbb3ff",
+      "id": "COMP-002",
+      "type": "comp",
+      "status": "unused"
+    },
+    {
+      "token": "f1bc1b7d19fb40863433f26e8fcc0c94",
+      "id": "COMP-003",
+      "type": "comp",
+      "status": "unused"
+    },
+    {
+      "token": "628b3c16c15f0a5e606a430f072a5929",
+      "id": "COMP-004",
+      "type": "comp",
+      "status": "unused"
+    },
+    {
+      "token": "d2e089a1edba7637d01ce5d6b50b36b3",
+      "id": "COMP-005",
+      "type": "comp",
+      "status": "unused"
+    },
+    {
+      "token": "8d50bcbadbb5cee5f55ddce6d712bf50",
+      "id": "TEST-001",
+      "type": "test",
+      "status": "unused"
+    },
+    {
+      "token": "ea0cd58a6dbcbaa5b040662e1bbd6a5b",
+      "id": "TEST-002",
+      "type": "test",
+      "status": "unused"
+    },
+    {
+      "token": "b3181c1144ecadd68c029449551749af",
+      "id": "TEST-003",
+      "type": "test",
+      "status": "unused"
+    },
+    {
+      "token": "e8b2559f724a07c7f3829d843bfebfe9",
+      "id": "TEST-004",
+      "type": "test",
+      "status": "unused"
+    },
+    {
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "id": "TEST-005",
+      "type": "test",
+      "status": "unused"
+    },
+    {
+      "token": "25af539d826e2a66b907f6343583c82e",
+      "id": "GEN-021",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "3e987285d12d029de533872f53ababd0",
+      "id": "GEN-022",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "49245024d4fbbe5bef7ae44df08eec9c",
+      "id": "GEN-023",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "97fe2a99124b1f451db95ddfa83036b0",
+      "id": "GEN-024",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "b06141b7b364e2470ca2e1d40a807810",
+      "id": "GEN-025",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "3ddd83612a98c1ae0e14abb70f5f79d0",
+      "id": "GEN-026",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "46499f1c71658d2211da5ecdd49f7ce8",
+      "id": "GEN-027",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "3ddb4c48c33d9ec5e13c95d79822495c",
+      "id": "GEN-028",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "db072c8d4f5ecd84e936065df4fd1b78",
+      "id": "GEN-029",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "d0465cd9136f912a4856bc4e98463205",
+      "id": "GEN-030",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "a9b8df6f9870d73e490ef33028f6aa2f",
+      "id": "GEN-031",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "6cab4c6c699bd64adfe81aa19f85c1da",
+      "id": "GEN-032",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "1a022cbc161b4ae6be969caccc8ac21f",
+      "id": "GEN-033",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "f9b1f9d5609ad12742bbaf073511f795",
+      "id": "GEN-034",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "bfdba14bf66268b7e3ff81f5fe2fe10e",
+      "id": "GEN-035",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "0935b0dd4fce2cb5e3f0bbf422299a3b",
+      "id": "GEN-036",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "7b6ae4329ed6b6d4ba8d47a9fad2875b",
+      "id": "GEN-037",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "c872c433f4aaf14dacd9fde464051448",
+      "id": "GEN-038",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "de917105ea69c1f302846ddcf90ad4d4",
+      "id": "GEN-039",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "13ee623226ee5bc5c9fca25bb59f1661",
+      "id": "GEN-040",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "117007d056fb56f4f15ecdfee83d351f",
+      "id": "GEN-041",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "61c0a735e598559fbdae12c3f41c449e",
+      "id": "GEN-042",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "c0aa53ccbe48d02f11bfe2cf29126e98",
+      "id": "GEN-043",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "9e078e49bf6fb2d054f8c33d18802700",
+      "id": "GEN-044",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "575cf3b2b2f2c0c501fdb84756531ec6",
+      "id": "GEN-045",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "ee2703d3e57e0b2bb4ee3ea864ef4b8a",
+      "id": "GEN-046",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "d734d9cd6508ba8d7491be4edcfe42ec",
+      "id": "GEN-047",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "efb6f442c04ccb61a7e7a24629469126",
+      "id": "GEN-048",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "991f39ffa175586755dba1717f97d1e3",
+      "id": "GEN-049",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "34fb861496f596057d67a3ab05b85a72",
+      "id": "GEN-050",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "0479474c64e976c3af1eba522376856c",
+      "id": "GEN-051",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "fa0ddcc8db9da2616005958bb6f15414",
+      "id": "GEN-052",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "fa77dd37c291b5b1fbeb829c0abb6ef0",
+      "id": "GEN-053",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "bf90f1f7a6e21ea21dd2f41e4250e658",
+      "id": "GEN-054",
+      "type": "general",
+      "status": "unused"
+    },
+    {
+      "token": "db8b3b9f6e1f7900b32357c7289f7799",
+      "id": "GEN-055",
+      "type": "general",
+      "status": "unused"
+    }
+  ],
+  "guestNameEntries": [
+    {
+      "ticketId": "TEST-004",
+      "token": "e8b2559f724a07c7f3829d843bfebfe9",
+      "guestName": "Kevin Carmichael",
+      "guestEmail": "carmichael_62@hotmail.com",
+      "guestPhone": "2462406321",
+      "subscribe": true,
+      "ip": "104.200.101.63",
+      "timestamp": "2025-12-13T23:57:37.870Z"
+    },
+    {
+      "ticketId": "GEN-051",
+      "token": "0479474c64e976c3af1eba522376856c",
+      "guestName": "Lotoya Herbert",
+      "guestEmail": "sundabaherbert63@gmail.com",
+      "guestPhone": "+12462612696",
+      "subscribe": false,
+      "ip": "63.143.76.194",
+      "timestamp": "2026-01-25T17:27:19.392Z"
+    },
+    {
+      "ticketId": "GEN-053",
+      "token": "fa77dd37c291b5b1fbeb829c0abb6ef0",
+      "guestName": "Lotoya Herbert",
+      "guestEmail": "sundabaherbert63@gmail.com",
+      "guestPhone": "+12462612696",
+      "subscribe": false,
+      "ip": "63.143.76.194",
+      "timestamp": "2026-01-25T17:28:05.995Z"
+    },
+    {
+      "ticketId": "GEN-054",
+      "token": "bf90f1f7a6e21ea21dd2f41e4250e658",
+      "guestName": "Lotoya Herbert",
+      "guestEmail": "sundabaherbert63@gmail.com",
+      "guestPhone": "+12462612696",
+      "subscribe": false,
+      "ip": "63.143.76.194",
+      "timestamp": "2026-01-25T17:28:38.556Z"
+    }
+  ],
+  "staffActivityLog": [
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-11T15:29:30.575Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-11T15:32:59.233Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-11T18:18:02.273Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "23.236.8.99",
+      "timestamp": "2025-12-11T20:11:34.938Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "23.236.8.99",
+      "timestamp": "2025-12-11T20:12:00.473Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "23.236.8.99",
+      "timestamp": "2025-12-11T20:13:15.400Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-11T22:44:11.521Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-11T22:44:42.977Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T13:54:58.634Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T13:58:10.191Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T13:58:23.168Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T14:00:35.878Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T14:05:00.667Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T14:08:28.899Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T14:09:02.197Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T14:10:21.739Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T14:17:27.363Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T15:43:56.565Z"
+    },
+    {
+      "name": "NIQUE",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T15:44:28.538Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T16:40:25.596Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T16:41:03.086Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T17:13:29.710Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T17:13:39.440Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-12T17:14:55.656Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-13T22:11:51.630Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-13T22:12:03.414Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-16T12:13:57.931Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-16T12:14:05.143Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.111.166",
+      "timestamp": "2025-12-16T12:14:12.756Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.112.46",
+      "timestamp": "2025-12-17T16:36:57.484Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.112.46",
+      "timestamp": "2025-12-17T16:37:39.356Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.112.46",
+      "timestamp": "2025-12-17T16:37:50.353Z"
+    },
+    {
+      "name": "Shawn",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.112.46",
+      "timestamp": "2025-12-20T02:23:17.082Z"
+    },
+    {
+      "name": "SHAWN",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.112.46",
+      "timestamp": "2025-12-20T02:23:40.194Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.112.46",
+      "timestamp": "2025-12-20T02:49:54.034Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.112.46",
+      "timestamp": "2025-12-20T02:50:11.530Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.112.46",
+      "timestamp": "2025-12-20T16:52:11.156Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.112.46",
+      "timestamp": "2025-12-20T16:52:36.219Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.112.46",
+      "timestamp": "2025-12-21T16:47:10.570Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.112.46",
+      "timestamp": "2025-12-21T16:47:23.782Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.113.106",
+      "timestamp": "2025-12-27T12:54:57.025Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.113.106",
+      "timestamp": "2025-12-27T12:55:07.687Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.51.113.106",
+      "timestamp": "2025-12-29T16:53:28.330Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.113.106",
+      "timestamp": "2025-12-29T16:53:40.981Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "196.3.192.20",
+      "timestamp": "2026-01-06T23:20:03.833Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.112.173",
+      "timestamp": "2026-01-15T13:42:22.984Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.51.112.173",
+      "timestamp": "2026-01-15T19:16:01.489Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.22.150.162",
+      "timestamp": "2026-01-25T16:09:06.700Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.22.150.162",
+      "timestamp": "2026-01-25T16:09:18.726Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.22.150.162",
+      "timestamp": "2026-01-25T17:30:26.161Z"
+    },
+    {
+      "name": "Ray",
+      "action": "login",
+      "role": "management",
+      "ip": "72.22.150.162",
+      "timestamp": "2026-01-25T17:30:34.306Z"
+    },
+    {
+      "name": "RAY",
+      "role": "management",
+      "action": "login",
+      "ip": "72.22.150.162",
+      "timestamp": "2026-01-25T17:30:42.063Z"
+    }
+  ],
+  "guestScanLog": [
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "72.51.113.106",
+      "timestamp": "2025-12-27T19:25:58.347Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "191.101.10.108",
+      "timestamp": "2025-12-27T19:28:14.884Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "181.214.59.62",
+      "timestamp": "2025-12-27T19:28:15.461Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "181.215.130.230",
+      "timestamp": "2025-12-27T19:34:50.963Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "181.214.61.213",
+      "timestamp": "2025-12-27T19:34:51.564Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "72.51.113.106",
+      "timestamp": "2025-12-27T19:46:23.516Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "162.243.209.13",
+      "timestamp": "2025-12-27T19:48:21.895Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "142.93.69.223",
+      "timestamp": "2025-12-27T19:48:21.899Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "64.225.12.44",
+      "timestamp": "2025-12-27T19:48:21.901Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "188.241.200.62",
+      "timestamp": "2025-12-27T19:48:21.903Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "3.231.90.36",
+      "timestamp": "2025-12-27T19:48:23.254Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "3.231.90.36",
+      "timestamp": "2025-12-27T19:48:49.082Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "3.231.90.36",
+      "timestamp": "2025-12-27T19:48:55.489Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "3.231.90.36",
+      "timestamp": "2025-12-27T20:01:26.098Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "93.180.196.204",
+      "timestamp": "2025-12-27T20:01:26.851Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "162.243.214.106",
+      "timestamp": "2025-12-27T20:01:26.861Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "162.243.18.22",
+      "timestamp": "2025-12-27T20:01:26.862Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "149.28.234.211",
+      "timestamp": "2025-12-27T20:01:26.874Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "162.243.6.231",
+      "timestamp": "2025-12-27T20:01:26.875Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "119.13.223.132",
+      "timestamp": "2025-12-27T20:01:26.894Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "45.77.100.241",
+      "timestamp": "2025-12-27T20:01:26.934Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "3.231.90.36",
+      "timestamp": "2025-12-27T20:01:28.123Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "3.231.90.36",
+      "timestamp": "2025-12-27T20:01:33.315Z"
+    },
+    {
+      "ticketId": "EB-011",
+      "token": "44269f0b2f2016c48e4977a21a6a6e88",
+      "ip": "72.51.113.106",
+      "timestamp": "2025-12-27T20:16:24.500Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "52.154.22.49",
+      "timestamp": "2025-12-27T20:23:36.657Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "72.51.113.106",
+      "timestamp": "2025-12-27T20:34:19.503Z"
+    },
+    {
+      "ticketId": "TEST-005",
+      "token": "5d07ed470d53b882df6785615bd262a2",
+      "ip": "72.51.113.106",
+      "timestamp": "2025-12-27T20:34:39.281Z"
+    },
+    {
+      "ticketId": "TEST-002",
+      "token": "ea0cd58a6dbcbaa5b040662e1bbd6a5b",
+      "ip": "162.246.111.23",
+      "timestamp": "2026-01-02T12:28:17.621Z"
+    },
+    {
+      "ticketId": "TEST-002",
+      "token": "ea0cd58a6dbcbaa5b040662e1bbd6a5b",
+      "ip": "66.249.83.13",
+      "timestamp": "2026-01-02T12:28:24.008Z"
+    },
+    {
+      "ticketId": "TEST-002",
+      "token": "ea0cd58a6dbcbaa5b040662e1bbd6a5b",
+      "ip": "66.249.83.6",
+      "timestamp": "2026-01-02T12:28:24.148Z"
+    },
+    {
+      "ticketId": "TEST-002",
+      "token": "ea0cd58a6dbcbaa5b040662e1bbd6a5b",
+      "ip": "66.249.83.2",
+      "timestamp": "2026-01-02T12:28:24.163Z"
+    },
+    {
+      "ticketId": "TEST-003",
+      "token": "b3181c1144ecadd68c029449551749af",
+      "ip": "196.3.192.20",
+      "timestamp": "2026-01-06T23:18:49.431Z"
+    },
+    {
+      "ticketId": "TEST-003",
+      "token": "b3181c1144ecadd68c029449551749af",
+      "ip": "66.249.150.146",
+      "timestamp": "2026-01-09T04:58:01.670Z"
+    },
+    {
+      "ticketId": "TEST-004",
+      "token": "e8b2559f724a07c7f3829d843bfebfe9",
+      "ip": "162.246.111.17",
+      "timestamp": "2026-01-14T22:59:10.136Z"
+    },
+    {
+      "ticketId": "TEST-004",
+      "token": "e8b2559f724a07c7f3829d843bfebfe9",
+      "ip": "66.249.83.1",
+      "timestamp": "2026-01-14T22:59:12.863Z"
+    },
+    {
+      "ticketId": "TEST-004",
+      "token": "e8b2559f724a07c7f3829d843bfebfe9",
+      "ip": "66.249.83.1",
+      "timestamp": "2026-01-14T22:59:12.993Z"
+    },
+    {
+      "ticketId": "TEST-003",
+      "token": "b3181c1144ecadd68c029449551749af",
+      "ip": "65.48.149.80",
+      "timestamp": "2026-01-14T23:55:12.395Z"
+    },
+    {
+      "ticketId": "TEST-003",
+      "token": "b3181c1144ecadd68c029449551749af",
+      "ip": "72.51.112.173",
+      "timestamp": "2026-01-15T19:09:57.299Z"
+    },
+    {
+      "ticketId": "TEST-003",
+      "token": "b3181c1144ecadd68c029449551749af",
+      "ip": "63.143.76.188",
+      "timestamp": "2026-01-15T19:14:55.013Z"
+    },
+    {
+      "ticketId": "GEN-052",
+      "token": "fa0ddcc8db9da2616005958bb6f15414",
+      "ip": "63.143.76.194",
+      "timestamp": "2026-01-25T17:22:59.764Z"
+    },
+    {
+      "ticketId": "GEN-051",
+      "token": "0479474c64e976c3af1eba522376856c",
+      "ip": "63.143.76.194",
+      "timestamp": "2026-01-25T17:26:11.620Z"
+    },
+    {
+      "ticketId": "GEN-053",
+      "token": "fa77dd37c291b5b1fbeb829c0abb6ef0",
+      "ip": "63.143.76.194",
+      "timestamp": "2026-01-25T17:27:40.815Z"
+    },
+    {
+      "ticketId": "GEN-054",
+      "token": "bf90f1f7a6e21ea21dd2f41e4250e658",
+      "ip": "63.143.76.194",
+      "timestamp": "2026-01-25T17:28:22.948Z"
+    },
+    {
+      "ticketId": "TEST-004",
+      "token": "e8b2559f724a07c7f3829d843bfebfe9",
+      "ip": "66.249.83.2",
+      "timestamp": "2026-01-28T14:05:08.476Z"
+    },
+    {
+      "ticketId": "TEST-004",
+      "token": "e8b2559f724a07c7f3829d843bfebfe9",
+      "ip": "66.249.83.1",
+      "timestamp": "2026-01-28T14:05:08.647Z"
+    },
+    {
+      "ticketId": "TEST-004",
+      "token": "e8b2559f724a07c7f3829d843bfebfe9",
+      "ip": "66.249.83.133",
+      "timestamp": "2026-01-28T14:05:08.651Z"
+    }
+  ],
+  "scanEvents": {
+    "invalid": [
+      {
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "timestamp": "2025-12-12T17:10:25.384Z",
+        "staff": "no"
+      },
+      {
+        "token": "r8D1200y364a51T8A6696C392VWqBxQ7",
+        "timestamp": "2025-12-13T23:57:11.252Z",
+        "staff": "forged",
+        "reason": "signature_mismatch"
+      },
+      {
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "timestamp": "2025-12-14T14:50:17.161Z",
+        "staff": "no"
+      },
+      {
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "timestamp": "2025-12-18T13:36:05.197Z",
+        "staff": "no"
+      },
+      {
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "timestamp": "2025-12-18T22:55:18.554Z",
+        "staff": "no"
+      },
+      {
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "timestamp": "2025-12-27T17:17:24.364Z",
+        "staff": "no"
+      },
+      {
+        "token": "5M31ke023q44x178Ai6966392VW693Q7",
+        "timestamp": "2025-12-27T20:34:27.306Z",
+        "staff": "forged",
+        "reason": "signature_mismatch"
+      },
+      {
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "timestamp": "2026-01-03T14:47:56.304Z",
+        "staff": "no"
+      },
+      {
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "timestamp": "2026-01-03T21:44:25.249Z",
+        "staff": "no"
+      }
+    ],
+    "duplicates": []
+  },
+  "paymentEvents": {
+    "transactions": []
+  },
+  "boxOfficeSales": {
+    "prefix": "BOX-",
+    "nextNumber": 1,
+    "sales": []
+  },
+  "giveawayEvents": {
+    "draws": [
+      {
+        "prizeId": "PRIZE-1765140173349",
+        "winnerTicketId": "TEST-001",
+        "timestamp": "2025-12-07T20:42:53.349Z",
+        "prizeDescription": "Food"
+      },
+      {
+        "prizeId": "PRIZE-1765140177645",
+        "winnerTicketId": "TEST-001",
+        "timestamp": "2025-12-07T20:42:57.645Z",
+        "prizeDescription": "Food"
+      },
+      {
+        "prizeId": "PRIZE-1765140179378",
+        "winnerTicketId": "NG-004",
+        "timestamp": "2025-12-07T20:42:59.378Z",
+        "prizeDescription": "Food"
+      }
+    ]
+  },
+  "ipLogging": {
+    "events": [
+      {
+        "ip": "72.51.111.166",
+        "token": "8d50bcbadbb5cee5f55ddce6d712bf50",
+        "ticketId": "TEST-001",
+        "timestamp": 1765466953314,
+        "status": "valid"
+      },
+      {
+        "ip": "72.51.111.166",
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "ticketId": "INVALID",
+        "timestamp": 1765559425384,
+        "status": "invalid"
+      },
+      {
+        "ip": "63.88.73.11",
+        "token": "r8D1200y364a51T8A6696C392VWqBxQ7",
+        "ticketId": "FORGED",
+        "timestamp": 1765670231252,
+        "status": "invalid"
+      },
+      {
+        "ip": "72.51.111.166",
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "ticketId": "INVALID",
+        "timestamp": 1765723817161,
+        "status": "invalid"
+      },
+      {
+        "ip": "72.51.112.46",
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "ticketId": "INVALID",
+        "timestamp": 1766064965197,
+        "status": "invalid"
+      },
+      {
+        "ip": "196.3.204.202",
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "ticketId": "INVALID",
+        "timestamp": 1766098518554,
+        "status": "invalid"
+      },
+      {
+        "ip": "72.51.111.200",
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "ticketId": "INVALID",
+        "timestamp": 1766855844365,
+        "status": "invalid"
+      },
+      {
+        "ip": "216.221.127.197",
+        "token": "5M31ke023q44x178Ai6966392VW693Q7",
+        "ticketId": "FORGED",
+        "timestamp": 1766867667306,
+        "status": "invalid"
+      },
+      {
+        "ip": "72.51.112.127",
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "ticketId": "INVALID",
+        "timestamp": 1767451676304,
+        "status": "invalid"
+      },
+      {
+        "ip": "72.51.112.127",
+        "token": "993b061ce3bd5d786d536ebeb6c42b32",
+        "ticketId": "INVALID",
+        "timestamp": 1767476665249,
+        "status": "invalid"
+      }
+    ],
+    "suspicious": {}
+  },
+  "ticketAllocations": [
+    [
+      "GEN-004",
+      {
+        "sellerName": "Ché",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-012",
+      {
+        "sellerName": "Ché",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-014",
+      {
+        "sellerName": "Ché",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-006",
+      {
+        "sellerName": "Ché",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-017",
+      {
+        "sellerName": "Shawn",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-003",
+      {
+        "sellerName": "Shawn",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-010",
+      {
+        "sellerName": "Shawn",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-008",
+      {
+        "sellerName": "Shawn",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-003",
+      {
+        "sellerName": "Super style shoe shop",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-010",
+      {
+        "sellerName": "Super style shoe shop",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-016",
+      {
+        "sellerName": "Super style shoe shop",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-008",
+      {
+        "sellerName": "Super style shoe shop",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-004",
+      {
+        "sellerName": "Super style shoe shop",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-002",
+      {
+        "sellerName": "Super style shoe shop",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-009",
+      {
+        "sellerName": "Super style shoe shop",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-007",
+      {
+        "sellerName": "Super style shoe shop",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-005",
+      {
+        "sellerName": "Super style shoe shop",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-011",
+      {
+        "sellerName": "Super style shoe shop",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-012",
+      {
+        "sellerName": "Pinky",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-013",
+      {
+        "sellerName": "Pinky",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-016",
+      {
+        "sellerName": "Pinky",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-020",
+      {
+        "sellerName": "Pinky",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-001",
+      {
+        "sellerName": "Niqua",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-019",
+      {
+        "sellerName": "Niqua",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-006",
+      {
+        "sellerName": "Niqua",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-002",
+      {
+        "sellerName": "Niqua",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-007",
+      {
+        "sellerName": "Ray",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-005",
+      {
+        "sellerName": "Ray",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-018",
+      {
+        "sellerName": "Alex",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "EB-020",
+      {
+        "sellerName": "Alex",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-015",
+      {
+        "sellerName": "Alex",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-021",
+      {
+        "sellerName": "Ray",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": false
+      }
+    ],
+    [
+      "GEN-054",
+      {
+        "sellerName": "Ray",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": true
+      }
+    ],
+    [
+      "GEN-053",
+      {
+        "sellerName": "Ray",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": true
+      }
+    ],
+    [
+      "GEN-052",
+      {
+        "sellerName": "Ray",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": true
+      }
+    ],
+    [
+      "GEN-051",
+      {
+        "sellerName": "Ray",
+        "sellerPhone": "",
+        "sellerEmail": "",
+        "sold": true
+      }
+    ]
+  ]
+}
