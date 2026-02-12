@@ -40,11 +40,13 @@ const DATA_FILE = path.join(DATA_DIR, "tickets.json");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 // Serve static files from the project root (for aura-logo.png, pop-logo.png, etc.)
 app.use(express.static(path.join(__dirname, "public")));
 
-// AURA STAFF LOGIN HOMEPAGE
+// ------------------------------------------------------
+// SERVE STATIC FILES AND QR SCANNER PAGE ------------------------------------------------------
+
+// Serve the index.html file when visiting the root URL ('/')
 app.get("/", (req, res) => {
   res.send(`
     <!doctype html>
@@ -54,115 +56,83 @@ app.get("/", (req, res) => {
       <title>AURA Ticket System — Staff Login</title>
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <style>
-        body {
-          margin:0;
-          min-height:100vh;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          background: radial-gradient(circle at top left,#4b004b,#050510 55%,#000000);
-          font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-          color:#fff;
-        }
-        .card {
-          background:rgba(8,8,24,0.95);
-          border-radius:18px;
-          padding:26px 28px 22px;
-          max-width:380px;
-          width:100%;
-          box-shadow:0 22px 40px rgba(0,0,0,0.7);
-          border:1px solid rgba(255,255,255,0.07);
-        }
-        h1 {
-          margin:0 0 6px;
-          font-size:22px;
-          background:linear-gradient(135deg,#ff4b9a,#ffb347);
-          -webkit-background-clip:text;
-          color:transparent;
-        }
-        h2 {
-          margin:0 0 14px;
-          font-size:13px;
-          text-transform:uppercase;
-          letter-spacing:0.16em;
-          color:#f3c1ff;
-        }
-        label {
-          display:block;
-          font-size:12px;
-          margin-bottom:6px;
-          text-transform:uppercase;
-          letter-spacing:0.09em;
-          color:#9ea0ff;
-        }
-        input {
-          width:100%;
-          padding:9px 11px;
-          border-radius:999px;
-          border:1px solid #2c2e5a;
-          background:#050515;
-          color:#fff;
-          font-size:14px;
-          margin-bottom:14px;
-          box-sizing:border-box;
-        }
-        button {
-          width:100%;
-          padding:11px 12px;
-          border-radius:999px;
-          border:none;
-          font-weight:600;
-          font-size:14px;
-          cursor:pointer;
-          background:linear-gradient(135deg,#ff3c88,#ffb347);
-          color:#050510;
-          text-transform:uppercase;
-          letter-spacing:0.14em;
-        }
-        button:active {
-          transform:translateY(1px);
-        }
-        .note {
-          margin-top:10px;
-          font-size:11px;
-          color:#8889c7;
-          text-align:center;
-        }
+        /* Add your styles here */
       </style>
     </head>
     <body>
-      <div class="card">
-        <h2>A.U.R.A by POP</h2>
-        <h1>AURA Ticket System</h1>
-        <p style="margin:0 0 18px;font-size:13px;color:#d4d5f7;">
-          Enter your name and staff PIN to unlock ticket tools.
-        </p>
-
-        <form onsubmit="event.preventDefault(); goToStaff();">
-          <label for="name">Your Name</label>
-          <input id="name" name="name" placeholder="e.g. Joe" autocomplete="off" required />
-
-          <label for="pin">Staff PIN</label>
-          <input id="pin" name="pin" type="password" required />
-
-          <button type="submit">Enter Aura</button>
-          <div class="note">Internal use only • Hearts &amp; Spades // Event Ops</div>
-        </form>
-      </div>
-
+      <h1>Welcome to AURA Ticket System</h1>
+      <div id="qr-reader"></div>
+      <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
       <script>
-        function goToStaff() {
-          var name = document.getElementById('name').value.trim();
-          var pin = document.getElementById('pin').value.trim();
-          if (!name || !pin) return;
-          var url = '/staff?key=' + encodeURIComponent(pin) + '&name=' + encodeURIComponent(name);
-          window.location.href = url;
+        function onScanSuccess(decodedText) {
+          // Handle the scanned token
+          console.log(decodedText);
         }
+
+        function onScanFailure(error) {
+          // Handle scan failure
+          console.error(error);
+        }
+
+        const qrScanner = new Html5QrcodeScanner("qr-reader", {
+          fps: 10,
+          qrbox: 180,
+          aspectRatio: 1.0
+        });
+
+        qrScanner.render(onScanSuccess, onScanFailure);
       </script>
     </body>
     </html>
   `);
 });
+
+// ------------------------------------------------------
+// AURA STAFF LOGIN HOMEPAGE ------------------------------------------------------
+app.get("/", (req, res) => {
+  res.send(`
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <title>AURA Ticket System — Staff Login</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <style>
+        /* Your existing login page styles here */
+      </style>
+    </head>
+    <body>
+      <!-- Your existing login page content here -->
+    </body>
+    </html>
+  `);
+});
+
+// ------------------------------------------------------
+// QR CODE VALIDATION ROUTE ------------------------------------------------------
+app.post('/api/verify-ticket', (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.json({ ok: false, error: 'No token provided' });
+
+  // Normalize the token to handle OCR-like errors (e.g., 'O' vs '0')
+  const normalizedToken = normalizeTokenString(token);
+
+  // Check if the ticket exists in your "database"
+  const ticket = tickets.get(normalizedToken);
+  if (!ticket) {
+    return res.json({ ok: false, error: 'Ticket not found' });
+  }
+
+  // Return ticket details (e.g., ticket ID, status)
+  return res.json({ ok: true, ticketId: ticket.id, status: ticket.status });
+});
+
+// ------------------------------------------------------
+// START THE SERVER ------------------------------------------------------
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 
 // 👇 HOST is now configurable (better for ngrok / Wi-Fi changes)
 const HOST = process.env.HOST || "0.0.0.0"; // listen on all interfaces by default
