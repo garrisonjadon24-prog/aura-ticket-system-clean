@@ -11,6 +11,18 @@ const QRCode = require("qrcode");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ------------------------------------------------------
+// LOG PERSISTENCE FILES
+// ------------------------------------------------------
+
+const PAYMENTS_FILE   = path.join(DATA_DIR, "payments.json");
+const BOXOFFICE_FILE  = path.join(DATA_DIR, "boxoffice.json");
+const GIVEAWAY_FILE   = path.join(DATA_DIR, "giveaway.json");
+const GUESTS_FILE     = path.join(DATA_DIR, "guest-entries.json");
+const SECURITY_FILE   = path.join(DATA_DIR, "security-log.json");
+const SCANLOG_FILE    = path.join(DATA_DIR, "scan-log.json");
+const STAFFLOG_FILE   = path.join(DATA_DIR, "staff-log.json");
+
 // 🔹 Parse JSON and form data for all POST requests
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -177,8 +189,17 @@ const MANAGEMENT_PIN = "POP!";
 // IMPORTANT: Must be fixed/persistent so QR signatures remain valid across server restarts
 const HMAC_SECRET = Buffer.from('aura_event_hmac_secret_key_2026_fixed_persistent_12345', 'utf-8').slice(0, 32);
 
-// File where tickets are saved
-const DATA_FILE = path.join(__dirname, "tickets.json");
+// -----------------------------
+// RENDER PERSISTENT STORAGE
+// -----------------------------
+const DATA_DIR = "/data";
+
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+const DATA_FILE = path.join(DATA_DIR, "tickets.json");
+
 
 // Helper: parse cookies from request
 function parseCookies(req) {
@@ -240,7 +261,12 @@ function isMgmtAuthorizedReq(req) {
 }
 
 // Folder where QR images are saved
-const QR_DIR = path.join(__dirname, "generated_qr");
+const QR_DIR = path.join(DATA_DIR, "generated_qr");
+
+if (!fs.existsSync(QR_DIR)) {
+  fs.mkdirSync(QR_DIR, { recursive: true });
+}
+
 app.use("/generated_qr", express.static(QR_DIR));
 // ------------------------------------------------------
 // PAGE: General QR Codes (styled table + back to Management Hub)
@@ -874,10 +900,11 @@ function saveTicketAllocations() {
       return { ticketId, ...alloc };
     });
 
-    fs.writeFileSync(
-      path.join(__dirname, "ticket-allocations.json"),
-      JSON.stringify(allocArr, null, 2)
-    );
+fs.writeFileSync(
+  path.join(DATA_DIR, "ticket-allocations.json"),
+  JSON.stringify(allocArr, null, 2)
+);
+
 
     console.log(`[ALLOC] Saved ${allocArr.length} ticket allocations.`);
   } catch (err) {
@@ -887,7 +914,7 @@ function saveTicketAllocations() {
 
 function loadTicketAllocations() {
   try {
-    const file = path.join(__dirname, "ticket-allocations.json");
+    const file = path.join(DATA_DIR, "ticket-allocations.json");
     if (!fs.existsSync(file)) return;
 
     const arr = JSON.parse(fs.readFileSync(file, "utf8"));
@@ -913,10 +940,148 @@ loadTickets();
 loadTicketAllocations();   // ✅ ADD THIS EXACT LINE HERE
 // Save tickets and allocations every 5 minutes
 
+// ------------------------------------------------------
+// LOAD LOG DATA ON START
+// ------------------------------------------------------
+
+function loadLogs() {
+  try {
+    if (fs.existsSync(PAYMENTS_FILE)) {
+      paymentEvents = JSON.parse(fs.readFileSync(PAYMENTS_FILE));
+    }
+
+    if (fs.existsSync(BOXOFFICE_FILE)) {
+      boxOfficeSales = JSON.parse(fs.readFileSync(BOXOFFICE_FILE));
+    }
+
+    if (fs.existsSync(GIVEAWAY_FILE)) {
+      giveawayEvents = JSON.parse(fs.readFileSync(GIVEAWAY_FILE));
+    }
+
+    if (fs.existsSync(GUESTS_FILE)) {
+      guestNameEntries = JSON.parse(fs.readFileSync(GUESTS_FILE));
+    }
+
+    console.log("Log data loaded.");
+  } catch (err) {
+    console.error("Error loading logs:", err);
+  }
+}
+
+loadLogs();
+
+// ------------------------------------------------------
+// LOAD SECURITY + STAFF + SCAN LOGS
+// ------------------------------------------------------
+
+function loadExtraLogs() {
+  try {
+    if (fs.existsSync(SECURITY_FILE)) {
+      const data = JSON.parse(fs.readFileSync(SECURITY_FILE));
+      if (data.ipLogging) ipLogging = data.ipLogging;
+      if (data.scanEvents) scanEvents = data.scanEvents;
+    }
+
+    if (fs.existsSync(STAFFLOG_FILE)) {
+      staffActivityLog = JSON.parse(fs.readFileSync(STAFFLOG_FILE));
+    }
+
+    if (fs.existsSync(SCANLOG_FILE)) {
+      guestScanLog = JSON.parse(fs.readFileSync(SCANLOG_FILE));
+    }
+
+    console.log("Security + Staff + Scan logs loaded.");
+  } catch (err) {
+    console.error("Error loading extra logs:", err);
+  }
+}
+
+loadExtraLogs();
+
+// ------------------------------------------------------
+// SAVE LOG FUNCTIONS
+// ------------------------------------------------------
+
+function savePayments() {
+  try {
+    fs.writeFileSync(
+      PAYMENTS_FILE,
+      JSON.stringify(paymentEvents, null, 2)
+    );
+  } catch (err) {
+    console.error("Error saving payments:", err);
+  }
+}
+
+function saveBoxOffice() {
+  try {
+    fs.writeFileSync(
+      BOXOFFICE_FILE,
+      JSON.stringify(boxOfficeSales, null, 2)
+    );
+  } catch (err) {
+    console.error("Error saving box office:", err);
+  }
+}
+
+function saveGiveaway() {
+  try {
+    fs.writeFileSync(
+      GIVEAWAY_FILE,
+      JSON.stringify(giveawayEvents, null, 2)
+    );
+  } catch (err) {
+    console.error("Error saving giveaway:", err);
+  }
+}
+
+function saveGuestEntries() {
+  try {
+    fs.writeFileSync(
+      GUESTS_FILE,
+      JSON.stringify(guestNameEntries, null, 2)
+    );
+  } catch (err) {
+    console.error("Error saving guest entries:", err);
+  }
+}
+
+function saveSecurityLog() {
+  try {
+    fs.writeFileSync(
+      SECURITY_FILE,
+      JSON.stringify({ ipLogging, scanEvents }, null, 2)
+    );
+  } catch (err) {
+    console.error("Error saving security log:", err);
+  }
+}
+
+function saveStaffLog() {
+  try {
+    fs.writeFileSync(
+      STAFFLOG_FILE,
+      JSON.stringify(staffActivityLog, null, 2)
+    );
+  } catch (err) {
+    console.error("Error saving staff log:", err);
+  }
+}
+
+function saveScanLog() {
+  try {
+    fs.writeFileSync(
+      SCANLOG_FILE,
+      JSON.stringify(guestScanLog, null, 2)
+    );
+  } catch (err) {
+    console.error("Error saving scan log:", err);
+  }
+}
 
 // === AUTO-BACKUP SYSTEM (periodic JSON saves) ===
 
-const BACKUP_FILE = path.join(__dirname, "aura-backup.json");
+const BACKUP_FILE = path.join(DATA_DIR, "aura-backup.json");
 const BACKUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 function createBackup() {
@@ -969,6 +1134,7 @@ function restoreBackup() {
 
     staffActivityLog.length = 0;
     staffActivityLog.push(...(backup.staffActivityLog || []));
+saveStaffLog();
 
     guestScanLog.length = 0;
     guestScanLog.push(...(backup.guestScanLog || []));
@@ -2557,6 +2723,7 @@ app.get("/ticket", (req, res) => {
   if (record.status === "used" && staff === "1") {
     const timestamp = new Date().toISOString();
     scanEvents.duplicates.push({ token, ticketId: record.id, timestamp });
+saveSecurityLog();
 
     ipLogging.events.push({
       ip: clientIP,
@@ -3500,7 +3667,7 @@ app.post("/admin/clear-allocation-log", (req, res) => {
     ticketAllocations.clear();
 
     // also wipe the JSON file on disk
-    const allocFile = path.join(__dirname, "ticket-allocations.json");
+const allocFile = path.join("/data", "ticket-allocations.json");
     if (fs.existsSync(allocFile)) {
       fs.writeFileSync(allocFile, JSON.stringify([], null, 2));
     }
@@ -5244,6 +5411,7 @@ app.post("/admin/clear-guest-entries", (req, res) => {
   guestNameEntries.length = 0;
   return res.json({ ok: true });
 });
+saveGuestEntries();
 
 // ADMIN: Clear prize draw history ONLY
 app.post("/admin/clear-prize-draw-history", (req, res) => {
@@ -5251,6 +5419,7 @@ app.post("/admin/clear-prize-draw-history", (req, res) => {
     return res.status(403).json({ ok: false, error: "Unauthorized" });
   }
   giveawayEvents.draws = [];
+  saveGiveaway();
   return res.json({ ok: true });
 });
 
@@ -5644,6 +5813,7 @@ app.post("/api/record-payment", (req, res) => {
     notes,
     timestamp: new Date().toISOString(),
   });
+savePayments();
 
   return res.json({ success: true, total: paymentEvents.transactions.length });
 });
@@ -5721,6 +5891,7 @@ app.post("/api/box-office-generate", (req, res) => {
     soldTo,
     amount,
   });
+saveBoxOffice();
 
   boxOfficeSales.nextNumber++;
 
@@ -6023,6 +6194,7 @@ app.post("/api/draw-winner", (req, res) => {
   };
 
   giveawayEvents.draws.push(drawEvent);
+saveGiveaway();
 
   res.json({
     success: true,
