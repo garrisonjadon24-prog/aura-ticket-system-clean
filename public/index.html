@@ -55,7 +55,7 @@
       onScanSuccess,
       onScanFailure
     );
-
+ 
     // Enable torch (flashlight) for low-light scanning
     if (Html5Qrcode.getCameraDevice && typeof Html5Qrcode.getCameraDevice === 'function') {
       qrScanner.getRunningTrackSettings().then(settings => {
