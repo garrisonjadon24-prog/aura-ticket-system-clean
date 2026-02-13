@@ -59,110 +59,50 @@ app.use(express.static(path.join(__dirname, "public")));
 // ------------------------------------------------------
 // SERVE STATIC FILES AND QR SCANNER PAGE ------------------------------------------------------
 
-// Serve the index.html file when visiting the root URL ('/')
-app.get("/", (req, res) => {
-  res.send(`
-    <!doctype html>
-    <html lang="en">
-    <head>
-      <meta charset="utf-8" />
-      <title>AURA Ticket System — Staff Login</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <style>
-        /* Add your styles here */
-      </style>
-    </head>
-    <body>
-      <h1>Welcome to AURA Ticket System</h1>
-      <div id="qr-reader"></div>
-      <script src="https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
-      <script>
-        function onScanSuccess(decodedText) {
-          // Handle the scanned token
-          console.log(decodedText);
-        }
-
-        function onScanFailure(error) {
-          // Handle scan failure
-          console.error(error);
-        }
-
-        const qrScanner = new Html5QrcodeScanner("qr-reader", {
-          fps: 10,
-          qrbox: 250, // Increased size for better detection of small QR codes
-          aspectRatio: 1.0,
-          disableFlip: false,
-          showTorchButtonIfSupported: true // Enable torch/flash button if supported
-        });
-
-        qrScanner.render(onScanSuccess, onScanFailure);
-
-        // Apply advanced constraints for autofocus
-        try {
-          const video = document.querySelector("#qr-reader video");
-          if (video && video.srcObject) {
-            const tracks = video.srcObject.getVideoTracks();
-            if (tracks.length > 0) {
-              tracks[0].applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(e => {
-                console.log('Auto-focus not supported or already enabled');
-              });
-            }
-          }
-        } catch (e) {
-          console.log('Could not apply autofocus constraints');
-        }
-      </script>
-    </body>
-    </html>
-  `);
+// Serve static assets from `public/` (already set above)
+// Ensure visiting `/` returns the updated `public/index.html`
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ------------------------------------------------------
-// AURA STAFF LOGIN HOMEPAGE ------------------------------------------------------
-app.get("/", (req, res) => {
-  res.send(`
-    <!doctype html>
-    <html lang="en">
-    <head>
-      <meta charset="utf-8" />
-      <title>AURA Ticket System — Staff Login</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <style>
-        /* Your existing login page styles here */
-      </style>
-    </head>
-    <body>
-      <!-- Your existing login page content here -->
-    </body>
-    </html>
-  `);
-});
+// Helper to normalize token strings (handles common OCR mistakes)
+function normalizeTokenString(s) {
+  if (!s || typeof s !== 'string') return '';
+  return s
+    .trim()
+    .toUpperCase()
+    .replace(/O/g, '0')
+    .replace(/[IL]/g, '1')
+    .replace(/[^A-Z0-9]/g, '');
+}
 
 // ------------------------------------------------------
 // QR CODE VALIDATION ROUTE ------------------------------------------------------
 app.post('/api/verify-ticket', (req, res) => {
-  const { token } = req.body;
-  if (!token) return res.json({ ok: false, error: 'No token provided' });
+  try {
+    const { token } = req.body || {};
+    if (!token) {
+      return res.status(400).json({ ok: false, error: 'No token provided' });
+    }
 
-  // Normalize the token to handle OCR-like errors (e.g., 'O' vs '0')
-  const normalizedToken = normalizeTokenString(token);
+    const normalizedToken = normalizeTokenString(token);
 
-  // Check if the ticket exists in your "database"
-  const ticket = tickets.get(normalizedToken);
-  if (!ticket) {
-    return res.json({ ok: false, error: 'Ticket not found' });
+    if (!normalizedToken) {
+      return res.status(400).json({ ok: false, error: 'Invalid token format' });
+    }
+
+    const ticket = tickets && typeof tickets.get === 'function' ? tickets.get(normalizedToken) : null;
+    if (!ticket) {
+      return res.status(404).json({ ok: false, error: 'Ticket not found' });
+    }
+
+    // Optionally mark as used here or return status as-is
+    return res.json({ ok: true, ticketId: ticket.id || normalizedToken, status: ticket.status || 'unknown' });
+  } catch (err) {
+    console.error('Error in /api/verify-ticket:', err);
+    return res.status(500).json({ ok: false, error: 'Internal server error' });
   }
-
-  // Return ticket details (e.g., ticket ID, status)
-  return res.json({ ok: true, ticketId: ticket.id, status: ticket.status });
 });
-
-// ------------------------------------------------------
-// START THE SERVER ------------------------------------------------------
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
 
 // 👇 HOST is now configurable (better for ngrok / Wi-Fi changes)
 const HOST = process.env.HOST || "0.0.0.0"; // listen on all interfaces by default
