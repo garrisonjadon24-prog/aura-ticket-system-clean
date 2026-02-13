@@ -5,48 +5,67 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Code Scanner</title>
   <style>
-    #qr-reader {
+    #cameraContainer {
+      position: relative;
       width: 100%;
-      margin: 20px auto;
+      height: 100%;
     }
-    button {
-      padding: 10px 15px;
+    #autofocusStatus {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 5px;
+      border-radius: 5px;
+      display: none;
+    }
+    #flashButton {
+      position: absolute;
+      top: 50px;
+      left: 10px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 16px;
-      margin-top: 10px;
-    }
-    #scan-result {
-      font-size: 18px;
-      color: green;
     }
   </style>
 </head>
 <body>
   <h1>Scan Ticket</h1>
-  <div id="qr-reader" style="width: 300px; margin: 20px auto;"></div>
+  <div id="cameraContainer">
+    <video id="video" autoplay playsinline></video>
+    <div id="qr-reader" style="width:320px; margin: 12px auto;"></div>
+    <div id="autofocusStatus">Autofocus is ON</div>
+    <button id="flashButton" style="display:none;">Flash ON</button>
+  </div>
   <p id="scan-result"></p>
 
-  <!-- Primary QR code library CDN -->
-  <script id="qrLibScript" src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+  <!-- Include the html5-qrcode library -->
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 
   <script>
-    // Fallback loader for QR code library
-    function loadQrLibFallback() {
-      var fallbackScript = document.createElement('script');
-      fallbackScript.src = 'https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js';
-      fallbackScript.onload = initQrScanner;
-      fallbackScript.onerror = function() {
-        document.getElementById('scan-result').innerText = 'QR Code library failed to load!';
-        alert('QR Code library failed to load! Please check your internet connection or try again.');
-      };
-      document.body.appendChild(fallbackScript);
-    }
+    // Set the camera constraints and start the camera
+    async function startCamera() {
+      const videoElement = document.getElementById('video');
+      const autofocusStatus = document.getElementById('autofocusStatus');
+      const flashButton = document.getElementById('flashButton');
+      let currentStream;
+      let flashOn = false;
+      let torchSupported = false;
 
-    // Main QR scanner initialization
-    function initQrScanner() {
-      if (typeof Html5Qrcode === "undefined") {
-        loadQrLibFallback();
-        return;
+      // Get the preferred camera (preferably the rear camera)
+      async function getPreferredCameraConstraints() {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoInputs = devices.filter(d => d.kind === 'videoinput');
+        if (videoInputs.length === 0) return { video: true };
+
+        const rear = videoInputs.find(d => /back|rear|environment/i.test(d.label));
+        if (rear) {
+          return { video: { deviceId: { exact: rear.deviceId }, facingMode: 'environment' } };
+        }
+        return { video: { deviceId: { exact: videoInputs[0].deviceId } } };
       }
 
       function onScanSuccess(decodedText) {
@@ -82,10 +101,44 @@
           alert('Ticket verification failed. See console for details.');
         });
       }
-
       function onScanFailure(error) {
+        // Log scan failures for debugging
         console.error('Scan failed:', error);
       }
+      // Start the camera and apply settings
+      try {
+        const constraints = await getPreferredCameraConstraints();
+        constraints.video = Object.assign(constraints.video || {}, {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'environment'
+        });
+
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoElement.srcObject = currentStream;
+
+        // Configure autofocus and torch based on track capabilities (apply early)
+        try {
+          const track = currentStream.getVideoTracks()[0];
+          const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+          if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+            try {
+              await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+              autofocusStatus.style.display = 'block';
+              setTimeout(() => { autofocusStatus.style.display = 'none'; }, 3000);
+            } catch (e) {
+              console.warn('Could not apply autofocus at start:', e);
+            }
+          }
+          if (capabilities.torch) {
+            torchSupported = true;
+            flashButton.style.display = 'block';
+          } else {
+            flashButton.style.display = 'none';
+          }
+        } catch (e) {
+          console.warn('Error while configuring track capabilities:', e);
+        }
 
       // Initialize the QR scanner
       const qrScanner = new Html5Qrcode("qr-reader");
@@ -202,7 +255,8 @@
             console.warn('Autofocus attempt failed:', e);
           }
         })();
-      }).catch(err => {
+      })
+      .catch(err => {
         if (err && err.name === 'NotAllowedError') {
           document.getElementById('scan-result').innerText = 'Camera access denied. Please allow camera permissions.';
           alert('Camera access denied. Please allow camera permissions.');
@@ -211,20 +265,30 @@
           console.error('Camera start error:', err);
           alert('Camera error: ' + (err && err.message ? err.message : err));
         }
-      });
-    }
+      }); // <-- Properly close the .catch() block
 
-    // Wait for QR library to load, then initialize
-    document.getElementById('qrLibScript').onload = initQrScanner;
-    document.getElementById('qrLibScript').onerror = function() {
-      // Try fallback CDN
-      loadQrLibFallback();
+      } catch (err) {
+        console.error('Error accessing camera:', err);
+        alert('Camera permission denied or no camera found.');
+      }
+
+      // Toggle flash when the button is clicked
+      flashButton.addEventListener('click', () => {
+        if (torchSupported) {
+          flashOn = !flashOn;
+          const track = currentStream.getVideoTracks()[0];
+          track.applyConstraints({ advanced: [{ torch: flashOn }] });
+          flashButton.textContent = flashOn ? 'Flash OFF' : 'Flash ON';
+        } else {
+          alert('Torch not supported on this device');
+        }
+      });
+    } // <-- Add this closing brace to end startCamera
+
+    // Initialize QR scanner after the camera setup
+    window.onload = function () {
+      startCamera();
     };
-    
-    // If document is already loaded, but script is cached, try to initialize
-    if (typeof Html5Qrcode !== "undefined") {
-      initQrScanner();
-    }
   </script>
 </body>
 </html>
