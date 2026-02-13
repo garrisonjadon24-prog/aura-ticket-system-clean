@@ -78,6 +78,9 @@ function normalizeTokenString(s) {
 
 // ------------------------------------------------------
 // QR CODE VALIDATION ROUTE ------------------------------------------------------
+// Track guest entries for mystery prize
+const guestMysteryEntries = new Map(); // token -> guest info
+
 app.post('/api/verify-ticket', (req, res) => {
   try {
     const { token } = req.body || {};
@@ -86,20 +89,54 @@ app.post('/api/verify-ticket', (req, res) => {
     }
 
     const normalizedToken = normalizeTokenString(token);
-
     if (!normalizedToken) {
       return res.status(400).json({ ok: false, error: 'Invalid token format' });
     }
 
     const ticket = tickets && typeof tickets.get === 'function' ? tickets.get(normalizedToken) : null;
-    if (!ticket) {
-      return res.status(404).json({ ok: false, error: 'Ticket not found' });
+    if (ticket) {
+      // Ticket found, normal flow
+      return res.json({ ok: true, ticketId: ticket.id || normalizedToken, status: ticket.status || 'unknown', guestPrizeEligible: false });
     }
 
-    // Optionally mark as used here or return status as-is
-    return res.json({ ok: true, ticketId: ticket.id || normalizedToken, status: ticket.status || 'unknown' });
+    // Ticket not found: check if already logged for mystery prize
+    if (guestMysteryEntries.has(normalizedToken)) {
+      return res.status(409).json({ ok: false, error: 'Ticket already logged for mystery prize', guestPrizeEligible: false });
+    }
+
+    // Log the unknown ticket for audit
+    guestMysteryEntries.set(normalizedToken, null); // null means not yet submitted info
+    console.log('Mystery prize: unknown ticket scanned:', normalizedToken);
+    return res.status(404).json({ ok: false, error: 'Ticket not found', guestPrizeEligible: true });
   } catch (err) {
     console.error('Error in /api/verify-ticket:', err);
+    return res.status(500).json({ ok: false, error: 'Internal server error' });
+  }
+});
+
+// Guest submits info for mystery prize
+app.post('/api/guest-entry', (req, res) => {
+  try {
+    const { token, guestInfo } = req.body || {};
+    if (!token || !guestInfo) {
+      return res.status(400).json({ ok: false, error: 'Missing token or guest info' });
+    }
+    const normalizedToken = normalizeTokenString(token);
+    if (!normalizedToken) {
+      return res.status(400).json({ ok: false, error: 'Invalid token format' });
+    }
+    // Only allow if not already submitted
+    if (!guestMysteryEntries.has(normalizedToken)) {
+      return res.status(404).json({ ok: false, error: 'Ticket not eligible for mystery prize' });
+    }
+    if (guestMysteryEntries.get(normalizedToken)) {
+      return res.status(409).json({ ok: false, error: 'Guest info already submitted for this ticket' });
+    }
+    guestMysteryEntries.set(normalizedToken, guestInfo);
+    console.log('Mystery prize entry submitted:', normalizedToken, guestInfo);
+    return res.json({ ok: true, message: 'Guest info submitted for mystery prize' });
+  } catch (err) {
+    console.error('Error in /api/guest-entry:', err);
     return res.status(500).json({ ok: false, error: 'Internal server error' });
   }
 });

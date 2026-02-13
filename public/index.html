@@ -60,282 +60,102 @@
 </head>
 <body>
   <h1>Scan Ticket</h1>
-  <div id="cameraContainer">
-    <video id="camera-feed" autoplay playsinline></video>
-    <div id="qr-reader" style="width:320px; margin: 12px auto;"></div>
-    <div id="qr-overlay"></div>
-    <div id="qr-guide">Place QR code inside the box</div>
-    <div id="autofocusStatus">Autofocus is ON</div>
-    <button id="flash-button" style="display:none;">Flash ON</button>
-  </div>
+  <div id="qr-reader" style="width:320px; margin: 40px auto;"></div>
   <p id="scan-result"></p>
+  <div id="guest-prize-form" style="display:none; margin: 24px auto; max-width: 340px; background: #f9f9f9; border-radius: 8px; box-shadow: 0 2px 8px #ccc; padding: 18px;">
+    <h3>Enter for Mystery Prize</h3>
+    <form id="prizeForm">
+      <label>Name:<br><input type="text" name="name" required style="width:100%;margin-bottom:8px;"></label><br>
+      <label>Email:<br><input type="email" name="email" required style="width:100%;margin-bottom:8px;"></label><br>
+      <label>Phone:<br><input type="tel" name="phone" required style="width:100%;margin-bottom:8px;"></label><br>
+      <button type="submit">Submit Entry</button>
+    </form>
+    <div id="prizeFormMsg" style="margin-top:12px;color:#333;"></div>
+  </div>
 
   <!-- Include the html5-qrcode library FIRST -->
   <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
-
-  <!-- Your custom script must come AFTER html5-qrcode -->
   <script>
-    // Set the camera constraints and start the camera
-    async function startCamera() {
-      const videoElement = document.getElementById('camera-feed');
-      const autofocusStatus = document.getElementById('autofocusStatus');
-      const flashButton = document.getElementById('flash-button');
-      let currentStream;
-      let flashOn = false;
-      let torchSupported = false;
-
-      // Get the preferred camera (preferably the rear camera)
-      async function getPreferredCameraConstraints() {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoInputs = devices.filter(d => d.kind === 'videoinput');
-        if (videoInputs.length === 0) return { video: true };
-
-        const rear = videoInputs.find(d => /back|rear|environment/i.test(d.label));
-        if (rear) {
-          return { video: { deviceId: { exact: rear.deviceId }, facingMode: 'environment' } };
+    // Simple QR scanner for staff using html5-qrcode
+    let lastScannedToken = null;
+    function onScanSuccess(decodedText, decodedResult) {
+      document.getElementById('scan-result').innerText = `Scanned: ${decodedText}`;
+      lastScannedToken = decodedText;
+      fetch('/api/verify-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: decodedText })
+      })
+      .then(async response => {
+        let data = await response.json();
+        if (data && data.ok) {
+          alert(`Ticket Verified ✅: ${data.ticketId}`);
+          document.getElementById('guest-prize-form').style.display = 'none';
+        } else if (data && data.guestPrizeEligible) {
+          document.getElementById('guest-prize-form').style.display = 'block';
+          document.getElementById('prizeFormMsg').innerText = '';
+        } else if (response.status === 409) {
+          alert('This QR code has already been used for the mystery prize.');
+          document.getElementById('guest-prize-form').style.display = 'none';
+        } else {
+          alert('Invalid Ticket ❌');
+          document.getElementById('guest-prize-form').style.display = 'none';
         }
-        return { video: { deviceId: { exact: videoInputs[0].deviceId } } };
-      }
+      })
+      .catch(err => {
+        console.error('Ticket verification error:', err);
+        alert('Ticket verification failed. See console for details.');
+        document.getElementById('guest-prize-form').style.display = 'none';
+      });
+    }
 
-      function onScanSuccess(decodedText) {
-        // Normalize common OCR mistakes (O -> 0, I/L -> 1)
-        const normalizedToken = decodedText.toUpperCase().replace(/O/g, '0').replace(/I/g, '1').replace(/L/g, '1');
-        document.getElementById('scan-result').innerText = `Scanned: ${normalizedToken}`;
+    function onScanFailure(error) {
+      // Log scan failures for debugging
+      console.warn('QR Scan error:', error);
+    }
 
-        // Stop scanner to avoid duplicate reads while processing
-        try {
-          if (qrScanner && typeof qrScanner.stop === 'function') {
-            qrScanner.stop().then(() => console.log('Scanner stopped after successful scan')).catch(() => {});
-          }
-        } catch (e) {
-          console.warn('Error stopping scanner after success', e);
+    window.onload = function () {
+      const qrScanner = new Html5QrcodeScanner("qr-reader", {
+        fps: 10,
+        qrbox: 250,
+        aspectRatio: 1.0,
+        showTorchButtonIfSupported: true,
+        disableFlip: false,
+      });
+      qrScanner.render(onScanSuccess, onScanFailure);
+
+      // Guest prize form handler
+      document.getElementById('prizeForm').onsubmit = function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const guestInfo = {
+          name: form.name.value,
+          email: form.email.value,
+          phone: form.phone.value
+        };
+        if (!lastScannedToken) {
+          document.getElementById('prizeFormMsg').innerText = 'No QR code scanned.';
+          return;
         }
-
-        // Make an API call to verify the ticket or process the QR code
-        fetch('/api/verify-ticket', {
+        fetch('/api/guest-entry', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: normalizedToken })
+          body: JSON.stringify({ token: lastScannedToken, guestInfo })
         })
-        .then(response => response.json())
-        .then(data => {
+        .then(async response => {
+          let data = await response.json();
           if (data && data.ok) {
-            alert(`Ticket Verified ✅: ${data.ticketId}`);
+            document.getElementById('prizeFormMsg').innerText = 'Entry submitted! Good luck with the mystery prize.';
+            form.reset();
           } else {
-            alert('Invalid Ticket ❌');
+            document.getElementById('prizeFormMsg').innerText = data && data.error ? data.error : 'Submission failed.';
           }
         })
         .catch(err => {
-          console.error('Ticket verification error:', err);
-          alert('Ticket verification failed. See console for details.');
+          document.getElementById('prizeFormMsg').innerText = 'Submission failed. See console.';
+          console.error('Mystery prize submission error:', err);
         });
-      }
-      function onScanFailure(error) {
-        // Log scan failures for debugging
-        console.error('Scan failed:', error);
-      }
-      // Start the camera and apply settings
-      try {
-        const constraints = await getPreferredCameraConstraints();
-        constraints.video = Object.assign(constraints.video || {}, {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'environment'
-        });
-
-        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-        videoElement.srcObject = currentStream;
-
-        // Configure autofocus and torch based on track capabilities (apply early)
-        try {
-          const track = currentStream.getVideoTracks()[0];
-          const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-          if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
-            try {
-              await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
-              autofocusStatus.style.display = 'block';
-              setTimeout(() => { autofocusStatus.style.display = 'none'; }, 3000);
-            } catch (e) {
-              console.warn('Could not apply autofocus at start:', e);
-            }
-          }
-          if (capabilities.torch) {
-            torchSupported = true;
-            flashButton.style.display = 'block';
-          } else {
-            flashButton.style.display = 'none';
-          }
-        } catch (e) {
-          console.warn('Error while configuring track capabilities:', e);
-        }
-
-      // Initialize the QR scanner (single instance)
-      const qrScanner = new Html5Qrcode("qr-reader");
-
-      // Dynamically choose qrbox size based on viewport to help with small QR codes
-      function calculateQrBox() {
-        const smaller = Math.min(window.innerWidth, window.innerHeight);
-        // Use up to 72% of the smaller dimension but clamp between 200 and 520
-        return Math.max(200, Math.min(520, Math.floor(smaller * 0.72)));
-      }
-
-      const startConfig = {
-        fps: 10,
-        qrbox: calculateQrBox(),
-        aspectRatio: 1.0,
-        disableFlip: false
       };
-
-      // Helper to update the visual overlay to match the qrbox size
-      function updateQrOverlay(size) {
-        try {
-          const overlay = document.getElementById('qr-overlay');
-          if (!overlay) return;
-          overlay.style.width = size + 'px';
-          overlay.style.height = size + 'px';
-        } catch (e) {
-          console.warn('Failed to update QR overlay', e);
-        }
-      }
-
-      // Apply initial overlay size
-      updateQrOverlay(startConfig.qrbox);
-
-      // Recalculate qrbox on resize for responsive behavior
-      window.addEventListener('resize', () => {
-        try {
-          const newBox = calculateQrBox();
-          // Html5Qrcode doesn't currently expose a simple setter for qrbox while running.
-          // Best approach is to stop and restart if size changes significantly.
-          // For simplicity, only act when there's a large change.
-          if (Math.abs(startConfig.qrbox - newBox) > 60) {
-            startConfig.qrbox = newBox;
-            updateQrOverlay(newBox);
-            if (qrScanner && typeof qrScanner.stop === 'function') {
-              qrScanner.stop().then(() => {
-                qrScanner.start({ facingMode: 'environment' }, startConfig, onScanSuccess, onScanFailure).catch(console.error);
-              }).catch(console.error);
-            }
-          } else {
-            // Even when not restarting, update overlay to new size for responsiveness
-            updateQrOverlay(newBox);
-          }
-        } catch (e) { console.warn('Resize handling error', e); }
-      });
-
-      qrScanner.start(
-        { facingMode: "environment" },
-        startConfig,
-        onScanSuccess,
-        onScanFailure
-      ).then((stream) => {
-        let currentStream = stream;
-        const track = currentStream.getVideoTracks()[0];
-        const capabilities = track.getCapabilities ? track.getCapabilities() : {};
-        const settings = track.getSettings ? track.getSettings() : {};
-
-        // Torch (flashlight) toggle, only if supported
-        const controls = document.createElement('div');
-        controls.style.textAlign = 'center';
-        controls.style.marginTop = '8px';
-        document.getElementById('qr-reader').after(controls);
-
-        if (capabilities.torch) {
-          const torchButton = document.createElement('button');
-          torchButton.id = 'torch-toggle';
-          torchButton.textContent = '💡 Flash ON';
-          torchButton.style.marginRight = '8px';
-          controls.appendChild(torchButton);
-          torchButton.onclick = () => {
-            const flashOn = !torchButton.classList.contains('active');
-            track.applyConstraints({ advanced: [{ torch: flashOn }] })
-              .then(() => {
-                torchButton.classList.toggle('active', flashOn);
-                torchButton.textContent = flashOn ? '💡 Flash OFF' : '💡 Flash ON';
-              }).catch(err => {
-                console.error('Torch toggle failed:', err);
-                alert('Failed to toggle torch. See console for details.');
-              });
-          };
-        } else {
-          const info = document.createElement('span');
-          info.style.fontSize = '14px';
-          info.style.color = '#666';
-          info.textContent = 'Torch not supported on this device.';
-          controls.appendChild(info);
-        }
-
-        // Autofocus handling: attempt via track if supported, otherwise via video element
-        (async function tryApplyAutofocus() {
-          try {
-            const hasFocusMode = capabilities.focusMode && capabilities.focusMode.length;
-            const currentFocus = settings.focusMode;
-
-            if (hasFocusMode && currentFocus !== 'continuous' && capabilities.focusMode.includes('continuous')) {
-              await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
-              console.log('Autofocus (continuous) applied via track constraints');
-            } else if (currentFocus === 'continuous') {
-              console.log('Autofocus already enabled by device');
-            } else {
-              // Try applying to video element as a fallback
-              const videoEl = document.querySelector('#qr-reader video');
-              if (videoEl && videoEl.srcObject) {
-                const vtracks = videoEl.srcObject.getVideoTracks();
-                if (vtracks && vtracks.length > 0) {
-                  try {
-                    await vtracks[0].applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
-                    console.log('Autofocus applied via video track constraints');
-                    return;
-                  } catch (e) {
-                    console.warn('Could not apply autofocus via video track:', e);
-                  }
-                }
-              }
-              console.warn('Autofocus not supported on this device. Small QR codes may be harder to scan.');
-              const msg = document.createElement('div');
-              msg.style.color = '#b55';
-              msg.style.fontSize = '14px';
-              msg.style.marginTop = '6px';
-              msg.textContent = 'Autofocus not supported — try moving the camera closer/farther or tapping to focus.';
-              controls.appendChild(msg);
-            }
-          } catch (e) {
-            console.warn('Autofocus attempt failed:', e);
-          }
-        })();
-      })
-      .catch(err => {
-        if (err && err.name === 'NotAllowedError') {
-          document.getElementById('scan-result').innerText = 'Camera access denied. Please allow camera permissions.';
-          alert('Camera access denied. Please allow camera permissions.');
-        } else {
-          document.getElementById('scan-result').innerText = 'Camera error: ' + (err && err.message ? err.message : err);
-          console.error('Camera start error:', err);
-          alert('Camera error: ' + (err && err.message ? err.message : err));
-        }
-      }); // <-- Properly close the .catch() block
-
-      } catch (err) {
-        console.error('Error accessing camera:', err);
-        alert('Camera permission denied or no camera found.');
-      }
-
-      // Toggle flash when the button is clicked
-      flashButton.addEventListener('click', () => {
-        if (torchSupported && currentStream) {
-          flashOn = !flashOn;
-          const track = currentStream.getVideoTracks()[0];
-          track.applyConstraints({ advanced: [{ torch: flashOn }] }).catch(err => console.error('Torch toggle failed', err));
-          flashButton.textContent = flashOn ? 'Flash OFF' : 'Flash ON';
-        } else {
-          alert('Torch not supported on this device');
-        }
-      });
-    } // <-- Add this closing brace to end startCamera
-
-    // Initialize QR scanner after the camera setup
-    window.onload = function () {
-      startCamera();
     };
   </script>
 </body>
