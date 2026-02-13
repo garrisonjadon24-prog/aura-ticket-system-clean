@@ -47,15 +47,35 @@
     qrScanner.start(
       { facingMode: "environment" }, // Use the back camera
       {
-        fps: 5,
-        qrbox: 200,
         fps: 10,
-        qrbox: 180,
-        aspectRatio: 1.0
+        qrbox: 250, // Increased size for better detection of small QR codes
+        aspectRatio: 1.0,
+        disableFlip: false
       },
       onScanSuccess,
       onScanFailure
     );
+
+    // Enable torch (flashlight) for low-light scanning
+    if (Html5Qrcode.getCameraDevice && typeof Html5Qrcode.getCameraDevice === 'function') {
+      qrScanner.getRunningTrackSettings().then(settings => {
+        // Torch will be available if supported by the device
+        const torchButton = document.createElement('button');
+        torchButton.textContent = '💡 Flash';
+        torchButton.style.padding = '10px 15px';
+        torchButton.style.marginTop = '10px';
+        torchButton.style.cursor = 'pointer';
+        torchButton.onclick = () => {
+          qrScanner.applyConstraints({ advanced: [{ torch: true }] }).catch(e => console.log('Torch not supported'));
+        };
+        document.getElementById('qr-reader').appendChild(torchButton);
+      }).catch(e => console.log('Torch control not available'));
+    }
+
+    // Request autofocus via constraints
+    qrScanner.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(e => {
+      console.log('Auto-focus not supported or already enabled by device');
+    });
   </script>
 </body>
-</html>
+</html

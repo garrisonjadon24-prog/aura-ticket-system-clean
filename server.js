@@ -76,11 +76,28 @@ app.get("/", (req, res) => {
 
         const qrScanner = new Html5QrcodeScanner("qr-reader", {
           fps: 10,
-          qrbox: 180,
-          aspectRatio: 1.0
+          qrbox: 250, // Increased size for better detection of small QR codes
+          aspectRatio: 1.0,
+          disableFlip: false,
+          showTorchButtonIfSupported: true // Enable torch/flash button if supported
         });
 
         qrScanner.render(onScanSuccess, onScanFailure);
+
+        // Apply advanced constraints for autofocus
+        try {
+          const video = document.querySelector("#qr-reader video");
+          if (video && video.srcObject) {
+            const tracks = video.srcObject.getVideoTracks();
+            if (tracks.length > 0) {
+              tracks[0].applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(e => {
+                console.log('Auto-focus not supported or already enabled');
+              });
+            }
+          }
+        } catch (e) {
+          console.log('Could not apply autofocus constraints');
+        }
       </script>
     </body>
     </html>
