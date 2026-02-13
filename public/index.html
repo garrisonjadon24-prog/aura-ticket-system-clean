@@ -70,9 +70,10 @@
   </div>
   <p id="scan-result"></p>
 
-  <!-- Include the html5-qrcode library -->
+  <!-- Include the html5-qrcode library FIRST -->
   <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
 
+  <!-- Your custom script must come AFTER html5-qrcode -->
   <script>
     // Set the camera constraints and start the camera
     async function startCamera() {
