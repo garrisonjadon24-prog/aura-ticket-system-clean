@@ -1,1 +1,63 @@
+<<<<<<< HEAD
 node_modules/
+=======
+# Node dependencies
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Runtime env files
+.env
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Build output
+dist/
+build/
+out/
+coverage/
+.nyc_output/
+esm/
+lib/
+server/
+
+# Bundler / cache
+.cache/
+.pnp/
+.pnp.js
+.parcel-cache/
+.next/
+.vite/
+.nuxt/
+.svelte-kit/
+
+# Generated assets
+generated_qr/
+
+# Temporary files
+tmp/
+temp/
+*.swp
+*.tmp
+
+# Backups and exports
+*.bak
+*.backup
+data/backup.json
+
+# Misc
+*.log

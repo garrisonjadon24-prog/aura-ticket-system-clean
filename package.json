@@ -21,6 +21,7 @@
   "homepage": "https://github.com/garrisonjadon24-prog/aura-ticket-system-clean#readme",
   "dependencies": {
     "express": "^5.2.1",
+    "html5-qrcode": "^2.3.8",
     "qrcode": "^1.5.4"
   }
 }

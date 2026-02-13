@@ -2543,6 +2543,15 @@ app.get("/generate-ticket", (req, res) => {
       console.error("Error generating QR:", err);
       res.status(500).send("Error generating QR");
     });
+  QRCode.toFile(qrImagePath, ticketUrl, {
+  width: 300,    // Set width to 300px for larger QR code
+  margin: 2,     // Add margin for better clarity
+  color: {
+    dark: '#000000',  // Black color for the QR code
+    light: '#ffffff'  // White background
+  }
+});
+
 });
 // ROUTE 3: Generate a batch of tickets (STAFF-ONLY)
 app.get("/generate-batch", (req, res) => {
@@ -2576,6 +2585,16 @@ app.get("/generate-batch", (req, res) => {
 
     // QRCode.toFile returns a Promise when no callback is passed
     tasks.push(QRCode.toFile(qrImagePath, ticketUrl));
+
+QRCode.toFile(qrImagePath, ticketUrl, {
+  width: 300,    // Set width to 300px for larger QR code
+  margin: 2,     // Add margin for better clarity
+  color: {
+    dark: '#000000',  // Black color for the QR code
+    light: '#ffffff'  // White background
+  }
+});
+
 
     created.push({ id, type: ticketType, qr: qrImagePath });
   }
@@ -5854,6 +5873,17 @@ app.post("/api/box-office-generate", (req, res) => {
   QRCode.toFile(qrPath, qrUrl, (err) => {
     if (err) console.error("QR generation error:", err);
   });
+
+  QRCode.toFile(qrPath, qrUrl, {
+  width: 300,    // Set width to 300px for larger QR code
+  margin: 2,     // Add margin for better clarity
+  color: {
+    dark: '#000000',  // Black color for the QR code
+    light: '#ffffff'  // White background
+  }
+}, (err) => {
+  if (err) console.error("QR generation error:", err);
+});
 
   boxOfficeSales.sales.push({
     ticketId,
