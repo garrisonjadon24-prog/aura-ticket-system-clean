@@ -104,6 +104,29 @@ app.post('/api/verify-ticket', (req, res) => {
   }
 });
 
+// ------------------------------------------------------
+// DEV-ONLY: Seed a test ticket into the in-memory store
+// Enabled only when NODE_ENV !== 'production'
+if (process.env.NODE_ENV !== 'production') {
+  app.post('/dev/seed-ticket', (req, res) => {
+    try {
+      const supplied = req.body && req.body.token;
+      const token = supplied || createToken();
+      const ticket = {
+        id: token,
+        status: 'valid',
+        created: new Date().toISOString(),
+      };
+      tickets.set(token, ticket);
+      console.log('Dev seed ticket added:', token);
+      return res.json({ ok: true, token, ticket });
+    } catch (err) {
+      console.error('Error seeding dev ticket:', err);
+      return res.status(500).json({ ok: false, error: 'Failed to seed ticket' });
+    }
+  });
+}
+
 // 👇 HOST is now configurable (better for ngrok / Wi-Fi changes)
 const HOST = process.env.HOST || "0.0.0.0"; // listen on all interfaces by default
 // Optional: external/public base URL (e.g. ngrok HTTPS URL)
