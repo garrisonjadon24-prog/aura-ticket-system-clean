@@ -78,7 +78,7 @@
         { facingMode: "environment" },
         {
           fps: 10,
-          qrbox: 250,
+          qrbox: 350, // Increased size for better detection of small QR codes
           aspectRatio: 1.0,
           disableFlip: false
         },
@@ -86,39 +86,37 @@
         onScanFailure
       ).then((stream) => {
         let currentStream = stream;
+        const track = currentStream.getVideoTracks()[0];
+        const capabilities = track.getCapabilities();
 
-        // Enable torch (flashlight) for low-light scanning
-        if (Html5Qrcode.getCameraDevice && typeof Html5Qrcode.getCameraDevice === 'function') {
-          qrScanner.getRunningTrackSettings().then(settings => {
-            // Torch will be available if supported by the device
-            const torchButton = document.createElement('button');
-            torchButton.textContent = '💡 Flash ON';
-            document.body.appendChild(torchButton);
+        // Torch (flashlight) toggle, only if supported
+        if (capabilities.torch) {
+          const torchButton = document.createElement('button');
+          torchButton.textContent = '💡 Flash ON';
+          document.body.appendChild(torchButton);
+          torchButton.onclick = () => {
+            const flashOn = !torchButton.classList.contains('active');
+            track.applyConstraints({ advanced: [{ torch: flashOn }] })
+              .then(() => {
+                torchButton.classList.toggle('active', flashOn);
+                torchButton.textContent = flashOn ? '💡 Flash OFF' : '💡 Flash ON';
+              }).catch(console.error);
+          };
+        }
 
-            torchButton.onclick = () => {
-              const track = currentStream.getVideoTracks()[0];
-              const capabilities = track.getCapabilities();
-              if (capabilities.torch) {
-                const flashOn = !torchButton.classList.contains('active');
-                track.applyConstraints({ advanced: [{ torch: flashOn }] })
-                  .then(() => {
-                    torchButton.classList.toggle('active', flashOn);
-                    torchButton.textContent = flashOn ? '💡 Flash OFF' : '💡 Flash ON';
-                  }).catch(console.error);
-              } else {
-                alert('Torch is not supported on this device.');
-              }
-            };
-
-            // Autofocus
-            const track = currentStream.getVideoTracks()[0];
-            const capabilities = track.getCapabilities();
-            if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
-              track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] })
-                .then(() => console.log('Autofocus applied successfully'))
-                .catch(err => console.log('Autofocus not supported or already enabled by device:', err));
-            }
-          }).catch(console.error);
+        // Continuous autofocus (only once)
+        if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+          track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] })
+            .then(() => console.log('Autofocus applied successfully'))
+            .catch(err => console.log('Autofocus not supported or already enabled by device:', err));
+        }
+      }).catch(err => {
+        if (err && err.name === 'NotAllowedError') {
+          document.getElementById('scan-result').innerText = 'Camera access denied. Please allow camera permissions.';
+          alert('Camera access denied. Please allow camera permissions.');
+        } else {
+          document.getElementById('scan-result').innerText = 'Camera error: ' + (err && err.message ? err.message : err);
+          alert('Camera error: ' + (err && err.message ? err.message : err));
         }
       });
     }
