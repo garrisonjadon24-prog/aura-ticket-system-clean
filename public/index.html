@@ -87,35 +87,40 @@
       ).then((stream) => {
         let currentStream = stream;
 
-        // Torch (flashlight) toggle
-        const torchButton = document.createElement('button');
-        torchButton.textContent = '💡 Flash ON';
-        document.body.appendChild(torchButton);
+        // Enable torch (flashlight) for low-light scanning
+        if (Html5Qrcode.getCameraDevice && typeof Html5Qrcode.getCameraDevice === 'function') {
+          qrScanner.getRunningTrackSettings().then(settings => {
+            // Torch will be available if supported by the device
+            const torchButton = document.createElement('button');
+            torchButton.textContent = '💡 Flash ON';
+            document.body.appendChild(torchButton);
 
-        torchButton.onclick = () => {
-          const track = currentStream.getVideoTracks()[0];
-          const capabilities = track.getCapabilities();
-          if (capabilities.torch) {
-            const flashOn = !torchButton.classList.contains('active');
-            track.applyConstraints({ advanced: [{ torch: flashOn }] })
-              .then(() => {
-                torchButton.classList.toggle('active', flashOn);
-                torchButton.textContent = flashOn ? '💡 Flash OFF' : '💡 Flash ON';
-              }).catch(console.error);
-          } else {
-            alert('Torch is not supported on this device.');
-          }
-        };
+            torchButton.onclick = () => {
+              const track = currentStream.getVideoTracks()[0];
+              const capabilities = track.getCapabilities();
+              if (capabilities.torch) {
+                const flashOn = !torchButton.classList.contains('active');
+                track.applyConstraints({ advanced: [{ torch: flashOn }] })
+                  .then(() => {
+                    torchButton.classList.toggle('active', flashOn);
+                    torchButton.textContent = flashOn ? '💡 Flash OFF' : '💡 Flash ON';
+                  }).catch(console.error);
+              } else {
+                alert('Torch is not supported on this device.');
+              }
+            };
 
-        // Autofocus
-        const track = currentStream.getVideoTracks()[0];
-        const capabilities = track.getCapabilities();
-        if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
-          track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] })
-            .then(() => console.log('Autofocus applied successfully'))
-            .catch(err => console.log('Autofocus not supported or already enabled by device:', err));
+            // Autofocus
+            const track = currentStream.getVideoTracks()[0];
+            const capabilities = track.getCapabilities();
+            if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+              track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] })
+                .then(() => console.log('Autofocus applied successfully'))
+                .catch(err => console.log('Autofocus not supported or already enabled by device:', err));
+            }
+          }).catch(console.error);
         }
-      }).catch(console.error);
+      });
     }
 
     // Wait for QR library to load, then initialize

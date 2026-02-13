@@ -811,40 +811,74 @@ function verifyToken(token, signature) {
 const tickets = new Map();
 
 // Track invalid and duplicate scan attempts
-const scanEvents = {
-  invalid: [],   // tokens that don't exist in tickets map
-  duplicates: [] // tokens scanned multiple times
-};
+// Declare variables with `let` to allow reassignment
+let paymentEvents = [];
+let boxOfficeSales = [];
+let giveawayEvents = [];
+let guestNameEntries = [];
+let ipLogging = {};
+let scanEvents = {};
+let staffActivityLog = [];
+let guestScanLog = [];
 
-// Track payment transactions
-const paymentEvents = {
-  transactions: [] // { ticketId, method, amount, currency, notes, timestamp }
-};
+// ------------------------------------------------------
+// LOAD LOG DATA ON START
+// ------------------------------------------------------
 
-// Track box office sales
-const boxOfficeSales = {
-  prefix: "BOX-",
-  nextNumber: 1,
-  sales: [] // { ticketId, qrPath, timestamp, soldTo, amount }
-};
+function loadLogs() {
+  try {
+    if (fs.existsSync(PAYMENTS_FILE)) {
+      paymentEvents = JSON.parse(fs.readFileSync(PAYMENTS_FILE));
+    }
 
-// Track giveaways / prize draws
-const giveawayEvents = {
-  draws: [] // { prizeId, winnerTicketId, timestamp, prizeDescription }
-};
+    if (fs.existsSync(BOXOFFICE_FILE)) {
+      boxOfficeSales = JSON.parse(fs.readFileSync(BOXOFFICE_FILE));
+    }
 
-// Track IP activity and suspicious behavior
-const ipLogging = {
-  events: [],             // { ip, token, ticketId, timestamp, status }
-  suspicious: new Map()   // ip -> [events...] for IPs with >3 scans/min
-};
+    if (fs.existsSync(GIVEAWAY_FILE)) {
+      giveawayEvents = JSON.parse(fs.readFileSync(GIVEAWAY_FILE));
+    }
 
-// Staff / guest logs
-const staffActivityLog = [];  // { name, action, ip, timestamp }
-const guestScanLog     = [];  // { ticketId, token, ip, timestamp }
+    if (fs.existsSync(GUESTS_FILE)) {
+      guestNameEntries = JSON.parse(fs.readFileSync(GUESTS_FILE));
+    }
 
-// Guest entries for prize draw / mailing list
-const guestNameEntries = [];  // { ticketId, token, guestName, guestEmail, guestPhone, ip, timestamp, subscribe }
+    console.log("Log data loaded.");
+  } catch (err) {
+    console.error("Error loading logs:", err);
+  }
+}
+
+loadLogs();
+
+// ------------------------------------------------------
+// LOAD SECURITY + STAFF + SCAN LOGS
+// ------------------------------------------------------
+
+function loadExtraLogs() {
+  try {
+    if (fs.existsSync(SECURITY_FILE)) {
+      const data = JSON.parse(fs.readFileSync(SECURITY_FILE));
+      if (data.ipLogging) ipLogging = data.ipLogging;
+      if (data.scanEvents) scanEvents = data.scanEvents;
+    }
+
+    if (fs.existsSync(STAFFLOG_FILE)) {
+      staffActivityLog = JSON.parse(fs.readFileSync(STAFFLOG_FILE));
+    }
+
+    if (fs.existsSync(SCANLOG_FILE)) {
+      guestScanLog = JSON.parse(fs.readFileSync(SCANLOG_FILE));
+    }
+
+    console.log("Security + Staff + Scan logs loaded.");
+  } catch (err) {
+    console.error("Error loading extra logs:", err);
+  }
+}
+
+loadExtraLogs();
+
 
 // ticketId -> { sellerName, sellerPhone, sellerEmail, sold }
 const ticketAllocations = new Map();
