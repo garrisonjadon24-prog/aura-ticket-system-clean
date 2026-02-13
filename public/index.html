@@ -4,78 +4,131 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR Code Scanner</title>
-  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+  <style>
+    #qr-reader {
+      width: 100%;
+      margin: 20px auto;
+    }
+    button {
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    #scan-result {
+      font-size: 18px;
+      color: green;
+    }
+  </style>
 </head>
 <body>
   <h1>Scan Ticket</h1>
   <div id="qr-reader" style="width: 300px; margin: 20px auto;"></div>
   <p id="scan-result"></p>
 
+  <!-- Primary QR code library CDN -->
+  <script id="qrLibScript" src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.7/minified/html5-qrcode.min.js"></script>
+
   <script>
-    // Function to handle QR code scan success
-    function onScanSuccess(decodedText) {
-      // Normalizing the token string (handle OCR errors like O vs 0)
-      const normalizedToken = decodedText.toUpperCase().replace(/O/g, '0').replace(/I/g, '1').replace(/L/g, '1');
-
-      // Display the scanned token
-      document.getElementById('scan-result').innerText = `Scanned: ${normalizedToken}`;
-
-      // Send token to the back-end for verification
-      fetch('/api/verify-ticket', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: normalizedToken })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.ok) {
-          alert(`Ticket Verified ✅: ${data.ticketId}`);
-        } else {
-          alert('Invalid Ticket ❌');
-        }
-      })
-      .catch(console.error);
+    // Fallback loader for QR code library
+    function loadQrLibFallback() {
+      var fallbackScript = document.createElement('script');
+      fallbackScript.src = 'https://unpkg.com/html5-qrcode@2.3.7/minified/html5-qrcode.min.js';
+      fallbackScript.onload = initQrScanner;
+      fallbackScript.onerror = function() {
+        document.getElementById('scan-result').innerText = 'QR Code library failed to load!';
+        alert('QR Code library failed to load! Please check your internet connection or try again.');
+      };
+      document.body.appendChild(fallbackScript);
     }
 
-    // Function to handle scan failure
-    function onScanFailure(error) {
-      console.error('Scan failed:', error);
-    }
+    // Main QR scanner initialization
+    function initQrScanner() {
+      if (typeof Html5Qrcode === "undefined") {
+        loadQrLibFallback();
+        return;
+      }
 
-    // Initialize the QR scanner
-    const qrScanner = new Html5Qrcode("qr-reader");
-    qrScanner.start(
-      { facingMode: "environment" }, // Use the back camera
-      {
-        fps: 10,
-        qrbox: 250, // Increased size for better detection of small QR codes
-        aspectRatio: 1.0,
-        disableFlip: false
-      },
-      onScanSuccess,
-      onScanFailure
-    );
+      function onScanSuccess(decodedText) {
+        const normalizedToken = decodedText.toUpperCase().replace(/O/g, '0').replace(/I/g, '1').replace(/L/g, '1');
+        document.getElementById('scan-result').innerText = `Scanned: ${normalizedToken}`;
+        fetch('/api/verify-ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: normalizedToken })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.ok) {
+            alert(`Ticket Verified ✅: ${data.ticketId}`);
+          } else {
+            alert('Invalid Ticket ❌');
+          }
+        })
+        .catch(console.error);
+      }
 
-    // Enable torch (flashlight) for low-light scanning
-    if (Html5Qrcode.getCameraDevice && typeof Html5Qrcode.getCameraDevice === 'function') {
-      qrScanner.getRunningTrackSettings().then(settings => {
-        // Torch will be available if supported by the device
+      function onScanFailure(error) {
+        console.error('Scan failed:', error);
+      }
+
+      // Initialize the QR scanner
+      const qrScanner = new Html5Qrcode("qr-reader");
+      qrScanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: 250,
+          aspectRatio: 1.0,
+          disableFlip: false
+        },
+        onScanSuccess,
+        onScanFailure
+      ).then((stream) => {
+        let currentStream = stream;
+
+        // Torch (flashlight) toggle
         const torchButton = document.createElement('button');
-        torchButton.textContent = '💡 Flash';
-        torchButton.style.padding = '10px 15px';
-        torchButton.style.marginTop = '10px';
-        torchButton.style.cursor = 'pointer';
+        torchButton.textContent = '💡 Flash ON';
+        document.body.appendChild(torchButton);
+
         torchButton.onclick = () => {
-          qrScanner.applyConstraints({ advanced: [{ torch: true }] }).catch(e => console.log('Torch not supported'));
+          const track = currentStream.getVideoTracks()[0];
+          const capabilities = track.getCapabilities();
+          if (capabilities.torch) {
+            const flashOn = !torchButton.classList.contains('active');
+            track.applyConstraints({ advanced: [{ torch: flashOn }] })
+              .then(() => {
+                torchButton.classList.toggle('active', flashOn);
+                torchButton.textContent = flashOn ? '💡 Flash OFF' : '💡 Flash ON';
+              }).catch(console.error);
+          } else {
+            alert('Torch is not supported on this device.');
+          }
         };
-        document.getElementById('qr-reader').appendChild(torchButton);
-      }).catch(e => console.log('Torch control not available'));
+
+        // Autofocus
+        const track = currentStream.getVideoTracks()[0];
+        const capabilities = track.getCapabilities();
+        if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
+          track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] })
+            .then(() => console.log('Autofocus applied successfully'))
+            .catch(err => console.log('Autofocus not supported or already enabled by device:', err));
+        }
+      }).catch(console.error);
     }
 
-    // Request autofocus via constraints
-    qrScanner.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }).catch(e => {
-      console.log('Auto-focus not supported or already enabled by device');
-    });
+    // Wait for QR library to load, then initialize
+    document.getElementById('qrLibScript').onload = initQrScanner;
+    document.getElementById('qrLibScript').onerror = function() {
+      // Try fallback CDN
+      loadQrLibFallback();
+    };
+    
+    // If document is already loaded, but script is cached, try to initialize
+    if (typeof Html5Qrcode !== "undefined") {
+      initQrScanner();
+    }
   </script>
 </body>
-</html
+</html>

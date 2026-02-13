@@ -2,9 +2,22 @@
 
 // CORE SETUP ----------------------------------------------------
 
+
+const fs = require('fs');
+const path = require('path');
+
+// Set the directory path
+const DATA_DIR = path.join(__dirname, 'data');
+
+// Check if the directory exists and create it if not
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  console.log('Data directory created.');
+} else {
+  console.log('Data directory already exists.');
+}
+
 const express = require("express");
-const path = require("path");
-const fs = require("fs");
 const crypto = require("crypto");
 const QRCode = require("qrcode");
 
@@ -15,11 +28,11 @@ const PORT = process.env.PORT || 3000;
 // RENDER PERSISTENT STORAGE (MUST COME FIRST)
 // ------------------------------------------------------
 
-const DATA_DIR = "/data";
-
+// Already declared above, so just check existence and create if needed
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
+
 
 // ------------------------------------------------------
 // LOG PERSISTENCE FILES
@@ -928,13 +941,18 @@ function loadTicketAllocations() {
 loadTickets();
 loadTicketAllocations();   // ✅ ADD THIS EXACT LINE HERE
 // Save tickets and allocations every 5 minutes
-
 // ------------------------------------------------------
 // LOAD LOG DATA ON START
 // ------------------------------------------------------
 
 function loadLogs() {
   try {
+    // Use 'let' for variables that need to be reassigned
+    let paymentEvents;
+    let boxOfficeSales;
+    let giveawayEvents;
+    let guestNameEntries;
+
     if (fs.existsSync(PAYMENTS_FILE)) {
       paymentEvents = JSON.parse(fs.readFileSync(PAYMENTS_FILE));
     }
